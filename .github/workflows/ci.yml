@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
+      - name: Install peer dependencies for testing
+        run: pnpm add --dev astro@^5.12.9 @astrojs/starlight@^0.35.2
+        
       - name: Type check
         run: pnpm run typecheck
         
@@ -68,6 +71,9 @@ jobs:
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        
+      - name: Install peer dependencies for linting
+        run: pnpm add --dev astro@^5.12.9 @astrojs/starlight@^0.35.2
         
       - name: Lint
         run: pnpm run lint
