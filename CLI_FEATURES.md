@@ -1,4 +1,4 @@
-# 🌟 Beautiful CLI Experience
+# 🌟 CLI Experience
 
 ✅ **UPDATE**: The new CLI has been successfully integrated as the main CLI!
 
@@ -14,7 +14,7 @@ npx starlight-convert
 ```
 
 **Features:**
-- ✅ Beautiful prompts with colors and emojis
+- ✅ Prompts with colors and emojis
 - 📁 Automatic file detection and preview
 - ⚙️ Advanced configuration options
 - 🔍 Real-time validation
@@ -69,7 +69,7 @@ Real-time file monitoring with:
 
 #### **Quality Indicators**
 - 🟢 **High Quality**: Complete metadata, good structure
-- 🟡 **Medium Quality**: Minor issues 
+- 🟡 **Medium Quality**: Minor issues
 - 🔴 **Low Quality**: Missing metadata, needs attention
 
 #### **Beautiful Output**
@@ -95,7 +95,7 @@ npx starlight-convert
 
 # Follow the prompts:
 # 1. Enter input path: ./docs
-# 2. Choose output: src/content/docs  
+# 2. Choose output: src/content/docs
 # 3. Configure options
 # 4. Confirm and convert
 ```
@@ -119,7 +119,7 @@ npx starlight-convert setup
 
 # Choose project type:
 # - New Starlight project
-# - Existing project  
+# - Existing project
 # - Standalone CLI usage
 ```
 
