@@ -1,0 +1,889 @@
+---
+// ConversionDashboard.astro - Embedded Starlight component for conversion management
+import { getCollection } from 'astro:content';
+
+export interface Props {
+  title?: string;
+  showStats?: boolean;
+  showRecentConversions?: boolean;
+  maxRecentItems?: number;
+}
+
+const { 
+  title = "Document Converter Dashboard",
+  showStats = true,
+  showRecentConversions = true,
+  maxRecentItems = 5
+} = Astro.props;
+
+// Get conversion history from local storage or API
+// In a real implementation, this would fetch from a database
+const conversionHistory = [];
+const stats = {
+  totalConverted: 0,
+  highQuality: 0,
+  mediumQuality: 0,
+  lowQuality: 0,
+  recentActivity: []
+};
+---
+
+<div class="starlight-conversion-dashboard">
+  <div class="dashboard-header">
+    <h2 class="dashboard-title">
+      <svg class="dashboard-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L3.09 8.26L12 14L20.91 8.26L12 2ZM21 16L12 22L3 16L12 10L21 16Z"/>
+      </svg>
+      {title}
+    </h2>
+    <div class="dashboard-actions">
+      <button id="openWebInterface" class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 7H9C7.9 7 7 7.9 7 9V15C7 16.1 7.9 17 9 17H19C20.1 17 21 16.1 21 15V9C21 7.9 20.1 7 19 7ZM19 15H9V9H19V15ZM3 12H5V14H3V12ZM3 16H5V18H3V16ZM3 8H5V10H3V8Z"/>
+        </svg>
+        Open Full Interface
+      </button>
+      <button id="convertDocuments" class="btn-secondary">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6L9 16.2Z"/>
+        </svg>
+        Quick Convert
+      </button>
+    </div>
+  </div>
+
+  {showStats && (
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-icon success">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6L9 16.2Z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value" id="totalConverted">{stats.totalConverted}</div>
+          <div class="stat-label">Total Converted</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon high-quality">🟢</div>
+        <div class="stat-content">
+          <div class="stat-value" id="highQuality">{stats.highQuality}</div>
+          <div class="stat-label">High Quality</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon medium-quality">🟡</div>
+        <div class="stat-content">
+          <div class="stat-value" id="mediumQuality">{stats.mediumQuality}</div>
+          <div class="stat-label">Medium Quality</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon low-quality">🔴</div>
+        <div class="stat-content">
+          <div class="stat-value" id="lowQuality">{stats.lowQuality}</div>
+          <div class="stat-label">Needs Review</div>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <div class="dashboard-content">
+    <div class="dashboard-main">
+      <!-- Quick Upload Area -->
+      <div class="quick-upload-section">
+        <h3>Quick Convert</h3>
+        <div class="upload-dropzone" id="starlightDropzone">
+          <div class="dropzone-content">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+            </svg>
+            <p class="dropzone-text">Drop documents here or click to browse</p>
+            <div class="supported-formats">
+              <span class="format-badge">.docx</span>
+              <span class="format-badge">.html</span>
+              <span class="format-badge">.md</span>
+              <span class="format-badge">.txt</span>
+            </div>
+          </div>
+          <input type="file" id="starlightFileInput" multiple accept=".docx,.doc,.html,.htm,.txt,.md,.mdx,.rtf" hidden>
+        </div>
+      </div>
+
+      <!-- Conversion Settings -->
+      <div class="conversion-settings">
+        <h3>Settings</h3>
+        <div class="settings-grid">
+          <label class="setting-item">
+            <input type="checkbox" id="generateTitles" checked>
+            <span class="setting-label">Generate Titles</span>
+          </label>
+          <label class="setting-item">
+            <input type="checkbox" id="generateDescriptions" checked>
+            <span class="setting-label">Generate Descriptions</span>
+          </label>
+          <label class="setting-item">
+            <input type="checkbox" id="preserveStructure" checked>
+            <span class="setting-label">Preserve Structure</span>
+          </label>
+          <label class="setting-item">
+            <input type="checkbox" id="addTimestamps">
+            <span class="setting-label">Add Timestamps</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-sidebar">
+      {showRecentConversions && (
+        <div class="recent-conversions">
+          <h3>Recent Conversions</h3>
+          <div class="conversions-list" id="recentConversions">
+            <div class="no-conversions">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/>
+              </svg>
+              <p>No recent conversions</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="action-buttons">
+          <button class="action-btn" onclick="window.open('/converter-dashboard', '_blank')">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3,3V21H21V3H3M9,17H7V7H9V17M13,17H11V7H13V17M17,17H15V7H17V17Z"/>
+            </svg>
+            Full Dashboard
+          </button>
+          <button class="action-btn" id="batchConvert">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2,3H8V5H16V3H22V9H16V7H8V9H2V3M2,11H8V13H16V11H22V17H16V15H8V17H2V11M2,19H8V21H16V19H22V21H2V19Z"/>
+            </svg>
+            Batch Convert
+          </button>
+          <button class="action-btn" id="viewHistory">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
+            </svg>
+            View History
+          </button>
+          <button class="action-btn" id="openSettings">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+            </svg>
+            Settings
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Modal -->
+  <div id="conversionProgress" class="progress-modal hidden">
+    <div class="progress-content">
+      <div class="progress-header">
+        <h3>Converting Documents</h3>
+        <button id="closeProgress" class="close-btn">×</button>
+      </div>
+      <div class="progress-body">
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="overallProgress"></div>
+          </div>
+          <div class="progress-text">
+            <span id="progressStatus">Preparing...</span>
+            <span id="progressPercent">0%</span>
+          </div>
+        </div>
+        <div class="progress-details" id="progressDetails">
+          <!-- Progress details will be added here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Starlight-specific dashboard styles */
+.starlight-conversion-dashboard {
+  background: var(--sl-color-bg-nav);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  font-family: var(--sl-font);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+
+.dashboard-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+
+.dashboard-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--sl-color-accent);
+}
+
+.dashboard-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--sl-color-accent);
+  color: var(--sl-color-accent-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--sl-color-accent-high);
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  border: 1px solid var(--sl-color-gray-5);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: var(--sl-color-gray-6);
+  border-color: var(--sl-color-gray-4);
+}
+
+.btn-primary svg, .btn-secondary svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--sl-color-gray-6);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+.stat-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.stat-icon.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(34, 197, 94);
+}
+
+.stat-icon.high-quality {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.stat-icon.medium-quality {
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.stat-icon.low-quality {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.stat-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-3);
+  margin-top: 0.25rem;
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quick-upload-section h3,
+.conversion-settings h3,
+.recent-conversions h3,
+.quick-actions h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+  margin-bottom: 1rem;
+}
+
+.upload-dropzone {
+  border: 2px dashed var(--sl-color-gray-4);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--sl-color-gray-6);
+}
+
+.upload-dropzone:hover {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-gray-5);
+}
+
+.upload-dropzone.drag-over {
+  border-color: var(--sl-color-accent);
+  background: rgba(var(--sl-color-accent-raw), 0.1);
+}
+
+.upload-icon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--sl-color-gray-3);
+  margin-bottom: 0.75rem;
+}
+
+.dropzone-text {
+  color: var(--sl-color-gray-2);
+  margin-bottom: 1rem;
+}
+
+.supported-formats {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.format-badge {
+  background: var(--sl-color-accent);
+  color: var(--sl-color-accent-text);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.conversion-settings {
+  margin-top: 2rem;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.setting-item input[type="checkbox"] {
+  margin: 0;
+}
+
+.setting-label {
+  color: var(--sl-color-gray-2);
+  font-size: 0.875rem;
+}
+
+.conversions-list {
+  space-y: 0.75rem;
+}
+
+.no-conversions {
+  text-align: center;
+  color: var(--sl-color-gray-3);
+  padding: 2rem 0;
+}
+
+.no-conversions svg {
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.quick-actions {
+  margin-top: 2rem;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  border: 1px solid var(--sl-color-gray-5);
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.action-btn:hover {
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-white);
+  border-color: var(--sl-color-gray-4);
+}
+
+.action-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.progress-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.progress-modal.hidden {
+  display: none;
+}
+
+.progress-content {
+  background: var(--sl-color-bg);
+  border-radius: 0.5rem;
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.5rem 0 1.5rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  margin-bottom: 1.5rem;
+}
+
+.progress-header h3 {
+  margin: 0;
+  color: var(--sl-color-white);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--sl-color-gray-3);
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+}
+
+.close-btn:hover {
+  color: var(--sl-color-gray-1);
+  background: var(--sl-color-gray-6);
+}
+
+.progress-body {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.progress-bar-container {
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background: var(--sl-color-gray-5);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sl-color-accent), var(--sl-color-accent-high));
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-2);
+}
+
+.progress-details {
+  max-height: 200px;
+  overflow-y: auto;
+}
+</style>
+
+<script>
+// Starlight Dashboard JavaScript
+class StarlightDashboard {
+  constructor() {
+    this.dropzone = document.getElementById('starlightDropzone');
+    this.fileInput = document.getElementById('starlightFileInput');
+    this.progressModal = document.getElementById('conversionProgress');
+    
+    this.init();
+  }
+
+  init() {
+    this.setupDropzone();
+    this.setupButtons();
+    this.loadStats();
+  }
+
+  setupDropzone() {
+    if (!this.dropzone || !this.fileInput) return;
+
+    // Click to upload
+    this.dropzone.addEventListener('click', () => {
+      this.fileInput.click();
+    });
+
+    // File input change
+    this.fileInput.addEventListener('change', (e) => {
+      this.handleFiles(Array.from(e.target.files));
+    });
+
+    // Drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      this.dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      this.dropzone.addEventListener(eventName, () => {
+        this.dropzone.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      this.dropzone.addEventListener(eventName, () => {
+        this.dropzone.classList.remove('drag-over');
+      });
+    });
+
+    this.dropzone.addEventListener('drop', (e) => {
+      const files = Array.from(e.dataTransfer.files);
+      this.handleFiles(files);
+    });
+  }
+
+  setupButtons() {
+    document.getElementById('openWebInterface')?.addEventListener('click', () => {
+      window.open('/web-ui/index.html', '_blank');
+    });
+
+    document.getElementById('convertDocuments')?.addEventListener('click', () => {
+      this.fileInput?.click();
+    });
+
+    document.getElementById('batchConvert')?.addEventListener('click', () => {
+      this.showBatchConvertModal();
+    });
+
+    document.getElementById('viewHistory')?.addEventListener('click', () => {
+      this.showHistoryModal();
+    });
+
+    document.getElementById('openSettings')?.addEventListener('click', () => {
+      this.showSettingsModal();
+    });
+
+    document.getElementById('closeProgress')?.addEventListener('click', () => {
+      this.hideProgressModal();
+    });
+  }
+
+  async handleFiles(files) {
+    if (files.length === 0) return;
+
+    const validFiles = files.filter(file => {
+      const ext = file.name.split('.').pop().toLowerCase();
+      return ['docx', 'doc', 'html', 'htm', 'txt', 'md', 'mdx', 'rtf'].includes(ext);
+    });
+
+    if (validFiles.length === 0) {
+      alert('No supported files selected. Please choose .docx, .html, .txt, or .md files.');
+      return;
+    }
+
+    // Show progress modal
+    this.showProgressModal();
+
+    try {
+      // Convert files (this would call the actual converter API)
+      await this.convertFiles(validFiles);
+      
+      // Update stats
+      this.updateStats();
+      
+      // Hide progress modal
+      this.hideProgressModal();
+      
+      // Show success message
+      this.showToast(`Successfully converted ${validFiles.length} file(s)`, 'success');
+      
+    } catch (error) {
+      this.hideProgressModal();
+      this.showToast('Conversion failed: ' + error.message, 'error');
+    }
+  }
+
+  async convertFiles(files) {
+    const settings = this.getConversionSettings();
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Update progress
+      this.updateProgress(i / files.length * 100, `Converting ${file.name}...`);
+      
+      // Simulate conversion (replace with actual API call)
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+      
+      // Add to recent conversions
+      this.addRecentConversion({
+        fileName: file.name,
+        timestamp: Date.now(),
+        quality: Math.floor(Math.random() * 40) + 60 // Random quality 60-100
+      });
+    }
+    
+    this.updateProgress(100, 'Conversion complete!');
+  }
+
+  getConversionSettings() {
+    return {
+      generateTitles: document.getElementById('generateTitles')?.checked ?? true,
+      generateDescriptions: document.getElementById('generateDescriptions')?.checked ?? true,
+      preserveStructure: document.getElementById('preserveStructure')?.checked ?? true,
+      addTimestamps: document.getElementById('addTimestamps')?.checked ?? false
+    };
+  }
+
+  showProgressModal() {
+    this.progressModal?.classList.remove('hidden');
+  }
+
+  hideProgressModal() {
+    this.progressModal?.classList.add('hidden');
+  }
+
+  updateProgress(percent, status) {
+    const progressFill = document.getElementById('overallProgress');
+    const progressStatus = document.getElementById('progressStatus');
+    const progressPercent = document.getElementById('progressPercent');
+    
+    if (progressFill) progressFill.style.width = `${percent}%`;
+    if (progressStatus) progressStatus.textContent = status;
+    if (progressPercent) progressPercent.textContent = `${Math.round(percent)}%`;
+  }
+
+  loadStats() {
+    // Load stats from localStorage or API
+    const stats = JSON.parse(localStorage.getItem('starlight-converter-stats') || '{}');
+    
+    document.getElementById('totalConverted').textContent = stats.totalConverted || 0;
+    document.getElementById('highQuality').textContent = stats.highQuality || 0;
+    document.getElementById('mediumQuality').textContent = stats.mediumQuality || 0;
+    document.getElementById('lowQuality').textContent = stats.lowQuality || 0;
+  }
+
+  updateStats() {
+    const stats = JSON.parse(localStorage.getItem('starlight-converter-stats') || '{}');
+    stats.totalConverted = (stats.totalConverted || 0) + 1;
+    // Update quality stats based on conversion results
+    
+    localStorage.setItem('starlight-converter-stats', JSON.stringify(stats));
+    this.loadStats();
+  }
+
+  addRecentConversion(conversion) {
+    const recent = JSON.parse(localStorage.getItem('starlight-recent-conversions') || '[]');
+    recent.unshift(conversion);
+    recent.splice(5); // Keep only 5 most recent
+    
+    localStorage.setItem('starlight-recent-conversions', JSON.stringify(recent));
+    this.updateRecentConversions();
+  }
+
+  updateRecentConversions() {
+    const recent = JSON.parse(localStorage.getItem('starlight-recent-conversions') || '[]');
+    const container = document.getElementById('recentConversions');
+    
+    if (!container || recent.length === 0) return;
+    
+    container.innerHTML = recent.map(item => {
+      const date = new Date(item.timestamp).toLocaleString();
+      const qualityColor = item.quality >= 80 ? '🟢' : item.quality >= 60 ? '🟡' : '🔴';
+      
+      return `
+        <div class="recent-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--sl-color-gray-6); border-radius: 0.25rem; margin-bottom: 0.5rem;">
+          <div>
+            <div style="color: var(--sl-color-white); font-size: 0.875rem;">${item.fileName}</div>
+            <div style="color: var(--sl-color-gray-3); font-size: 0.75rem;">${date}</div>
+          </div>
+          <div style="font-size: 1rem;">${qualityColor}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  showToast(message, type = 'info') {
+    // Create a simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.cssText = `
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--sl-color-bg);
+      color: var(--sl-color-white);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--sl-color-gray-5);
+      z-index: 100;
+      animation: slideIn 0.3s ease;
+    `;
+    
+    if (type === 'success') {
+      toast.style.borderColor = 'var(--sl-color-green)';
+    } else if (type === 'error') {
+      toast.style.borderColor = 'var(--sl-color-red)';
+    }
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+
+  showBatchConvertModal() {
+    alert('Batch convert feature - would open modal for directory selection');
+  }
+
+  showHistoryModal() {
+    alert('History feature - would show conversion history');
+  }
+
+  showSettingsModal() {
+    alert('Settings feature - would open settings panel');
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  new StarlightDashboard();
+});
+
+// Add slideIn animation
+const style = document.createElement('style');
+style.textContent = `
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+`;
+document.head.appendChild(style);
+</script>

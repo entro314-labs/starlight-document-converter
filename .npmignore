@@ -1,0 +1,42 @@
+# Source files (only ship dist)
+src/
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+
+# Development files
+.eslintrc.json
+.prettierrc.json
+examples/
+docs/
+tests/
+*.test.ts
+*.spec.ts
+
+# Build tools
+.github/
+.vscode/
+.idea/
+.claude/
+
+# Logs and temp files
+*.log
+tmp/
+temp/
+
+# Test coverage
+coverage/
+.nyc_output
+
+# Environment files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~

@@ -1,0 +1,778 @@
+---
+// QualityMetrics.astro - Analytics display component for Starlight
+export interface Props {
+  title?: string;
+  showDetailedBreakdown?: boolean;
+  maxItems?: number;
+  timeframe?: 'day' | 'week' | 'month' | 'all';
+}
+
+const { 
+  title = "Conversion Quality Analytics",
+  showDetailedBreakdown = true,
+  maxItems = 10,
+  timeframe = 'week'
+} = Astro.props;
+
+// In a real implementation, this would fetch from an analytics API
+const metrics = {
+  overview: {
+    totalConversions: 127,
+    averageQuality: 78,
+    highQuality: 45,
+    mediumQuality: 62,
+    lowQuality: 20,
+    qualityTrend: '+5%'
+  },
+  breakdown: {
+    titleGeneration: { score: 85, trend: '+3%' },
+    descriptionQuality: { score: 72, trend: '+8%' },
+    contentStructure: { score: 88, trend: '-2%' },
+    tagRelevance: { score: 67, trend: '+12%' },
+    metadataComplete: { score: 94, trend: '+1%' }
+  },
+  topIssues: [
+    { issue: 'Short descriptions', count: 23, impact: 'medium' },
+    { issue: 'Generic titles', count: 18, impact: 'high' },
+    { issue: 'Missing tags', count: 15, impact: 'low' },
+    { issue: 'Poor structure', count: 12, impact: 'high' },
+    { issue: 'No categories', count: 8, impact: 'medium' }
+  ]
+};
+---
+
+<div class="quality-metrics-panel">
+  <div class="metrics-header">
+    <h2 class="metrics-title">
+      <svg class="metrics-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z"/>
+      </svg>
+      {title}
+    </h2>
+    <div class="metrics-controls">
+      <select class="timeframe-selector">
+        <option value="day">Last 24h</option>
+        <option value="week" selected>Last 7 days</option>
+        <option value="month">Last 30 days</option>
+        <option value="all">All time</option>
+      </select>
+      <button class="refresh-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Overview Cards -->
+  <div class="metrics-overview">
+    <div class="metric-card primary">
+      <div class="metric-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z"/>
+        </svg>
+      </div>
+      <div class="metric-content">
+        <div class="metric-value">{metrics.overview.averageQuality}%</div>
+        <div class="metric-label">Average Quality</div>
+        <div class="metric-trend positive">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z"/>
+          </svg>
+          {metrics.overview.qualityTrend}
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon success">🟢</div>
+      <div class="metric-content">
+        <div class="metric-value">{metrics.overview.highQuality}</div>
+        <div class="metric-label">High Quality</div>
+        <div class="metric-sublabel">{Math.round((metrics.overview.highQuality / metrics.overview.totalConversions) * 100)}% of total</div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon warning">🟡</div>
+      <div class="metric-content">
+        <div class="metric-value">{metrics.overview.mediumQuality}</div>
+        <div class="metric-label">Medium Quality</div>
+        <div class="metric-sublabel">{Math.round((metrics.overview.mediumQuality / metrics.overview.totalConversions) * 100)}% of total</div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon error">🔴</div>
+      <div class="metric-content">
+        <div class="metric-value">{metrics.overview.lowQuality}</div>
+        <div class="metric-label">Needs Review</div>
+        <div class="metric-sublabel">{Math.round((metrics.overview.lowQuality / metrics.overview.totalConversions) * 100)}% of total</div>
+      </div>
+    </div>
+  </div>
+
+  {showDetailedBreakdown && (
+    <div class="detailed-metrics">
+      <div class="metrics-section">
+        <h3>Quality Breakdown</h3>
+        <div class="breakdown-grid">
+          {Object.entries(metrics.breakdown).map(([key, data]) => (
+            <div class="breakdown-item">
+              <div class="breakdown-header">
+                <span class="breakdown-label">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                <span class={`breakdown-trend ${data.trend.startsWith('+') ? 'positive' : 'negative'}`}>
+                  {data.trend}
+                </span>
+              </div>
+              <div class="breakdown-bar">
+                <div class="breakdown-progress" style={`width: ${data.score}%`}></div>
+              </div>
+              <div class="breakdown-score">{data.score}%</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="metrics-section">
+        <h3>Common Issues</h3>
+        <div class="issues-list">
+          {metrics.topIssues.slice(0, maxItems).map((issue) => (
+            <div class="issue-item">
+              <div class="issue-content">
+                <div class="issue-title">{issue.issue}</div>
+                <div class="issue-meta">
+                  <span class="issue-count">{issue.count} files affected</span>
+                  <span class={`issue-impact impact-${issue.impact}`}>
+                    {issue.impact} impact
+                  </span>
+                </div>
+              </div>
+              <div class="issue-actions">
+                <button class="fix-btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L19,5V4A2,2 0 0,0 17,2H15C14.65,2 14.32,2.12 14.04,2.31L7.96,8.39C7.68,8.58 7.35,8.7 7,8.7H3V10.5H7C7.65,10.5 8.32,10.38 8.96,10.15L10.15,12.85C10,13.07 10,13.33 10,13.6V22H12V13.6C12,13.02 12.21,12.46 12.6,12.05L17.65,6.95L19,8.3V9H21M7.47,21.74C8.84,22.24 10.43,21.54 10.93,20.17C11.43,18.8 10.73,17.21 9.36,16.71C7.99,16.21 6.4,16.91 5.9,18.28C5.4,19.65 6.1,21.24 7.47,21.74Z"/>
+                  </svg>
+                  Guide
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
+  <!-- Quality Chart -->
+  <div class="metrics-section">
+    <h3>Quality Trends</h3>
+    <div class="chart-container">
+      <canvas id="qualityChart" width="400" height="200"></canvas>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <span class="legend-color high"></span>
+          <span>High Quality</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color medium"></span>
+          <span>Medium Quality</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color low"></span>
+          <span>Low Quality</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.quality-metrics-panel {
+  background: var(--sl-color-bg-nav);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  font-family: var(--sl-font);
+}
+
+.metrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+
+.metrics-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+
+.metrics-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--sl-color-accent);
+}
+
+.metrics-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timeframe-selector {
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-white);
+  border: 1px solid var(--sl-color-gray-5);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.refresh-btn {
+  background: transparent;
+  color: var(--sl-color-gray-3);
+  border: 1px solid var(--sl-color-gray-5);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-6);
+}
+
+.refresh-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.metrics-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.metric-card.primary {
+  background: linear-gradient(135deg, var(--sl-color-accent-low), var(--sl-color-accent));
+  border-color: var(--sl-color-accent);
+}
+
+.metric-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.metric-icon.success {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.metric-icon.warning {
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.metric-icon.error {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.metric-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--sl-color-white);
+}
+
+.metric-content {
+  flex: 1;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--sl-color-white);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sl-color-gray-2);
+  margin-bottom: 0.25rem;
+}
+
+.metric-sublabel {
+  font-size: 0.75rem;
+  color: var(--sl-color-gray-3);
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.metric-trend.positive {
+  color: rgb(34, 197, 94);
+}
+
+.metric-trend.negative {
+  color: rgb(239, 68, 68);
+}
+
+.metric-trend svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.detailed-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .detailed-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+.metrics-section {
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.metrics-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+
+.breakdown-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.breakdown-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.breakdown-label {
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-2);
+}
+
+.breakdown-trend {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.breakdown-trend.positive {
+  color: rgb(34, 197, 94);
+}
+
+.breakdown-trend.negative {
+  color: rgb(239, 68, 68);
+}
+
+.breakdown-bar {
+  width: 100%;
+  height: 0.5rem;
+  background: var(--sl-color-gray-5);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.breakdown-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sl-color-accent), var(--sl-color-accent-high));
+  transition: width 0.3s ease;
+}
+
+.breakdown-score {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+  text-align: right;
+}
+
+.issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.issue-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--sl-color-gray-7);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.375rem;
+}
+
+.issue-content {
+  flex: 1;
+}
+
+.issue-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sl-color-white);
+  margin-bottom: 0.25rem;
+}
+
+.issue-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.issue-count {
+  color: var(--sl-color-gray-3);
+}
+
+.issue-impact {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.impact-high {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgb(239, 68, 68);
+}
+
+.impact-medium {
+  background: rgba(234, 179, 8, 0.2);
+  color: rgb(234, 179, 8);
+}
+
+.impact-low {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(34, 197, 94);
+}
+
+.issue-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.fix-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--sl-color-accent);
+  color: var(--sl-color-accent-text);
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.fix-btn:hover {
+  background: var(--sl-color-accent-high);
+}
+
+.fix-btn svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.chart-container {
+  position: relative;
+  margin-top: 1rem;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-2);
+}
+
+.legend-color {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.125rem;
+}
+
+.legend-color.high {
+  background: rgb(34, 197, 94);
+}
+
+.legend-color.medium {
+  background: rgb(234, 179, 8);
+}
+
+.legend-color.low {
+  background: rgb(239, 68, 68);
+}
+</style>
+
+<script>
+// Quality Metrics JavaScript
+class QualityMetrics {
+  constructor() {
+    this.chart = null;
+    this.init();
+  }
+
+  init() {
+    this.setupEventListeners();
+    this.initChart();
+    this.loadData();
+  }
+
+  setupEventListeners() {
+    // Refresh button
+    const refreshBtn = document.querySelector('.refresh-btn');
+    refreshBtn?.addEventListener('click', () => {
+      this.refreshData();
+    });
+
+    // Timeframe selector
+    const timeframeSelect = document.querySelector('.timeframe-selector');
+    timeframeSelect?.addEventListener('change', (e) => {
+      this.changeTimeframe(e.target.value);
+    });
+
+    // Fix buttons
+    document.querySelectorAll('.fix-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const issueItem = e.target.closest('.issue-item');
+        const issue = issueItem?.querySelector('.issue-title')?.textContent;
+        this.showFixGuide(issue);
+      });
+    });
+  }
+
+  initChart() {
+    const canvas = document.getElementById('qualityChart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    
+    // Simple chart implementation (in production, you'd use Chart.js or similar)
+    this.drawChart(ctx, canvas);
+  }
+
+  drawChart(ctx, canvas) {
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Sample data for demonstration
+    const data = [
+      { high: 30, medium: 45, low: 25 },
+      { high: 35, medium: 40, low: 25 },
+      { high: 32, medium: 48, low: 20 },
+      { high: 38, medium: 42, low: 20 },
+      { high: 45, medium: 35, low: 20 },
+      { high: 42, medium: 38, low: 20 },
+      { high: 45, medium: 35, low: 20 }
+    ];
+    
+    const colors = {
+      high: '#22c55e',
+      medium: '#eab308', 
+      low: '#ef4444'
+    };
+    
+    const barWidth = width / data.length;
+    
+    data.forEach((point, index) => {
+      const x = index * barWidth;
+      const total = point.high + point.medium + point.low;
+      
+      let y = height;
+      
+      // Draw low quality bar
+      const lowHeight = (point.low / total) * height;
+      ctx.fillStyle = colors.low;
+      ctx.fillRect(x + 5, y - lowHeight, barWidth - 10, lowHeight);
+      y -= lowHeight;
+      
+      // Draw medium quality bar
+      const mediumHeight = (point.medium / total) * height;
+      ctx.fillStyle = colors.medium;
+      ctx.fillRect(x + 5, y - mediumHeight, barWidth - 10, mediumHeight);
+      y -= mediumHeight;
+      
+      // Draw high quality bar
+      const highHeight = (point.high / total) * height;
+      ctx.fillStyle = colors.high;
+      ctx.fillRect(x + 5, y - highHeight, barWidth - 10, highHeight);
+    });
+  }
+
+  loadData() {
+    // Simulate loading data
+    this.animateCounters();
+  }
+
+  animateCounters() {
+    // Animate metric values
+    document.querySelectorAll('.metric-value').forEach(element => {
+      const finalValue = parseInt(element.textContent);
+      let currentValue = 0;
+      const increment = Math.ceil(finalValue / 30);
+      
+      const timer = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= finalValue) {
+          currentValue = finalValue;
+          clearInterval(timer);
+        }
+        element.textContent = currentValue + (element.textContent.includes('%') ? '%' : '');
+      }, 50);
+    });
+  }
+
+  refreshData() {
+    // Simulate data refresh
+    const refreshBtn = document.querySelector('.refresh-btn');
+    refreshBtn?.classList.add('animate-spin');
+    
+    setTimeout(() => {
+      refreshBtn?.classList.remove('animate-spin');
+      this.loadData();
+      this.showToast('Metrics updated successfully', 'success');
+    }, 1000);
+  }
+
+  changeTimeframe(timeframe) {
+    // Update data based on timeframe
+    console.log('Changing timeframe to:', timeframe);
+    this.loadData();
+  }
+
+  showFixGuide(issue) {
+    // Show guidance for fixing the specific issue
+    const guides = {
+      'Short descriptions': 'Consider expanding descriptions to 50-150 characters. Include key benefits and use cases.',
+      'Generic titles': 'Use specific, descriptive titles that clearly indicate the content purpose.',
+      'Missing tags': 'Add 3-5 relevant tags that help categorize and discover the content.',
+      'Poor structure': 'Use clear headings, bullet points, and logical content organization.',
+      'No categories': 'Assign appropriate categories based on content type and topic.'
+    };
+    
+    const guide = guides[issue] || 'General quality improvement tips available in documentation.';
+    alert(`Fix Guide for "${issue}":\n\n${guide}`);
+  }
+
+  showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.cssText = `
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--sl-color-bg);
+      color: var(--sl-color-white);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--sl-color-gray-5);
+      z-index: 100;
+      animation: slideIn 0.3s ease;
+    `;
+    
+    if (type === 'success') {
+      toast.style.borderColor = '#22c55e';
+    }
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  new QualityMetrics();
+});
+
+// Add CSS animation for spinner
+const style = document.createElement('style');
+style.textContent = `
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+`;
+document.head.appendChild(style);
+</script>
