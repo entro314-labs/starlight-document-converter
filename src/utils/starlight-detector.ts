@@ -1,6 +1,8 @@
 import { readFileSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
-import type { AstroConfig } from 'astro';
+
+// Optional Astro types - only available when Astro is installed
+type AstroConfig = any;
 
 export interface StarlightConfig {
   contentDir: string;

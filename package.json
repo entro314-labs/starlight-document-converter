@@ -1,6 +1,6 @@
 {
   "name": "@entro314labs/starlight-document-converter",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A comprehensive document converter for Astro Starlight that transforms various document formats into Starlight-compatible Markdown with proper frontmatter",
   "keywords": [
     "astro",
@@ -40,7 +40,15 @@
   },
   "peerDependencies": {
     "@astrojs/starlight": "^0.35.2",
-    "astro": "^4.0.0 || ^5.12.9"
+    "astro": "^5.12.9"
+  },
+  "peerDependenciesMeta": {
+    "@astrojs/starlight": {
+      "optional": true
+    },
+    "astro": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@clack/core": "^0.5.0",

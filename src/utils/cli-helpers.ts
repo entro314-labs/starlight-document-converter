@@ -6,16 +6,27 @@ import { resolve } from 'path';
  * Get smart defaults for CLI operations
  */
 export function getSmartDefaults(cwd: string = process.cwd()) {
-  const starlightConfig = detectStarlightConfig(cwd);
-  const isStarlight = isStarlightProject(cwd);
-  
-  return {
-    outputDir: starlightConfig.docsDir,
-    isStarlightProject: isStarlight,
-    title: starlightConfig.title,
-    description: starlightConfig.description,
-    recommendations: getRecommendations(cwd, starlightConfig, isStarlight)
-  };
+  try {
+    const starlightConfig = detectStarlightConfig(cwd);
+    const isStarlight = isStarlightProject(cwd);
+    
+    return {
+      outputDir: starlightConfig.docsDir,
+      isStarlightProject: isStarlight,
+      title: starlightConfig.title,
+      description: starlightConfig.description,
+      recommendations: getRecommendations(cwd, starlightConfig, isStarlight)
+    };
+  } catch (error) {
+    // Fallback when Astro/Starlight is not available (CLI-only usage)
+    return {
+      outputDir: 'docs-output',
+      isStarlightProject: false,
+      title: 'Documentation',
+      description: 'Documentation site',
+      recommendations: ['Using CLI-only mode. Install @astrojs/starlight for full integration features.']
+    };
+  }
 }
 
 /**
@@ -53,8 +64,13 @@ export function getOutputDirectory(userSpecified?: string, cwd: string = process
     return userSpecified;
   }
   
-  const starlightConfig = detectStarlightConfig(cwd);
-  return starlightConfig.docsDir;
+  try {
+    const starlightConfig = detectStarlightConfig(cwd);
+    return starlightConfig.docsDir;
+  } catch (error) {
+    // Fallback for CLI-only usage
+    return 'docs-output';
+  }
 }
 
 /**

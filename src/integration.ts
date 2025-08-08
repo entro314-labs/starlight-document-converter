@@ -1,4 +1,18 @@
-import type { AstroIntegration } from 'astro';
+// Optional Astro types - only available when Astro is installed
+interface AstroIntegration {
+  name: string;
+  hooks: Record<string, (...args: any[]) => void | Promise<void>>;
+}
+
+interface AstroConfig {
+  root: { pathname: string };
+}
+
+interface Logger {
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+}
 import type { StarlightIntegrationConfig } from './types.js';
 import { DocumentConverter } from './converter.js';
 import { watch } from 'fs';
@@ -14,7 +28,7 @@ export function starlightDocumentConverter(
   return {
     name: 'starlight-document-converter',
     hooks: {
-      'astro:config:setup': ({ config: astroConfig, logger }) => {
+      'astro:config:setup': ({ config: astroConfig, logger }: { config: AstroConfig; logger: Logger }) => {
         const projectRoot = astroConfig.root.pathname;
         
         // Detect Starlight configuration
@@ -115,7 +129,7 @@ export function starlightDocumentConverter(
         }
       },
 
-      'astro:config:done': ({ logger }) => {
+      'astro:config:done': ({ logger }: { logger: Logger }) => {
         if (config?.enabled) {
           logger.info('Starlight Document Converter ready');
           
