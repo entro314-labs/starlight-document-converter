@@ -1,0 +1,246 @@
+import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
+
+// Mock fs promises before importing modules
+vi.mock('node:fs/promises', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+    readdir: vi.fn()
+  };
+});
+
+// Mock clack prompts to avoid interactive prompts in tests
+vi.mock('@clack/prompts', () => ({
+  spinner: vi.fn(() => ({
+    start: vi.fn(),
+    stop: vi.fn(),
+    message: vi.fn()
+  }))
+}));
+
+import { 
+  repairSingleFile, 
+  validateSingleFile, 
+  showRepairResults, 
+  showValidationResults 
+} from './cli-commands.js';
+
+import { readFile, writeFile } from 'node:fs/promises';
+
+describe('CLI Commands', () => {
+  const mockReadFile = readFile as MockedFunction<typeof readFile>;
+  const mockWriteFile = writeFile as MockedFunction<typeof writeFile>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('repairSingleFile', () => {
+    it('should repair a file with missing frontmatter', async () => {
+      const mockContent = `# Test Title
+
+This is test content for a document.`;
+
+      mockReadFile.mockResolvedValue(mockContent);
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const options = {
+        output: '/output',
+        fixLinks: false,
+        processImages: false,
+        generateToc: false,
+        dryRun: false,
+        verbose: false
+      };
+
+      const result = await repairSingleFile('/test/file.md', options);
+
+      expect(result.repaired).toBe(true);
+      expect(result.issues).toContain('Added missing frontmatter');
+      expect(mockWriteFile).toHaveBeenCalled();
+    });
+
+    it('should not write file in dry run mode', async () => {
+      const mockContent = `# Test Title
+
+Content here.`;
+
+      mockReadFile.mockResolvedValue(mockContent);
+
+      const options = {
+        output: '/output',
+        fixLinks: false,
+        processImages: false,
+        generateToc: true,
+        dryRun: true,
+        verbose: false
+      };
+
+      const result = await repairSingleFile('/test/file.md', options);
+
+      expect(result.repaired).toBe(true);
+      expect(mockWriteFile).not.toHaveBeenCalled();
+    });
+
+    it('should add TOC when requested', async () => {
+      const mockContent = `---
+title: "Test"
+description: "Test description"
+---
+
+# Test Title
+
+## Section 1
+
+Content.
+
+## Section 2
+
+More content.`;
+
+      mockReadFile.mockResolvedValue(mockContent);
+      mockWriteFile.mockResolvedValue(undefined);
+
+      const options = {
+        output: '/output',
+        fixLinks: false,
+        processImages: false,
+        generateToc: true,
+        dryRun: false,
+        verbose: false
+      };
+
+      const result = await repairSingleFile('/test/file.md', options);
+
+      expect(result.repaired).toBe(true);
+      expect(result.issues).toContain('Added table of contents');
+    });
+  });
+
+  describe('validateSingleFile', () => {
+    it('should validate a valid file', async () => {
+      const mockContent = `---
+title: "Valid Title"
+description: "Valid description for the document"
+---
+
+# Valid Title
+
+Valid content with proper structure.`;
+
+      mockReadFile.mockResolvedValue(mockContent);
+
+      const options = {
+        fixIssues: false,
+        showDetails: false,
+        verbose: false
+      };
+
+      const result = await validateSingleFile('/test/file.md', options);
+
+      expect(result.valid).toBe(true);
+      expect(result.validation.issues).toHaveLength(0);
+    });
+
+    it('should detect validation issues', async () => {
+      const mockContent = `# Title Without Frontmatter
+
+Content without proper frontmatter.`;
+
+      mockReadFile.mockResolvedValue(mockContent);
+
+      const options = {
+        fixIssues: false,
+        showDetails: true,
+        verbose: true
+      };
+
+      const result = await validateSingleFile('/test/file.md', options);
+
+      expect(result.valid).toBe(false);
+      expect(result.validation.issues.length).toBeGreaterThan(0);
+      expect(result.validation.issues.some(i => i.message === 'Missing frontmatter')).toBe(true);
+    });
+  });
+
+  describe('showRepairResults', () => {
+    it('should format repair results correctly', () => {
+      const stats = {
+        filesProcessed: 5,
+        totalRepaired: 3,
+        totalIssues: 8
+      };
+
+      const options = {
+        output: '/output',
+        fixLinks: true,
+        processImages: false,
+        generateToc: true,
+        dryRun: false,
+        verbose: true
+      };
+
+      const result = showRepairResults(stats, options);
+
+      expect(result).toContain('Files processed: 5');
+      expect(result).toContain('Files repaired: 3');
+      expect(result).toContain('Issues resolved: 8');
+      expect(result).not.toContain('Dry run');
+    });
+
+    it('should show dry run message', () => {
+      const stats = {
+        filesProcessed: 2,
+        totalRepaired: 1,
+        totalIssues: 3
+      };
+
+      const options = {
+        output: '/output',
+        fixLinks: false,
+        processImages: false,
+        generateToc: false,
+        dryRun: true,
+        verbose: false
+      };
+
+      const result = showRepairResults(stats, options);
+
+      expect(result).toContain('🧪 Dry run - no files were modified');
+    });
+  });
+
+  describe('showValidationResults', () => {
+    it('should format validation results correctly', () => {
+      const stats = {
+        totalFiles: 10,
+        validFiles: 8,
+        issueCount: 5,
+        allIssues: []
+      };
+
+      const result = showValidationResults(stats);
+
+      expect(result).toContain('Files validated: 10');
+      expect(result).toContain('Valid files: 8');
+      expect(result).toContain('Files with issues: 2');
+      expect(result).toContain('Total issues: 5');
+      expect(result).toContain('Success rate: 80%');
+    });
+
+    it('should handle zero files', () => {
+      const stats = {
+        totalFiles: 0,
+        validFiles: 0,
+        issueCount: 0,
+        allIssues: []
+      };
+
+      const result = showValidationResults(stats);
+
+      expect(result).toContain('Success rate: 100%');
+    });
+  });
+});

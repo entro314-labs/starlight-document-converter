@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { existsSync, lstatSync, readdirSync } from 'node:fs';
-import { basename, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import {
   cancel,
   confirm,
@@ -19,6 +19,16 @@ import pc from 'picocolors';
 import { DocumentConverter } from './converter.js';
 import type { ConversionResult } from './types.js';
 import { detectInputSources, getOutputDirectory, getSmartDefaults } from './utils/cli-helpers.js';
+import { 
+  symbols, 
+  colors, 
+  status, 
+  boxes, 
+  createBrandHeader, 
+  createResultsTable,
+  formatHelpSection,
+  progress 
+} from './utils/cli-styling.js';
 
 const program = new Command();
 
@@ -464,7 +474,7 @@ export default defineConfig({
 program
   .name('starlight-convert')
   .description('🌟 Beautiful document converter for Starlight')
-  .version('1.0.0')
+  .version('1.5.0')
   .action(async () => {
     // Default interactive mode
     await interactiveConvert();
@@ -484,13 +494,17 @@ program
   .description('Convert documents in batch mode')
   .argument('<input>', 'Input file or directory to convert')
   .option('-o, --output <dir>', 'Output directory (auto-detected if not specified)')
-  .option('--no-preserve', "Don't preserve directory structure")
-  .option('--no-titles', "Don't auto-generate titles")
-  .option('--no-descriptions', "Don't auto-generate descriptions")
-  .option('--timestamps', 'Add lastUpdated timestamps')
+  .option('--no-preserve', "Don't preserve directory structure", false)
+  .option('--no-titles', "Don't auto-generate titles", false)
+  .option('--no-descriptions', "Don't auto-generate descriptions", false)
+  .option('--timestamps', 'Add lastUpdated timestamps', false)
   .option('--category <category>', 'Default category for documents', 'documentation')
-  .option('-v, --verbose', 'Show detailed output')
-  .option('--dry-run', 'Preview changes without writing files')
+  .option('--fix-links', 'Fix internal links during conversion', false)
+  .option('--process-images', 'Process and copy images during conversion', false)
+  .option('--generate-toc', 'Generate table of contents', false)
+  .option('--validate', 'Validate content after conversion', false)
+  .option('-v, --verbose', 'Show detailed output', false)
+  .option('--dry-run', 'Preview changes without writing files', false)
   .action(async (input, options) => {
     intro(pc.bgCyan(pc.black(' Batch Convert ')));
 
@@ -524,6 +538,10 @@ program
         generateDescriptions: options.descriptions,
         addTimestamps: options.timestamps,
         defaultCategory: options.category,
+        fixLinks: options.fixLinks,
+        processImages: options.processImages,
+        generateToc: options.generateToc,
+        validateContent: options.validate,
         verbose: options.verbose,
         dryRun: options.dryRun,
       });
@@ -610,18 +628,211 @@ program
     });
   });
 
-// Help command
+// Repair command
+program
+  .command('repair')
+  .description('Repair frontmatter and content issues in existing Starlight files')
+  .argument('<input>', 'Input file or directory to repair')
+  .option('-o, --output <dir>', 'Output directory (defaults to input location)')
+  .option('--fix-links', 'Fix internal links and references', false)
+  .option('--process-images', 'Process and copy images to assets directory', false)
+  .option('--generate-toc', 'Generate table of contents', false)
+  .option('--dry-run', 'Preview repairs without making changes', false)
+  .option('-v, --verbose', 'Show detailed output', false)
+  .action(async (input, options) => {
+    intro(pc.bgYellow(pc.black(' Content Repair ')));
+
+    const inputPath = resolve(input);
+    const inputType = detectInputType(inputPath);
+
+    if (inputType === 'not-found') {
+      note(`${pc.red('❌ Error:')} Input path "${input}" does not exist`, 'Error');
+      process.exit(1);
+    }
+
+    try {
+      const { 
+        repairSingleFile, 
+        repairDirectory, 
+        showRepairResults, 
+        createSpinner 
+      } = await import('./utils/cli-commands.js');
+
+      const repairOptions = {
+        output: options.output || (inputType === 'directory' ? inputPath : dirname(inputPath)),
+        fixLinks: options.fixLinks,
+        processImages: options.processImages,
+        generateToc: options.generateToc,
+        dryRun: options.dryRun,
+        verbose: options.verbose
+      };
+
+      const s = createSpinner('content repair', options.dryRun);
+
+      if (inputType === 'directory') {
+        const stats = await repairDirectory(inputPath, repairOptions);
+        s.stop(`${options.dryRun ? 'Analysis' : 'Repair'} completed!`);
+        note(showRepairResults(stats, repairOptions), 'Results');
+      } else {
+        const result = await repairSingleFile(inputPath, repairOptions);
+        s.stop(`${options.dryRun ? 'Analysis' : 'Repair'} completed!`);
+        
+        const stats = {
+          filesProcessed: 1,
+          totalRepaired: result.repaired ? 1 : 0,
+          totalIssues: result.issues.length
+        };
+        
+        if (repairOptions.verbose && result.repaired) {
+          console.log(`\n${pc.cyan(basename(inputPath))}:`);
+          result.issues.forEach(issue => console.log(`  • ${issue}`));
+        }
+        
+        note(showRepairResults(stats, repairOptions), 'Results');
+      }
+
+      outro(`🎉 Content repair ${options.dryRun ? 'analysis' : 'completed'}!`);
+    } catch (error) {
+      note(`${pc.red('❌ Error:')} ${error}`, 'Repair failed');
+      process.exit(1);
+    }
+  });
+
+// Validate command
+program
+  .command('validate')
+  .description('Validate Starlight content structure and quality')
+  .argument('<input>', 'Input file or directory to validate')
+  .option('--fix-issues', 'Automatically fix issues where possible', false)
+  .option('--show-details', 'Show detailed validation results for all files', false)
+  .option('-v, --verbose', 'Show verbose output with issue details', false)
+  .action(async (input, options) => {
+    intro(pc.bgBlue(pc.black(' Content Validation ')));
+
+    const inputPath = resolve(input);
+    const inputType = detectInputType(inputPath);
+
+    if (inputType === 'not-found') {
+      note(`${pc.red('❌ Error:')} Input path "${input}" does not exist`, 'Error');
+      process.exit(1);
+    }
+
+    try {
+      const { 
+        validateSingleFile, 
+        validateDirectory, 
+        showValidationResults, 
+        createSpinner 
+      } = await import('./utils/cli-commands.js');
+
+      const validateOptions = {
+        fixIssues: options.fixIssues,
+        showDetails: options.showDetails,
+        verbose: options.verbose
+      };
+
+      const s = createSpinner('content validation');
+
+      let stats;
+      
+      if (inputType === 'directory') {
+        stats = await validateDirectory(inputPath, validateOptions);
+      } else {
+        const result = await validateSingleFile(inputPath, validateOptions);
+        stats = {
+          totalFiles: 1,
+          validFiles: result.valid ? 1 : 0,
+          issueCount: result.validation.issues.filter(i => i.type === 'error').length,
+          allIssues: result.valid ? [] : [{ file: basename(inputPath), validation: result.validation }]
+        };
+
+        // Show single file results
+        console.log(`\n${pc.cyan(basename(inputPath))}: ${result.valid ? pc.green('✅ Valid') : pc.red('❌ Issues')}`);
+        if (result.validation.score) {
+          const scoreColor = result.validation.score.overall === 'good' ? pc.green : 
+                           result.validation.score.overall === 'fair' ? pc.yellow : pc.red;
+          console.log(`Quality: ${scoreColor(result.validation.score.overall.toUpperCase())}`);
+        }
+        
+        if (!result.valid) {
+          result.validation.issues.forEach((issue) => {
+            const icon = issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠️' : 'ℹ️';
+            console.log(`  ${icon} ${issue.message}`);
+          });
+        }
+      }
+
+      s.stop('Validation completed!');
+
+      note(showValidationResults(stats), 'Validation Summary');
+
+      // Auto-fix integration
+      if (options.fixIssues && stats.allIssues.length > 0) {
+        const shouldFix = await confirm({
+          message: `Fix ${stats.allIssues.length} files with issues?`,
+          initialValue: true
+        });
+
+        if (shouldFix && !isCancel(shouldFix)) {
+          note('Running automatic repair...', 'Auto-fix');
+          
+          const { repairDirectory, repairSingleFile } = await import('./utils/cli-commands.js');
+          const repairOptions = {
+            output: inputType === 'directory' ? inputPath : dirname(inputPath),
+            fixLinks: false,
+            processImages: false,
+            generateToc: false,
+            dryRun: false,
+            verbose: false
+          };
+
+          const repairSpinner = createSpinner('auto-repair');
+          
+          if (inputType === 'directory') {
+            await repairDirectory(inputPath, repairOptions);
+          } else {
+            await repairSingleFile(inputPath, repairOptions);
+          }
+          
+          repairSpinner.stop('Auto-repair completed!');
+          note('Issues have been automatically fixed. Re-run validation to verify.', 'Auto-fix Complete');
+        }
+      }
+
+      const successRate = stats.totalFiles > 0 ? Math.round((stats.validFiles / stats.totalFiles) * 100) : 100;
+      outro(`🎉 Validation completed! ${successRate >= 90 ? 'Excellent quality!' : successRate >= 70 ? 'Good quality.' : 'Consider improvements.'}`);
+    } catch (error) {
+      note(`${pc.red('❌ Error:')} ${error}`, 'Validation failed');
+      process.exit(1);
+    }
+  });
+
+// Enhanced Help command
+program.addHelpText('before', createBrandHeader('Starlight Document Converter', '1.5.0'));
+
 program.addHelpText(
   'after',
-  `
-${pc.dim('Examples:')}
-  ${pc.cyan('starlight-convert')}                    Interactive mode
-  ${pc.cyan('starlight-convert setup')}              Project setup wizard
-  ${pc.cyan('starlight-convert batch docs/')}        Convert directory
-  ${pc.cyan('starlight-convert watch docs-import/')} Watch for changes
-  
-${pc.dim('For more help, visit:')} ${pc.underline('https://github.com/entro314-labs/starlight-document-converter')}
-`
+  formatHelpSection('Basic Commands', [
+    { name: 'starlight-convert', description: 'Interactive mode with smart detection and guided setup' },
+    { name: 'starlight-convert setup', description: 'Project setup wizard for new Astro Starlight projects' },
+    { name: 'starlight-convert batch <input>', description: 'Convert multiple files or entire directories' },
+    { name: 'starlight-convert watch <input>', description: 'Watch directory for changes and auto-convert' }
+  ]) +
+  formatHelpSection('Content Management', [
+    { name: 'starlight-convert repair <input>', description: 'Fix frontmatter, links, images, and content issues' },
+    { name: 'starlight-convert validate <input>', description: 'Validate content structure and quality scoring' }
+  ]) +
+  formatHelpSection('Common Options', [
+    { name: '--dry-run', description: 'Preview changes without modifying any files' },
+    { name: '-v, --verbose', description: 'Show detailed output and progress information' },
+    { name: '-o, --output <dir>', description: 'Specify output directory for converted files' }
+  ]) +
+  formatHelpSection('Examples', [
+    { name: 'Batch Conversion', description: 'starlight-convert batch docs/ --generate-toc --fix-links' },
+    { name: 'Content Repair', description: 'starlight-convert repair content/ --process-images --dry-run' },
+    { name: 'Quality Check', description: 'starlight-convert validate docs/ --show-details --verbose' }
+  ]) +
+  `\n${boxes.info('For complete documentation and advanced usage examples, visit:\nhttps://github.com/entro314-labs/starlight-document-converter', 'Documentation')}\n`
 );
 
 // Parse CLI arguments

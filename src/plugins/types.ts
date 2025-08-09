@@ -98,6 +98,10 @@ export interface DocumentMetadata {
   lastUpdated?: string;
   author?: string;
   draft?: boolean;
+  readingTime?: number;
+  wordCount?: number;
+  contentType?: string;
+  complexity?: string;
   [key: string]: unknown;
 }
 
@@ -113,6 +117,13 @@ export interface ConversionOptions {
   categoryPatterns?: Record<string, string>;
   tagPatterns?: Record<string, string[]>;
   ignorePatterns?: string[];
+  repairMode?: boolean;
+  validateContent?: boolean;
+  generateToc?: boolean;
+  processImages?: boolean;
+  fixLinks?: boolean;
+  generateSidebar?: boolean;
+  maxDescriptionLength?: number;
 }
 
 export interface PluginRegistry {

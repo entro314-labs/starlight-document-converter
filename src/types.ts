@@ -21,6 +21,20 @@ export interface ConversionOptions {
   tagPatterns?: Record<string, string[]>;
   /** Files to ignore */
   ignorePatterns?: string[];
+  /** Repair existing frontmatter */
+  repairMode?: boolean;
+  /** Validate content structure */
+  validateContent?: boolean;
+  /** Generate table of contents */
+  generateToc?: boolean;
+  /** Process images and copy them */
+  processImages?: boolean;
+  /** Fix internal links */
+  fixLinks?: boolean;
+  /** Auto-generate sidebar configuration */
+  generateSidebar?: boolean;
+  /** Maximum description length */
+  maxDescriptionLength?: number;
 }
 
 export interface ConversionStats {
@@ -36,6 +50,13 @@ export interface DocumentMetadata {
   category?: string;
   tags?: string[];
   lastUpdated?: string;
+  author?: string;
+  draft?: boolean;
+  readingTime?: number;
+  wordCount?: number;
+  contentType?: string;
+  complexity?: string;
+  [key: string]: unknown;
 }
 
 export interface ConversionResult {
@@ -81,4 +102,58 @@ export interface ConversionContext {
   extension: SupportedFormat;
   content: string;
   options: ConversionOptions;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  issues: ValidationIssue[];
+  metadata?: DocumentMetadata;
+  score?: QualityScore;
+}
+
+export interface ValidationIssue {
+  type: 'error' | 'warning';
+  field?: string;
+  message: string;
+  suggestion?: string;
+}
+
+export interface QualityScore {
+  overall: 'good' | 'fair' | 'poor';
+  titleScore: number;
+  descriptionScore: number;
+  contentScore: number;
+  structureScore: number;
+  suggestions: string[];
+}
+
+export interface RepairResult {
+  success: boolean;
+  fixed: boolean;
+  issues: string[];
+  originalContent: string;
+  repairedContent: string;
+}
+
+export interface TocEntry {
+  level: number;
+  title: string;
+  anchor: string;
+  children?: TocEntry[];
+}
+
+export interface LinkInfo {
+  original: string;
+  resolved: string;
+  isInternal: boolean;
+  exists: boolean;
+  needsRepair: boolean;
+}
+
+export interface ImageInfo {
+  original: string;
+  resolved: string;
+  copied: boolean;
+  outputPath?: string;
+  alt?: string;
 }

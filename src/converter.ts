@@ -30,6 +30,13 @@ export class DocumentConverter {
       categoryPatterns: options.categoryPatterns || this.getDefaultCategoryPatterns(),
       tagPatterns: options.tagPatterns || this.getDefaultTagPatterns(),
       ignorePatterns: options.ignorePatterns || this.getDefaultIgnorePatterns(),
+      repairMode: options.repairMode ?? false,
+      validateContent: options.validateContent ?? false,
+      generateToc: options.generateToc ?? false,
+      processImages: options.processImages ?? false,
+      fixLinks: options.fixLinks ?? false,
+      generateSidebar: options.generateSidebar ?? false,
+      maxDescriptionLength: options.maxDescriptionLength ?? 160,
     };
 
     this.stats = {
