@@ -1,60 +1,161 @@
-name: Release
+name: Create Release
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag for the release (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
 
 jobs:
   release:
-    name: Release
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-      
+        with:
+          fetch-depth: 0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-          
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: latest
-          
+          version: 8
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
-      - name: Build and test
-        run: pnpm run prepublishOnly
-        
-      - name: Publish to npm
-        run: pnpm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Get release info
+        id: release_info
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ github.event.inputs.tag }}"
+            PRERELEASE="${{ github.event.inputs.prerelease }}"
+          else
+            TAG="${{ github.ref_name }}"
+            PRERELEASE="false"
+          fi
           
-      - name: Create GitHub Release
+          VERSION=${TAG#v}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get previous tag for changelog
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            echo "## 📋 What's Changed" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            
+            # Generate commit list since last tag
+            git log --oneline --no-merges ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${{ steps.release_info.outputs.tag }}" >> CHANGELOG.md
+          else
+            echo "## 🚀 Initial Release" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "First release of Starlight Document Converter!" >> CHANGELOG.md
+          fi
+          
+          # Output for use in release
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run quality checks
+        run: |
+          pnpm run check
+          pnpm run typecheck
+          pnpm run test
+
+      - name: Build package
+        run: pnpm run build
+
+      - name: Create release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          release_name: 🚀 Release ${{ steps.release_info.outputs.tag }}
           body: |
-            ## Changes
+            ## 🎉 Starlight Document Converter v${{ steps.release_info.outputs.version }}
             
-            See CHANGELOG.md for details.
+            Transform your documents into beautiful Starlight-compatible markdown with smart frontmatter generation.
             
-            ## Installation
+            ### 🚀 Quick Start
             
             ```bash
-            npm install starlight-document-converter
+            npx @entro314labs/starlight-document-converter
             ```
+            
+            ### 📦 Installation
+            
+            ```bash
+            # Global installation
+            npm install -g @entro314labs/starlight-document-converter
+            
+            # Or use directly
+            npx @entro314labs/starlight-document-converter
+            ```
+            
+            ### ✨ Features
+            
+            - 📄 Convert Word docs, HTML, text files to Markdown
+            - 🎯 Smart frontmatter generation with titles, descriptions, tags
+            - 🔍 Auto-detect Starlight project structure
+            - 📁 Batch processing with directory support
+            - 🎨 Interactive CLI with beautiful UI
+            - 🚀 Preserves document structure and formatting
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ---
+            
+            💖 **Enjoying this tool?** Star the repo and share with fellow developers!
+            
+            📖 **Documentation**: [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+            🐛 **Issues**: [Report bugs](https://github.com/${{ github.repository }}/issues)
+            💬 **Discussions**: [Community](https://github.com/${{ github.repository }}/discussions)
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
+
+      - name: Success notification
+        run: |
+          echo "🎉 Release ${{ steps.release_info.outputs.tag }} created successfully!"
+          echo "🔗 View release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.release_info.outputs.tag }}"

@@ -49,15 +49,8 @@ const getSampleFiles = (dir: string, maxSamples = 5): string[] => {
   }
 };
 
-// Interactive convert command
-async function interactiveConvert() {
-  intro(pc.bgMagenta(pc.black(' Starlight Document Converter ')));
-
-  // Get smart defaults for the current project
-  const smartDefaults = getSmartDefaults();
-  const detectedSources = detectInputSources();
-
-  // Show project detection info
+// Helper function to show project info
+function showProjectInfo(smartDefaults: ReturnType<typeof getSmartDefaults>) {
   if (smartDefaults.isStarlightProject) {
     note(
       `✅ Detected Starlight project: ${pc.cyan(smartDefaults.title || 'Documentation')}`,
@@ -70,19 +63,18 @@ async function interactiveConvert() {
   if (smartDefaults.recommendations.length > 0) {
     note(smartDefaults.recommendations.join('\n'), 'Recommendations');
   }
+}
 
-  // Smart input source detection
-  let inputPath: string;
-
+// Helper function to get input path from user
+async function getInputPath(detectedSources: string[], outputDir: string): Promise<string> {
   if (detectedSources.length > 0) {
-    // Check if first source is the Starlight docs directory
-    const isStarlightDir = detectedSources[0] === smartDefaults.outputDir || 
-                          detectedSources[0].includes('src/content/docs');
-    
-    const message = isStarlightDir 
+    const isStarlightDir =
+      detectedSources[0] === outputDir || detectedSources[0].includes('src/content/docs');
+
+    const message = isStarlightDir
       ? `Found Starlight content directory and ${detectedSources.length > 1 ? 'other directories' : 'import directories'}: ${detectedSources.map((d) => pc.cyan(d)).join(', ')}`
       : `Found document directories: ${detectedSources.map((d) => pc.cyan(d)).join(', ')}`;
-    
+
     note(message, 'Available Sources');
 
     const sourceChoice = await select({
@@ -106,62 +98,42 @@ async function interactiveConvert() {
 
     if (isCancel(sourceChoice)) {
       cancel('Operation cancelled');
-      return process.exit(0);
+      process.exit(0);
     }
 
     if (sourceChoice === 'custom') {
-      const customPath = await text({
-        message: 'Enter path to convert:',
-        placeholder: './docs or ./document.md',
-        validate: (value) => {
-          if (!value) return 'Please provide an input path';
-          const resolved = resolve(value as string);
-          const type = detectInputType(resolved);
-          if (type === 'not-found') return 'Path does not exist';
-          return undefined;
-        },
-      });
-
-      if (isCancel(customPath)) {
-        cancel('Operation cancelled');
-        return process.exit(0);
-      }
-
-      inputPath = customPath as string;
-    } else {
-      inputPath = sourceChoice as string;
+      return await getCustomPath('Enter path to convert:');
     }
-  } else {
-    // No sources detected, ask for input
-    const customPath = await text({
-      message: 'What would you like to convert?',
-      placeholder: './docs or ./document.md',
-      validate: (value) => {
-        if (!value) return 'Please provide an input path';
-        const resolved = resolve(value as string);
-        const type = detectInputType(resolved);
-        if (type === 'not-found') return 'Path does not exist';
-        return undefined;
-      },
-    });
-
-    if (isCancel(customPath)) {
-      cancel('Operation cancelled');
-      return process.exit(0);
-    }
-
-    inputPath = customPath as string;
+    return sourceChoice as string;
   }
 
-  if (isCancel(inputPath)) {
+  return await getCustomPath('What would you like to convert?');
+}
+
+// Helper function to get custom path from user
+async function getCustomPath(message: string): Promise<string> {
+  const customPath = await text({
+    message,
+    placeholder: './docs or ./document.md',
+    validate: (value) => {
+      if (!value) return 'Please provide an input path';
+      const resolved = resolve(value as string);
+      const type = detectInputType(resolved);
+      if (type === 'not-found') return 'Path does not exist';
+      return undefined;
+    },
+  });
+
+  if (isCancel(customPath)) {
     cancel('Operation cancelled');
-    return process.exit(0);
+    process.exit(0);
   }
 
-  const resolvedInput = resolve(inputPath as string);
-  const inputType = detectInputType(resolvedInput);
+  return customPath as string;
+}
 
-  // Show preview of what will be converted
+// Helper function to show conversion preview
+function showConversionPreview(resolvedInput: string, inputType: string) {
   if (inputType === 'directory') {
     const sampleFiles = getSampleFiles(resolvedInput);
     if (sampleFiles.length > 0) {
@@ -173,27 +145,16 @@ async function interactiveConvert() {
   } else {
     note(`Converting single file: ${pc.cyan(basename(resolvedInput))}`, 'Preview');
   }
+}
 
-  // Output configuration with smart defaults
-  const outputDir = await text({
-    message: 'Where should the converted files be saved?',
-    placeholder: smartDefaults.outputDir,
-    initialValue: smartDefaults.outputDir,
-  });
-
-  if (isCancel(outputDir)) {
-    cancel('Operation cancelled');
-    return process.exit(0);
-  }
-
-  // Advanced options
+// Helper function to get advanced options from user
+async function getAdvancedOptions(): Promise<Record<string, unknown>> {
   const advancedOptions = await confirm({
     message: 'Configure advanced options?',
     initialValue: false,
   });
 
-  let converterOptions: Record<string, unknown> = {
-    outputDir: outputDir as string,
+  const defaultOptions = {
     preserveStructure: true,
     generateTitles: true,
     generateDescriptions: true,
@@ -202,84 +163,137 @@ async function interactiveConvert() {
     dryRun: false,
   };
 
-  if (advancedOptions && !isCancel(advancedOptions)) {
-    // Structure preservation
-    const preserveStructure = await confirm({
-      message: 'Preserve directory structure?',
-      initialValue: true,
-    });
-
-    if (isCancel(preserveStructure)) {
-      cancel('Operation cancelled');
-      return process.exit(0);
-    }
-
-    // Content generation options
-    const contentOptions = await multiselect({
-      message: 'What should be auto-generated?',
-      options: [
-        {
-          value: 'titles',
-          label: 'Titles from content',
-          hint: 'Extract titles from headings or filenames',
-        },
-        {
-          value: 'descriptions',
-          label: 'Descriptions from content',
-          hint: 'Generate descriptions from first paragraph',
-        },
-        {
-          value: 'timestamps',
-          label: 'Last updated timestamps',
-          hint: 'Add conversion date to frontmatter',
-        },
-      ],
-      initialValues: ['titles', 'descriptions'],
-    });
-
-    if (isCancel(contentOptions)) {
-      cancel('Operation cancelled');
-      return process.exit(0);
-    }
-
-    // Quality and output options
-    const outputOptions = await multiselect({
-      message: 'Output preferences:',
-      options: [
-        { value: 'verbose', label: 'Verbose output', hint: 'Show detailed conversion logs' },
-        { value: 'dryRun', label: 'Dry run', hint: 'Preview changes without writing files' },
-      ],
-      initialValues: [],
-    });
-
-    if (isCancel(outputOptions)) {
-      cancel('Operation cancelled');
-      return process.exit(0);
-    }
-
-    // Apply advanced options
-    converterOptions = {
-      ...converterOptions,
-      preserveStructure: preserveStructure as boolean,
-      generateTitles: (contentOptions as string[]).includes('titles'),
-      generateDescriptions: (contentOptions as string[]).includes('descriptions'),
-      addTimestamps: (contentOptions as string[]).includes('timestamps'),
-      verbose: (outputOptions as string[]).includes('verbose'),
-      dryRun: (outputOptions as string[]).includes('dryRun'),
-    };
+  if (!advancedOptions || isCancel(advancedOptions)) {
+    return defaultOptions;
   }
 
-  // Confirmation before conversion
+  const preserveStructure = await confirm({
+    message: 'Preserve directory structure?',
+    initialValue: true,
+  });
+
+  if (isCancel(preserveStructure)) {
+    cancel('Operation cancelled');
+    process.exit(0);
+  }
+
+  const contentOptions = await multiselect({
+    message: 'What should be auto-generated?',
+    options: [
+      {
+        value: 'titles',
+        label: 'Titles from content',
+        hint: 'Extract titles from headings or filenames',
+      },
+      {
+        value: 'descriptions',
+        label: 'Descriptions from content',
+        hint: 'Generate descriptions from first paragraph',
+      },
+      {
+        value: 'timestamps',
+        label: 'Last updated timestamps',
+        hint: 'Add conversion date to frontmatter',
+      },
+    ],
+    initialValues: ['titles', 'descriptions'],
+  });
+
+  if (isCancel(contentOptions)) {
+    cancel('Operation cancelled');
+    process.exit(0);
+  }
+
+  const outputOptions = await multiselect({
+    message: 'Output preferences:',
+    options: [
+      { value: 'verbose', label: 'Verbose output', hint: 'Show detailed conversion logs' },
+      { value: 'dryRun', label: 'Dry run', hint: 'Preview changes without writing files' },
+    ],
+    initialValues: [],
+  });
+
+  if (isCancel(outputOptions)) {
+    cancel('Operation cancelled');
+    process.exit(0);
+  }
+
+  return {
+    preserveStructure: preserveStructure as boolean,
+    generateTitles: (contentOptions as string[]).includes('titles'),
+    generateDescriptions: (contentOptions as string[]).includes('descriptions'),
+    addTimestamps: (contentOptions as string[]).includes('timestamps'),
+    verbose: (outputOptions as string[]).includes('verbose'),
+    dryRun: (outputOptions as string[]).includes('dryRun'),
+  };
+}
+
+// Helper function to show results
+function showResults(
+  results: Array<{ success: boolean; inputPath: string; outputPath: string }>,
+  converterOptions: Record<string, unknown>
+) {
+  const stats = getFormattedStats(results);
+
+  if (stats.successful > 0) {
+    note(
+      `${pc.green('✅ Successful:')} ${stats.successful} files\n` +
+        (stats.failed > 0 ? `${pc.red('❌ Failed:')} ${stats.failed} files\n` : '') +
+        (converterOptions.dryRun ? pc.yellow('🧪 Dry run - no files were modified') : ''),
+      'Results'
+    );
+  }
+
+  const successfulResults = results.filter((r) => r.success).slice(0, 3);
+  if (successfulResults.length > 0 && !converterOptions.dryRun) {
+    note(
+      `${successfulResults.map((r) => `• ${pc.cyan(relative(process.cwd(), r.inputPath))} → ${pc.green(relative(process.cwd(), r.outputPath))}`).join('\n')}`,
+      'Sample conversions'
+    );
+  }
+}
+
+// Interactive convert command
+async function interactiveConvert() {
+  intro(pc.bgMagenta(pc.black(' Starlight Document Converter ')));
+
+  const smartDefaults = getSmartDefaults();
+  const detectedSources = detectInputSources();
+
+  showProjectInfo(smartDefaults);
+
+  const inputPath = await getInputPath(detectedSources, smartDefaults.outputDir);
+  const resolvedInput = resolve(inputPath);
+  const inputType = detectInputType(resolvedInput);
+
+  showConversionPreview(resolvedInput, inputType);
+
+  const outputDir = await text({
+    message: 'Where should the converted files be saved?',
+    placeholder: smartDefaults.outputDir,
+    initialValue: smartDefaults.outputDir,
+  });
+
+  if (isCancel(outputDir)) {
+    cancel('Operation cancelled');
+    process.exit(0);
+  }
+
+  const advancedOptions = await getAdvancedOptions();
+  const converterOptions = {
+    outputDir: outputDir as string,
+    ...advancedOptions,
+  } as Record<string, unknown> & { dryRun?: boolean };
+
   const confirmConversion = await confirm({
     message: `${converterOptions.dryRun ? 'Preview' : 'Convert'} ${inputType === 'directory' ? 'directory' : 'file'}?`,
   });
 
   if (!confirmConversion || isCancel(confirmConversion)) {
     cancel('Operation cancelled');
-    return process.exit(0);
+    process.exit(0);
   }
 
-  // Perform conversion
   const s = spinner();
   s.start(`${converterOptions.dryRun ? 'Previewing' : 'Converting'} documents...`);
 
@@ -293,26 +307,7 @@ async function interactiveConvert() {
 
     s.stop(`Conversion ${converterOptions.dryRun ? 'preview' : 'completed'}!`);
 
-    const stats = getFormattedStats(results);
-
-    if (stats.successful > 0) {
-      note(
-        `${pc.green('✅ Successful:')} ${stats.successful} files\n` +
-          (stats.failed > 0 ? `${pc.red('❌ Failed:')} ${stats.failed} files\n` : '') +
-          (converterOptions.dryRun ? pc.yellow('🧪 Dry run - no files were modified') : ''),
-        'Results'
-      );
-    }
-
-    // Show sample conversions
-    const successfulResults = results.filter((r) => r.success).slice(0, 3);
-    if (successfulResults.length > 0 && !converterOptions.dryRun) {
-      note(
-        `${successfulResults.map((r) => `• ${pc.cyan(relative(process.cwd(), r.inputPath))} → ${pc.green(relative(process.cwd(), r.outputPath))}`).join('\n')}`,
-        'Sample conversions'
-      );
-    }
-
+    showResults(results, converterOptions);
     converter.printStats();
 
     outro(

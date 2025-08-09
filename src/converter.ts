@@ -138,85 +138,107 @@ export class DocumentConverter {
   private extractDescription(content: string): string | undefined {
     if (!this.options.generateDescriptions) return undefined;
 
-    // Remove frontmatter and clean up
-    const withoutFrontmatter = content.replace(/^---[\s\S]*?---/, '').trim();
+    const paragraphs = this.extractParagraphs(content);
+    const startIndex = this.getDescriptionStartIndex(paragraphs);
 
-    // Split into paragraphs and clean up
-    const paragraphs = withoutFrontmatter
+    for (let i = startIndex; i < paragraphs.length; i++) {
+      const result = this.processDescriptionParagraph(paragraphs[i]);
+      if (result) return result;
+    }
+
+    return undefined;
+  }
+
+  private extractParagraphs(content: string): string[] {
+    const withoutFrontmatter = content.replace(/^---[\s\S]*?---/, '').trim();
+    return withoutFrontmatter
       .split(/\n\s*\n/)
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
+  }
 
-    // Skip the first paragraph if it looks like a title
-    let startIndex = 0;
+  private getDescriptionStartIndex(paragraphs: string[]): number {
     if (
       paragraphs.length > 1 &&
       paragraphs[0].length < 100 &&
       !paragraphs[0].endsWith('.') &&
       !paragraphs[0].includes('\n')
     ) {
-      startIndex = 1;
+      return 1;
+    }
+    return 0;
+  }
+
+  private isStructuralElement(paragraph: string): boolean {
+    return (
+      paragraph.startsWith('#') ||
+      paragraph.startsWith('```') ||
+      paragraph.startsWith('-') ||
+      paragraph.startsWith('*') ||
+      paragraph.startsWith('|') ||
+      paragraph.match(/^\d+\./) !== null ||
+      paragraph.startsWith('>') ||
+      paragraph.match(/^Table|^Figure|^Image|^Code|^Example:/i) !== null
+    );
+  }
+
+  private cleanParagraph(paragraph: string): string {
+    return paragraph
+      .replace(/[#*_`[\]]/g, '')
+      .replace(/\s+/g, ' ')
+      .replace(/^\s*[-*]\s*/, '')
+      .trim();
+  }
+
+  private processDescriptionParagraph(paragraph: string): string | undefined {
+    if (this.isStructuralElement(paragraph)) {
+      return undefined;
     }
 
-    for (let i = startIndex; i < paragraphs.length; i++) {
-      const paragraph = paragraphs[i];
+    const cleanParagraph = this.cleanParagraph(paragraph);
+    if (cleanParagraph.length < 20) return undefined;
 
-      // Skip headings, code blocks, lists, and other structural elements
-      if (
-        paragraph.startsWith('#') ||
-        paragraph.startsWith('```') ||
-        paragraph.startsWith('-') ||
-        paragraph.startsWith('*') ||
-        paragraph.startsWith('|') ||
-        paragraph.match(/^\d+\./) ||
-        paragraph.startsWith('>') ||
-        paragraph.match(/^Table|^Figure|^Image|^Code|^Example:/i)
-      ) {
-        continue;
-      }
+    if (cleanParagraph.length > 200) {
+      return this.truncateDescription(cleanParagraph);
+    }
 
-      // Clean and validate the paragraph
-      const cleanParagraph = paragraph
-        .replace(/[#*_`[\]]/g, '') // Remove markdown
-        .replace(/\s+/g, ' ') // Normalize whitespace
-        .replace(/^\s*[-*]\s*/, '') // Remove list markers
-        .trim();
+    const result = cleanParagraph.endsWith('.') ? cleanParagraph : `${cleanParagraph}.`;
 
-      // Quality checks
-      if (cleanParagraph.length < 20) continue; // Too short
-      if (cleanParagraph.length > 200) {
-        // Too long, truncate smartly
-        const truncated = cleanParagraph.substring(0, 150);
-        const lastSpace = truncated.lastIndexOf(' ');
-        const result = lastSpace > 100 ? truncated.substring(0, lastSpace) : truncated;
-        return `${result}...`;
-      }
-
-      // Ensure ends with period
-      const result = cleanParagraph.endsWith('.') ? cleanParagraph : `${cleanParagraph}.`;
-
-      // Final validation - must be meaningful content
-      if (result.length >= 20 && !result.match(/^(Table|Figure|Image|Code|Example):/i)) {
-        return result;
-      }
+    if (result.length >= 20 && !result.match(/^(Table|Figure|Image|Code|Example):/i)) {
+      return result;
     }
 
     return undefined;
+  }
+
+  private truncateDescription(text: string): string {
+    const truncated = text.substring(0, 150);
+    const lastSpace = truncated.lastIndexOf(' ');
+    const result = lastSpace > 100 ? truncated.substring(0, lastSpace) : truncated;
+    return `${result}...`;
   }
 
   private extractTags(content: string, filename: string, category: string): string[] {
     const tags = new Set<string>();
     const text = content.toLowerCase();
 
-    // Enhanced technology stack detection
-    const techPatterns = {
-      // Frontend
+    this.addTechTags(tags, text);
+    this.addCategoryTags(tags, category);
+    this.addContentTypeTags(tags, text);
+    this.addFilenameTags(tags, filename);
+    this.addComplexityTags(tags, content, text);
+
+    return Array.from(tags)
+      .filter((tag) => tag.length > 2)
+      .slice(0, 8);
+  }
+
+  private getTechPatterns(): Record<string, string[]> {
+    return {
       react: ['react', 'jsx', 'usestate', 'useeffect', 'component'],
       vue: ['vue', 'vuejs', 'vue.js', 'nuxt'],
       angular: ['angular', 'ng-', '@component'],
       svelte: ['svelte', 'sveltekit'],
-
-      // Backend & Languages
       nodejs: ['node.js', 'nodejs', 'npm', 'express', 'fastify'],
       python: ['python', 'django', 'flask', 'fastapi', 'pip'],
       typescript: ['typescript', 'ts', '.ts'],
@@ -224,71 +246,78 @@ export class DocumentConverter {
       java: ['java', 'spring', 'maven', 'gradle'],
       rust: ['rust', 'cargo', 'rustc'],
       go: ['golang', 'go mod', 'go get'],
-
-      // Databases
       postgresql: ['postgres', 'postgresql', 'psql'],
       mysql: ['mysql', 'mariadb'],
       mongodb: ['mongo', 'mongodb', 'nosql'],
       supabase: ['supabase', 'supabase.js'],
-
-      // Cloud & DevOps
       aws: ['aws', 'amazon web services', 's3', 'ec2', 'lambda'],
       docker: ['docker', 'container', 'dockerfile'],
       kubernetes: ['kubernetes', 'k8s', 'kubectl'],
       terraform: ['terraform', 'infrastructure as code'],
-
-      // AI & ML
       ai: ['artificial intelligence', 'machine learning', 'llm', 'gpt', 'claude'],
       openai: ['openai', 'gpt-3', 'gpt-4', 'chatgpt'],
-
-      // Documentation types
       api: ['api', 'endpoint', 'rest', 'graphql'],
       guide: ['tutorial', 'guide', 'walkthrough', 'how-to'],
       reference: ['reference', 'documentation', 'docs'],
     };
+  }
 
-    // Check for technology patterns
+  private addTechTags(tags: Set<string>, text: string): void {
+    const techPatterns = this.getTechPatterns();
     for (const [tag, patterns] of Object.entries(techPatterns)) {
       if (patterns.some((pattern) => text.includes(pattern))) {
         tags.add(tag);
       }
     }
+  }
 
-    // Category-based tags
+  private addCategoryTags(tags: Set<string>, category: string): void {
     if (category && category !== 'documentation') {
       tags.add(category.toLowerCase().replace(/\s+/g, '-'));
     }
+  }
 
-    // Content type detection
-    if (text.match(/install|setup|configuration/)) tags.add('setup');
-    if (text.match(/deploy|production|release/)) tags.add('deployment');
-    if (text.match(/security|auth|permission/)) tags.add('security');
-    if (text.match(/performance|optimization|speed/)) tags.add('performance');
-    if (text.match(/test|testing|unit test/)) tags.add('testing');
-    if (text.match(/debug|troubleshoot|error/)) tags.add('debugging');
+  private addContentTypeTags(tags: Set<string>, text: string): void {
+    const contentPatterns = [
+      { pattern: /install|setup|configuration/, tag: 'setup' },
+      { pattern: /deploy|production|release/, tag: 'deployment' },
+      { pattern: /security|auth|permission/, tag: 'security' },
+      { pattern: /performance|optimization|speed/, tag: 'performance' },
+      { pattern: /test|testing|unit test/, tag: 'testing' },
+      { pattern: /debug|troubleshoot|error/, tag: 'debugging' },
+      { pattern: /business|strategy|plan/, tag: 'business' },
+      { pattern: /market|revenue|funding/, tag: 'business-strategy' },
+    ];
 
-    // Business content detection
-    if (text.match(/business|strategy|plan/)) tags.add('business');
-    if (text.match(/market|revenue|funding/)) tags.add('business-strategy');
+    for (const { pattern, tag } of contentPatterns) {
+      if (text.match(pattern)) {
+        tags.add(tag);
+      }
+    }
+  }
 
-    // Filename-based hints
+  private addFilenameTags(tags: Set<string>, filename: string): void {
     const filenameLower = filename.toLowerCase();
-    if (filenameLower.includes('readme')) tags.add('overview');
-    if (filenameLower.includes('changelog')) tags.add('changelog');
-    if (filenameLower.includes('contributing')) tags.add('contributing');
-    if (filenameLower.includes('license')) tags.add('legal');
+    const filenamePatterns = [
+      { includes: 'readme', tag: 'overview' },
+      { includes: 'changelog', tag: 'changelog' },
+      { includes: 'contributing', tag: 'contributing' },
+      { includes: 'license', tag: 'legal' },
+    ];
 
-    // Complexity indicators
+    for (const { includes, tag } of filenamePatterns) {
+      if (filenameLower.includes(includes)) {
+        tags.add(tag);
+      }
+    }
+  }
+
+  private addComplexityTags(tags: Set<string>, content: string, text: string): void {
     const codeBlocks = (content.match(/```/g) || []).length / 2;
     if (codeBlocks > 3) tags.add('code-heavy');
     if (content.length > 5000) tags.add('comprehensive');
     if (text.includes('beginner') || text.includes('getting started')) tags.add('beginner');
     if (text.includes('advanced') || text.includes('expert')) tags.add('advanced');
-
-    // Remove redundant tags and limit to reasonable number
-    return Array.from(tags)
-      .filter((tag) => tag.length > 2) // Remove very short tags
-      .slice(0, 8); // Limit to 8 tags max
   }
 
   private generateCategory(content: string, _filename: string, filePath: string): string {
@@ -415,47 +444,12 @@ export class DocumentConverter {
     const warnings: string[] = [];
     const suggestions: string[] = [];
 
-    // Check title quality
-    if (!metadata.title || metadata.title.length < 5) {
-      warnings.push('Title is too short or missing');
-    }
-    if (metadata.title && metadata.title.length > 100) {
-      warnings.push('Title is unusually long');
-    }
+    this.validateTitle(metadata.title, warnings);
+    this.validateDescription(metadata.description, warnings, suggestions);
+    this.validateContentStructure(content, suggestions);
+    this.validateCodeContent(content, metadata, suggestions);
 
-    // Check description quality
-    if (!metadata.description) {
-      warnings.push('Description is missing');
-      suggestions.push('Consider adding a brief description of the document content');
-    } else if (metadata.description.length < 20) {
-      warnings.push('Description is very short');
-    } else if (metadata.description.length > 200) {
-      suggestions.push('Description is long, consider summarizing key points');
-    }
-
-    // Check content structure
-    const headingCount = (content.match(/^#{1,6}\s/gm) || []).length;
-    if (headingCount === 0) {
-      suggestions.push('Consider adding headings to improve document structure');
-    } else if (headingCount > 20) {
-      suggestions.push('Document has many headings, consider reorganizing content');
-    }
-
-    // Check for code blocks
-    const codeBlocks = (content.match(/```/g) || []).length / 2;
-    if (codeBlocks > 0 && !metadata.tags?.includes('code-heavy')) {
-      suggestions.push('Document contains code - consider adding relevant technical tags');
-    }
-
-    // Calculate quality score
-    let qualityScore = 100;
-    if (warnings.length > 0) qualityScore -= warnings.length * 15;
-    if (!metadata.description) qualityScore -= 25;
-    if (!metadata.category || metadata.category === 'documentation') qualityScore -= 10;
-    if (!metadata.tags || metadata.tags.length === 0) qualityScore -= 10;
-
-    const quality: 'high' | 'medium' | 'low' =
-      qualityScore >= 80 ? 'high' : qualityScore >= 60 ? 'medium' : 'low';
+    const quality = this.calculateQuality(warnings, metadata);
 
     return {
       isValid: warnings.length === 0,
@@ -463,6 +457,63 @@ export class DocumentConverter {
       suggestions,
       quality,
     };
+  }
+
+  private validateTitle(title: string | undefined, warnings: string[]): void {
+    if (!title || title.length < 5) {
+      warnings.push('Title is too short or missing');
+    }
+    if (title && title.length > 100) {
+      warnings.push('Title is unusually long');
+    }
+  }
+
+  private validateDescription(
+    description: string | undefined,
+    warnings: string[],
+    suggestions: string[]
+  ): void {
+    if (!description) {
+      warnings.push('Description is missing');
+      suggestions.push('Consider adding a brief description of the document content');
+    } else if (description.length < 20) {
+      warnings.push('Description is very short');
+    } else if (description.length > 200) {
+      suggestions.push('Description is long, consider summarizing key points');
+    }
+  }
+
+  private validateContentStructure(content: string, suggestions: string[]): void {
+    const headingCount = (content.match(/^#{1,6}\s/gm) || []).length;
+    if (headingCount === 0) {
+      suggestions.push('Consider adding headings to improve document structure');
+    } else if (headingCount > 20) {
+      suggestions.push('Document has many headings, consider reorganizing content');
+    }
+  }
+
+  private validateCodeContent(
+    content: string,
+    metadata: DocumentMetadata,
+    suggestions: string[]
+  ): void {
+    const codeBlocks = (content.match(/```/g) || []).length / 2;
+    if (codeBlocks > 0 && !metadata.tags?.includes('code-heavy')) {
+      suggestions.push('Document contains code - consider adding relevant technical tags');
+    }
+  }
+
+  private calculateQuality(
+    warnings: string[],
+    metadata: DocumentMetadata
+  ): 'high' | 'medium' | 'low' {
+    let qualityScore = 100;
+    if (warnings.length > 0) qualityScore -= warnings.length * 15;
+    if (!metadata.description) qualityScore -= 25;
+    if (!metadata.category || metadata.category === 'documentation') qualityScore -= 10;
+    if (!metadata.tags || metadata.tags.length === 0) qualityScore -= 10;
+
+    return qualityScore >= 80 ? 'high' : qualityScore >= 60 ? 'medium' : 'low';
   }
 
   private generateFrontmatter(
@@ -497,50 +548,19 @@ export class DocumentConverter {
 
   private convertPlainText(content: string): string {
     const lines = content.split('\n');
-    const markdown = [];
+    const markdown: string[] = [];
     let inCodeBlock = false;
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const trimmed = line.trim();
+      const result = this.processPlainTextLine(lines, i, inCodeBlock);
+      inCodeBlock = result.inCodeBlock;
 
-      if (!trimmed && inCodeBlock) {
-        markdown.push(line);
-        continue;
+      if (result.output) {
+        markdown.push(result.output);
       }
-
-      // Detect code blocks
-      if (
-        line.match(/^ {4}/) ||
-        line.match(/^\t/) ||
-        trimmed.match(/^(function|const|let|var|class|import|export|<\w+|{\s*$)/)
-      ) {
-        if (!inCodeBlock) {
-          markdown.push('```');
-          inCodeBlock = true;
-        }
-        markdown.push(line.replace(/^ {4}/, ''));
-        continue;
+      if (result.additionalOutput) {
+        markdown.push(result.additionalOutput);
       }
-
-      if (inCodeBlock && !line.match(/^ {4}/) && !line.match(/^\t/)) {
-        markdown.push('```');
-        inCodeBlock = false;
-      }
-
-      // Convert headings (lines that end with ':' and are followed by content)
-      if (trimmed.endsWith(':') && i + 1 < lines.length && lines[i + 1].trim()) {
-        markdown.push(`## ${trimmed.slice(0, -1)}`);
-        continue;
-      }
-
-      // Convert bullet points
-      if (trimmed.match(/^[-*•]\s/)) {
-        markdown.push(line.replace(/^(\s*)[-*•]\s/, '$1- '));
-        continue;
-      }
-
-      markdown.push(line);
     }
 
     if (inCodeBlock) {
@@ -548,6 +568,76 @@ export class DocumentConverter {
     }
 
     return markdown.join('\n');
+  }
+
+  private processPlainTextLine(
+    lines: string[],
+    index: number,
+    inCodeBlock: boolean
+  ): { output?: string; additionalOutput?: string; inCodeBlock: boolean } {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (!trimmed && inCodeBlock) {
+      return { output: line, inCodeBlock };
+    }
+
+    // Check if this is a code line
+    if (this.isCodeLine(line, trimmed)) {
+      if (!inCodeBlock) {
+        return {
+          output: '```',
+          additionalOutput: line.replace(/^ {4}/, ''),
+          inCodeBlock: true,
+        };
+      }
+      return { output: line.replace(/^ {4}/, ''), inCodeBlock: true };
+    }
+
+    // Exit code block if needed
+    if (inCodeBlock && !this.isIndentedLine(line)) {
+      return {
+        output: '```',
+        additionalOutput: this.convertNonCodeLine(line, trimmed, lines, index),
+        inCodeBlock: false,
+      };
+    }
+
+    return {
+      output: this.convertNonCodeLine(line, trimmed, lines, index),
+      inCodeBlock,
+    };
+  }
+
+  private isCodeLine(line: string, trimmed: string): boolean {
+    return (
+      line.match(/^ {4}/) !== null ||
+      line.match(/^\t/) !== null ||
+      trimmed.match(/^(function|const|let|var|class|import|export|<\w+|{\s*$)/) !== null
+    );
+  }
+
+  private isIndentedLine(line: string): boolean {
+    return line.match(/^ {4}/) !== null || line.match(/^\t/) !== null;
+  }
+
+  private convertNonCodeLine(
+    line: string,
+    trimmed: string,
+    lines: string[],
+    index: number
+  ): string {
+    // Convert headings
+    if (trimmed.endsWith(':') && index + 1 < lines.length && lines[index + 1].trim()) {
+      return `## ${trimmed.slice(0, -1)}`;
+    }
+
+    // Convert bullet points
+    if (trimmed.match(/^[-*•]\s/)) {
+      return line.replace(/^(\s*)[-*•]\s/, '$1- ');
+    }
+
+    return line;
   }
 
   private convertHTML(content: string): string {

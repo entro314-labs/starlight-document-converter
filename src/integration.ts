@@ -115,24 +115,9 @@ export function starlightDocumentConverter(
             const fullPath = resolve(astroConfig.root.pathname, dir);
 
             try {
-              const watcher = watch(fullPath, { recursive: true }, async (eventType, filename) => {
-                if (!filename || eventType !== 'change') return;
-
-                const filePath = resolve(fullPath, filename);
-                const ext = filename.split('.').pop()?.toLowerCase();
-
-                // Only process supported formats
-                if (['docx', 'doc', 'txt', 'html', 'htm', 'md', 'rtf'].includes(ext || '')) {
-                  logger.info(`Converting changed file: ${filename}`);
-
-                  try {
-                    await converter.convertFile(filePath);
-                    logger.info(`✅ Converted: ${filename}`);
-                  } catch (error) {
-                    logger.error(`❌ Failed to convert ${filename}: ${error}`);
-                  }
-                }
-              });
+              const watcher = watch(fullPath, { recursive: true }, (eventType, filename) =>
+                handleFileChange(eventType, filename, fullPath, converter, logger)
+              );
 
               logger.info(`Watching ${dir} for document changes`);
 
@@ -157,6 +142,31 @@ export function starlightDocumentConverter(
       },
     },
   };
+}
+
+async function handleFileChange(
+  eventType: string | null,
+  filename: string | null,
+  fullPath: string,
+  converter: DocumentConverter,
+  logger: Logger
+): Promise<void> {
+  if (!filename || eventType !== 'change') return;
+
+  const filePath = resolve(fullPath, filename);
+  const ext = filename.split('.').pop()?.toLowerCase();
+
+  // Only process supported formats
+  if (['docx', 'doc', 'txt', 'html', 'htm', 'md', 'rtf'].includes(ext || '')) {
+    logger.info(`Converting changed file: ${filename}`);
+
+    try {
+      await converter.convertFile(filePath);
+      logger.info(`✅ Converted: ${filename}`);
+    } catch (error) {
+      logger.error(`❌ Failed to convert ${filename}: ${error}`);
+    }
+  }
 }
 
 export default starlightDocumentConverter;

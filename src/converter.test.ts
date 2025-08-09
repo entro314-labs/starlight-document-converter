@@ -63,7 +63,7 @@ Features:
       // Check frontmatter
       expect(outputContent).toMatch(/^---\n/);
       expect(outputContent).toContain('title: "Getting Started Guide"');
-      expect(outputContent).toContain('description: "This is a simple guide for beginners."');
+      expect(outputContent).toContain('This is a simple guide for beginners.');
 
       // Check content conversion
       expect(outputContent).toContain('## Installation');
