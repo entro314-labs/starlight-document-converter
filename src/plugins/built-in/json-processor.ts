@@ -1,5 +1,36 @@
 import type { FileProcessor, ProcessingContext } from '../types.js';
 
+// JSON data structure interfaces
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+
+type JsonArray = JsonValue[];
+
+type JsonValue = string | number | boolean | null | undefined | JsonObject | JsonArray;
+
+interface OpenAPIInfo extends JsonObject {
+  title?: string;
+  description?: string;
+  version?: string;
+}
+
+interface OpenAPISpec extends JsonObject {
+  openapi?: string;
+  swagger?: string;
+  info?: OpenAPIInfo;
+  paths?: JsonObject;
+  servers?: JsonArray;
+}
+
+interface DataSchema extends JsonObject {
+  $schema?: string;
+  type?: string;
+  properties?: JsonObject;
+  title?: string;
+  description?: string;
+}
+
 /**
  * JSON file processor that converts JSON files to formatted markdown
  */
@@ -46,19 +77,25 @@ export const jsonProcessor: FileProcessor = {
   }
 };
 
-function isAPISpec(data: any): boolean {
-  return data.openapi || data.swagger || (data.paths && typeof data.paths === 'object');
+function isAPISpec(data: JsonValue): data is OpenAPISpec {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+  const obj = data as JsonObject;
+  return !!(obj.openapi || obj.swagger || (obj.paths && typeof obj.paths === 'object'));
 }
 
-function isConfigFile(data: any): boolean {
-  return data.name || data.version || data.scripts || data.dependencies || data.config;
+function isConfigFile(data: JsonValue): data is JsonObject {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+  const obj = data as JsonObject;
+  return !!(obj.name || obj.version || obj.scripts || obj.dependencies || obj.config);
 }
 
-function isDataSchema(data: any): boolean {
-  return data.$schema || data.type === 'object' || data.properties;
+function isDataSchema(data: JsonValue): data is DataSchema {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+  const obj = data as JsonObject;
+  return !!(obj.$schema || obj.type === 'object' || obj.properties);
 }
 
-function formatAsAPISpec(data: any, context: ProcessingContext): string {
+function formatAsAPISpec(data: OpenAPISpec, _context: ProcessingContext): string {
   const title = data.info?.title || 'API Specification';
   const description = data.info?.description || 'API documentation generated from OpenAPI specification.';
   const version = data.info?.version || '1.0.0';
@@ -67,12 +104,13 @@ function formatAsAPISpec(data: any, context: ProcessingContext): string {
   markdown += `${description}\n\n`;
   markdown += `**Version:** ${version}\n\n`;
   
-  if (data.servers && data.servers.length > 0) {
+  if (data.servers && Array.isArray(data.servers) && data.servers.length > 0) {
     markdown += `## Servers\n\n`;
-    data.servers.forEach((server: any) => {
-      markdown += `- ${server.url}`;
-      if (server.description) {
-        markdown += ` - ${server.description}`;
+    (data.servers as JsonArray).forEach((server: JsonValue) => {
+      const serverObj = server as JsonObject;
+      markdown += `- ${serverObj.url}`;
+      if (serverObj.description) {
+        markdown += ` - ${serverObj.description}`;
       }
       markdown += '\n';
     });
@@ -81,24 +119,27 @@ function formatAsAPISpec(data: any, context: ProcessingContext): string {
   
   if (data.paths) {
     markdown += `## API Endpoints\n\n`;
-    Object.entries(data.paths).forEach(([path, methods]: [string, any]) => {
+    Object.entries(data.paths as JsonObject).forEach(([path, methods]: [string, JsonValue]) => {
       markdown += `### \`${path}\`\n\n`;
-      Object.entries(methods).forEach(([method, spec]: [string, any]) => {
-        markdown += `#### ${method.toUpperCase()}\n\n`;
-        if (spec.summary) {
-          markdown += `${spec.summary}\n\n`;
-        }
-        if (spec.description) {
-          markdown += `${spec.description}\n\n`;
-        }
-      });
+      if (typeof methods === 'object' && methods !== null && !Array.isArray(methods)) {
+        Object.entries(methods as JsonObject).forEach(([method, spec]: [string, JsonValue]) => {
+          const specObj = spec as JsonObject;
+          markdown += `#### ${method.toUpperCase()}\n\n`;
+          if (specObj.summary) {
+            markdown += `${specObj.summary}\n\n`;
+          }
+          if (specObj.description) {
+            markdown += `${specObj.description}\n\n`;
+          }
+        });
+      }
     });
   }
   
   return markdown;
 }
 
-function formatAsConfig(data: any, context: ProcessingContext): string {
+function formatAsConfig(data: JsonObject, context: ProcessingContext): string {
   const name = data.name || context.filename.replace('.json', '');
   const description = data.description || 'Configuration file documentation.';
   
@@ -122,7 +163,7 @@ function formatAsConfig(data: any, context: ProcessingContext): string {
   return markdown;
 }
 
-function formatAsSchema(data: any, context: ProcessingContext): string {
+function formatAsSchema(data: DataSchema, _context: ProcessingContext): string {
   const title = data.title || 'Data Schema';
   const description = data.description || 'Data schema documentation.';
   
@@ -135,16 +176,17 @@ function formatAsSchema(data: any, context: ProcessingContext): string {
   
   if (data.properties) {
     markdown += `## Properties\n\n`;
-    Object.entries(data.properties).forEach(([prop, spec]: [string, any]) => {
+    Object.entries(data.properties as JsonObject).forEach(([prop, spec]: [string, JsonValue]) => {
+      const specObj = spec as JsonObject;
       markdown += `### \`${prop}\`\n\n`;
-      if (spec.type) {
-        markdown += `**Type:** ${spec.type}\n\n`;
+      if (specObj.type) {
+        markdown += `**Type:** ${specObj.type}\n\n`;
       }
-      if (spec.description) {
-        markdown += `${spec.description}\n\n`;
+      if (specObj.description) {
+        markdown += `${specObj.description}\n\n`;
       }
-      if (spec.example !== undefined) {
-        markdown += `**Example:** \`${spec.example}\`\n\n`;
+      if (specObj.example !== undefined) {
+        markdown += `**Example:** \`${specObj.example}\`\n\n`;
       }
     });
   }
@@ -152,7 +194,7 @@ function formatAsSchema(data: any, context: ProcessingContext): string {
   return markdown;
 }
 
-function formatAsGenericJSON(data: any, context: ProcessingContext): string {
+function formatAsGenericJSON(data: JsonValue, context: ProcessingContext): string {
   const filename = context.filename.replace('.json', '');
   const title = formatSectionTitle(filename);
   
@@ -166,12 +208,12 @@ function formatAsGenericJSON(data: any, context: ProcessingContext): string {
   markdown += '\n```\n\n';
   
   // If it's a flat object, create a properties table
-  if (typeof data === 'object' && !Array.isArray(data) && isFlattish(data)) {
+  if (typeof data === 'object' && data !== null && !Array.isArray(data) && isFlattish(data)) {
     markdown += `## Properties\n\n`;
     markdown += '| Property | Type | Value |\n';
     markdown += '|----------|------|-------|\n';
     
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(data as JsonObject).forEach(([key, value]) => {
       const type = Array.isArray(value) ? 'array' : typeof value;
       const displayValue = typeof value === 'string' ? value : JSON.stringify(value);
       markdown += `| ${key} | ${type} | ${displayValue} |\n`;
@@ -186,12 +228,12 @@ function formatSectionTitle(key: string): string {
     .replace(/\b\w/g, l => l.toUpperCase());
 }
 
-function formatConfigValue(value: any): string {
+function formatConfigValue(value: JsonValue): string {
   if (typeof value === 'object' && value !== null) {
     if (Array.isArray(value)) {
       return value.map(item => `- ${item}`).join('\n');
     } else {
-      return Object.entries(value)
+      return Object.entries(value as JsonObject)
         .map(([k, v]) => `- **${k}**: ${JSON.stringify(v)}`)
         .join('\n');
     }
@@ -199,8 +241,9 @@ function formatConfigValue(value: any): string {
   return String(value);
 }
 
-function isFlattish(obj: any): boolean {
-  return Object.values(obj).every(value => 
+function isFlattish(obj: JsonValue): boolean {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+  return Object.values(obj as JsonObject).every(value => 
     typeof value !== 'object' || value === null || Array.isArray(value)
   );
 }

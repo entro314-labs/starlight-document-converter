@@ -1,5 +1,26 @@
 // Test setup file for vitest
-import { vi } from 'vitest';
+import { vi, afterAll, beforeEach } from 'vitest';
+
+// Local type definitions for test mocks
+interface FilePropertyBag {
+  type?: string;
+  lastModified?: number;
+}
+
+interface BlobPropertyBag {
+  type?: string;
+}
+
+interface MockProgressEvent<T = unknown> {
+  target: T | null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const setImmediate: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const setTimeout: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const setInterval: any;
 
 // Mock console methods to reduce noise in tests
 global.console = {
@@ -13,7 +34,7 @@ global.console = {
 
 // Mock process.exit to prevent tests from actually exiting
 const originalExit = process.exit;
-process.exit = vi.fn() as any;
+process.exit = vi.fn() as never;
 
 // Restore original exit after tests
 afterAll(() => {
@@ -37,29 +58,31 @@ vi.stubGlobal('setInterval', vi.fn((fn, delay) => {
 global.fetch = vi.fn();
 
 // Mock File API
-global.File = class MockFile {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).File = class MockFile {
   name: string;
   size: number;
   type: string;
   lastModified: number;
 
-  constructor(bits: any[], name: string, options: any = {}) {
+  constructor(bits: (string | ArrayBuffer | ArrayBufferView)[], name: string, options: FilePropertyBag = {}) {
     this.name = name;
     this.size = bits.reduce((acc, bit) => acc + (typeof bit === 'string' ? bit.length : 0), 0);
     this.type = options.type || '';
     this.lastModified = options.lastModified || Date.now();
   }
-} as any;
+};
 
 // Mock FileReader
-global.FileReader = class MockFileReader {
-  result: any = null;
-  error: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).FileReader = class MockFileReader {
+  result: string | ArrayBuffer | null = null;
+  error: Error | null = null;
   readyState: number = 0;
-  onload: ((event: any) => void) | null = null;
-  onerror: ((event: any) => void) | null = null;
+  onload: ((event: MockProgressEvent) => void) | null = null;
+  onerror: ((event: MockProgressEvent) => void) | null = null;
 
-  readAsText(file: any) {
+  readAsText(file: { name?: string }) {
     this.readyState = 2; // DONE
     this.result = typeof file === 'string' ? file : `# ${file.name || 'test'}\nTest content`;
     setTimeout(() => {
@@ -69,7 +92,7 @@ global.FileReader = class MockFileReader {
     }, 0);
   }
 
-  readAsArrayBuffer(file: any) {
+  readAsArrayBuffer(_file: unknown) {
     this.readyState = 2; // DONE
     this.result = new ArrayBuffer(100);
     setTimeout(() => {
@@ -78,7 +101,7 @@ global.FileReader = class MockFileReader {
       }
     }, 0);
   }
-} as any;
+};
 
 // Mock URL.createObjectURL and revokeObjectURL
 global.URL = {
@@ -88,15 +111,16 @@ global.URL = {
 };
 
 // Mock Blob
-global.Blob = class MockBlob {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).Blob = class MockBlob {
   size: number;
   type: string;
   
-  constructor(array: any[], options: any = {}) {
+  constructor(array: unknown[], options: BlobPropertyBag = {}) {
     this.size = array.reduce((acc, item) => acc + (item?.length || 0), 0);
     this.type = options.type || '';
   }
-} as any;
+};
 
 // Mock localStorage
 const mockStorage = {

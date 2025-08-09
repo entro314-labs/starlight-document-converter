@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
 
 // Optional Astro types - only available when Astro is installed
-type AstroConfig = any;
+// type AstroConfig = any; // Commented out as unused
 
 export interface StarlightConfig {
   contentDir: string;
@@ -142,7 +142,7 @@ function mergeWithDefaults(defaults: StarlightConfig, detected: Partial<Starligh
 /**
  * Get recommended input directories based on project structure
  */
-export function getRecommendedInputDirs(projectRoot: string, starlightConfig: StarlightConfig): string[] {
+export function getRecommendedInputDirs(projectRoot: string, _starlightConfig: StarlightConfig): string[] {
   const recommendations: string[] = [];
   
   // Check for common import directory patterns
@@ -209,7 +209,7 @@ export function isStarlightProject(projectRoot: string): boolean {
     
     return false;
     
-  } catch (error) {
+  } catch {
     return false;
   }
 }

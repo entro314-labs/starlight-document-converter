@@ -183,7 +183,7 @@ describe('Starlight Integration', () => {
 
   describe('File Watching', () => {
     it('should set up file watchers when enabled', () => {
-      const { watch } = require('fs');
+      // Note: File watching is tested through integration setup
       
       const integration = starlightDocumentConverter({
         enabled: true,

@@ -42,7 +42,7 @@ export const markdownEnhancer: MetadataEnhancer = {
   }
 };
 
-function extractTitleFromMarkdown(filePath: string): string | undefined {
+function extractTitleFromMarkdown(_filePath: string): string | undefined {
   // This would read the file and extract title from various sources:
   // 1. First H1 heading
   // 2. Title in frontmatter
@@ -52,7 +52,7 @@ function extractTitleFromMarkdown(filePath: string): string | undefined {
   return undefined;
 }
 
-function extractDescriptionFromMarkdown(filePath: string): string | undefined {
+function extractDescriptionFromMarkdown(_filePath: string): string | undefined {
   // This would read the file and extract description from:
   // 1. Description in frontmatter
   // 2. First paragraph after title
@@ -61,7 +61,7 @@ function extractDescriptionFromMarkdown(filePath: string): string | undefined {
   return undefined;
 }
 
-function extractMarkdownTags(filePath: string): string[] {
+function extractMarkdownTags(_filePath: string): string[] {
   // This would analyze markdown content for:
   // 1. Code blocks and their languages
   // 2. Link patterns (API endpoints, repos, etc.)

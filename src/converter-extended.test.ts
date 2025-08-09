@@ -290,7 +290,7 @@ This section covers more advanced concepts.`;
       // Try to convert a non-existent file
       try {
         await converter.convertFile('non-existent-file.md');
-      } catch (error) {
+      } catch {
         // Expected to fail
       }
       

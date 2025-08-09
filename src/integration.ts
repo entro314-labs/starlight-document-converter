@@ -1,7 +1,10 @@
 // Optional Astro types - only available when Astro is installed
 interface AstroIntegration {
   name: string;
-  hooks: Record<string, (...args: any[]) => void | Promise<void>>;
+  hooks: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: ((context: any) => void | Promise<void>) | undefined;
+  };
 }
 
 interface AstroConfig {

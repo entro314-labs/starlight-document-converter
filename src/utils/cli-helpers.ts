@@ -17,7 +17,7 @@ export function getSmartDefaults(cwd: string = process.cwd()) {
       description: starlightConfig.description,
       recommendations: getRecommendations(cwd, starlightConfig, isStarlight)
     };
-  } catch (error) {
+  } catch {
     // Fallback when Astro/Starlight is not available (CLI-only usage)
     return {
       outputDir: 'docs-output',
@@ -32,7 +32,7 @@ export function getSmartDefaults(cwd: string = process.cwd()) {
 /**
  * Get recommendations for the user based on project setup
  */
-function getRecommendations(cwd: string, config: any, isStarlight: boolean): string[] {
+function getRecommendations(cwd: string, config: { docsDir: string }, isStarlight: boolean): string[] {
   const recommendations: string[] = [];
   
   if (!isStarlight) {
@@ -67,7 +67,7 @@ export function getOutputDirectory(userSpecified?: string, cwd: string = process
   try {
     const starlightConfig = detectStarlightConfig(cwd);
     return starlightConfig.docsDir;
-  } catch (error) {
+  } catch {
     // Fallback for CLI-only usage
     return 'docs-output';
   }

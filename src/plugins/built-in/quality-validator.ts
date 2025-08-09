@@ -11,7 +11,7 @@ export const contentQualityValidator: QualityValidator = {
     author: 'Starlight Document Converter'
   },
   
-  validate: (content: string, metadata: DocumentMetadata, context: ProcessingContext): QualityReport => {
+  validate: (content: string, metadata: DocumentMetadata, _context: ProcessingContext): QualityReport => {
     const issues: QualityIssue[] = [];
     let score = 100;
     
