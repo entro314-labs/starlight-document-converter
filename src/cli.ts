@@ -25,8 +25,9 @@ const program = new Command();
 // Helper functions
 const getFormattedStats = (results: ConversionResult[]) => {
   const successful = results.filter((r) => r.success).length;
-  const failed = results.filter((r) => !r.success).length;
-  return { successful, failed, total: results.length };
+  const skipped = results.filter((r) => r.skipped).length;
+  const failed = results.filter((r) => !r.success && !r.skipped).length;
+  return { successful, skipped, failed, total: results.length };
 };
 
 const detectInputType = (inputPath: string): 'file' | 'directory' | 'not-found' => {
@@ -230,14 +231,15 @@ async function getAdvancedOptions(): Promise<Record<string, unknown>> {
 
 // Helper function to show results
 function showResults(
-  results: Array<{ success: boolean; inputPath: string; outputPath: string }>,
+  results: Array<{ success: boolean; skipped?: boolean; inputPath: string; outputPath: string }>,
   converterOptions: Record<string, unknown>
 ) {
   const stats = getFormattedStats(results);
 
-  if (stats.successful > 0) {
+  if (stats.total > 0) {
     note(
       `${pc.green('✅ Successful:')} ${stats.successful} files\n` +
+        (stats.skipped > 0 ? `${pc.yellow('⏭️ Skipped:')} ${stats.skipped} files\n` : '') +
         (stats.failed > 0 ? `${pc.red('❌ Failed:')} ${stats.failed} files\n` : '') +
         (converterOptions.dryRun ? pc.yellow('🧪 Dry run - no files were modified') : ''),
       'Results'
@@ -536,6 +538,7 @@ program
       const stats = getFormattedStats(results);
       note(
         `${pc.green('✅ Successful:')} ${stats.successful} files\n` +
+          (stats.skipped > 0 ? `${pc.yellow('⏭️ Skipped:')} ${stats.skipped} files\n` : '') +
           (stats.failed > 0 ? `${pc.red('❌ Failed:')} ${stats.failed} files\n` : '') +
           (options.dryRun ? pc.yellow('🧪 Dry run - no files were modified') : ''),
         'Results'

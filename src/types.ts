@@ -42,7 +42,9 @@ export interface ConversionResult {
   success: boolean;
   inputPath: string;
   outputPath: string;
+  skipped?: boolean;
   error?: string;
+  errorMessage?: string;
   metadata?: DocumentMetadata;
 }
 

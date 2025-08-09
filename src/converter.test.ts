@@ -241,7 +241,8 @@ Some content here.`;
       const result = await converter.convertFile(inputFile);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Unsupported file format');
+      expect(result.skipped).toBe(true);
+      expect(result.errorMessage).toContain('Skipped');
     });
 
     it('should handle non-existent files', async () => {

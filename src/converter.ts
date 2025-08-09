@@ -546,6 +546,139 @@ export class DocumentConverter {
     return frontmatter;
   }
 
+  private isSupportedFormat(ext: string): ext is SupportedFormat {
+    const supportedFormats: SupportedFormat[] = [
+      '.docx',
+      '.doc',
+      '.txt',
+      '.html',
+      '.htm',
+      '.md',
+      '.mdx',
+      '.rtf',
+    ];
+    return supportedFormats.includes(ext as SupportedFormat);
+  }
+
+  private isTextBasedFile(ext: string): boolean {
+    const textExtensions = [
+      '.txt',
+      '.md',
+      '.mdx',
+      '.html',
+      '.htm',
+      '.rtf',
+      '.csv',
+      '.tsv',
+      '.xml',
+      '.json',
+      '.yaml',
+      '.yml',
+      '.ini',
+      '.cfg',
+      '.conf',
+      '.log',
+      '.sh',
+      '.bash',
+      '.zsh',
+      '.fish',
+      '.js',
+      '.ts',
+      '.jsx',
+      '.tsx',
+      '.py',
+      '.rb',
+      '.php',
+      '.java',
+      '.c',
+      '.cpp',
+      '.h',
+      '.hpp',
+      '.css',
+      '.scss',
+      '.sass',
+      '.less',
+      '.sql',
+      '.go',
+      '.rs',
+      '.kt',
+      '.swift',
+      '.dart',
+      '.r',
+      '.m',
+      '.gradle',
+      '.cmake',
+      '.dockerfile',
+    ];
+    return textExtensions.includes(ext.toLowerCase());
+  }
+
+  private shouldSkipFile(filename: string, ext: string): { skip: boolean; reason?: string } {
+    // Skip hidden files and system files
+    if (filename.startsWith('.') && !['.md', '.html', '.htm', '.txt'].includes(ext)) {
+      return { skip: true, reason: 'hidden file' };
+    }
+
+    // Skip common binary/asset file extensions
+    const binaryExtensions = [
+      '.png',
+      '.jpg',
+      '.jpeg',
+      '.gif',
+      '.bmp',
+      '.tiff',
+      '.svg',
+      '.webp',
+      '.ico',
+      '.xls',
+      '.xlsx',
+      '.ppt',
+      '.pptx',
+      '.zip',
+      '.rar',
+      '.7z',
+      '.tar',
+      '.gz',
+      '.mp3',
+      '.mp4',
+      '.avi',
+      '.mov',
+      '.wmv',
+      '.flv',
+      '.wav',
+      '.ogg',
+      '.woff',
+      '.woff2',
+      '.ttf',
+      '.otf',
+      '.eot',
+      '.jar',
+      '.war',
+      '.ear',
+      '.exe',
+      '.dll',
+      '.so',
+      '.dylib',
+      '.bin',
+      '.iso',
+      '.dmg',
+      '.pkg',
+      '.deb',
+      '.rpm',
+    ];
+
+    if (binaryExtensions.includes(ext.toLowerCase())) {
+      return { skip: true, reason: 'binary file' };
+    }
+
+    // Skip if not supported and not text-based
+    if (!this.isSupportedFormat(ext) && !this.isTextBasedFile(ext)) {
+      return { skip: true, reason: 'unsupported format' };
+    }
+
+    return { skip: false };
+  }
+
   private convertPlainText(content: string): string {
     const lines = content.split('\n');
     const markdown: string[] = [];
@@ -684,12 +817,106 @@ export class DocumentConverter {
     return this.convertPlainText(text);
   }
 
+  private async processFileByType(
+    inputPath: string,
+    ext: string,
+    outputPath: string
+  ): Promise<ConversionResult | { content: string; needsConversion: boolean }> {
+    switch (ext) {
+      case '.docx':
+      case '.doc':
+        return {
+          content: await this.convertWordDocument(inputPath),
+          needsConversion: true,
+        };
+
+      case '.rtf': {
+        const rtfContent = await readFile(inputPath, 'utf-8');
+        return {
+          content: this.convertRTF(rtfContent),
+          needsConversion: true,
+        };
+      }
+
+      case '.txt': {
+        const textContent = await readFile(inputPath, 'utf-8');
+        return {
+          content: this.convertPlainText(textContent),
+          needsConversion: true,
+        };
+      }
+
+      case '.html':
+      case '.htm': {
+        const htmlContent = await readFile(inputPath, 'utf-8');
+        return {
+          content: this.convertHTML(htmlContent),
+          needsConversion: true,
+        };
+      }
+
+      case '.md':
+      case '.mdx': {
+        const mdContent = await readFile(inputPath, 'utf-8');
+        const parsed = matter(mdContent);
+        return {
+          content: mdContent,
+          needsConversion: Object.keys(parsed.data).length === 0,
+        };
+      }
+
+      default:
+        // Try to process text-based files as plain text
+        if (this.isTextBasedFile(ext)) {
+          try {
+            const textContent = await readFile(inputPath, 'utf-8');
+            this.log(`Processing ${ext} file as plain text`, 'info');
+            return {
+              content: this.convertPlainText(textContent),
+              needsConversion: true,
+            };
+          } catch (error) {
+            return {
+              success: false,
+              inputPath,
+              outputPath,
+              skipped: true,
+              errorMessage: `Failed to read text file: ${error}`,
+            };
+          }
+        } else {
+          // Skip unsupported file formats gracefully
+          return {
+            success: false,
+            inputPath,
+            outputPath,
+            skipped: true,
+            errorMessage: `Skipped unsupported file format: ${ext}`,
+          };
+        }
+    }
+  }
+
   async convertFile(inputPath: string, outputPath?: string): Promise<ConversionResult> {
     try {
       const filename = basename(inputPath);
-      const ext = extname(inputPath).toLowerCase() as SupportedFormat;
+      const ext = extname(inputPath).toLowerCase();
       const resolvedOutputPath =
         outputPath || join(this.options.outputDir, filename.replace(/\.[^/.]+$/, '.md'));
+
+      // Check if file should be skipped
+      const skipCheck = this.shouldSkipFile(filename, ext);
+      if (skipCheck.skip) {
+        this.log(`Skipping ${filename}: ${skipCheck.reason}`, 'info');
+        this.stats.skipped++;
+        return {
+          success: false,
+          inputPath,
+          outputPath: resolvedOutputPath,
+          skipped: true,
+          errorMessage: `Skipped: ${skipCheck.reason}`,
+        };
+      }
 
       this.stats.formats.set(ext, (this.stats.formats.get(ext) || 0) + 1);
 
@@ -697,50 +924,13 @@ export class DocumentConverter {
       let needsConversion = false;
 
       // Process based on file extension
-      switch (ext) {
-        case '.docx':
-        case '.doc':
-          processedContent = await this.convertWordDocument(inputPath);
-          needsConversion = true;
-          break;
-
-        case '.rtf': {
-          const rtfContent = await readFile(inputPath, 'utf-8');
-          processedContent = this.convertRTF(rtfContent);
-          needsConversion = true;
-          break;
-        }
-
-        case '.txt': {
-          const textContent = await readFile(inputPath, 'utf-8');
-          processedContent = this.convertPlainText(textContent);
-          needsConversion = true;
-          break;
-        }
-
-        case '.html':
-        case '.htm': {
-          const htmlContent = await readFile(inputPath, 'utf-8');
-          processedContent = this.convertHTML(htmlContent);
-          needsConversion = true;
-          break;
-        }
-
-        case '.md':
-        case '.mdx': {
-          const mdContent = await readFile(inputPath, 'utf-8');
-          const parsed = matter(mdContent);
-          processedContent = mdContent;
-
-          if (Object.keys(parsed.data).length === 0) {
-            needsConversion = true;
-          }
-          break;
-        }
-
-        default:
-          throw new Error(`Unsupported file format: ${ext}`);
+      const processingResult = await this.processFileByType(inputPath, ext, resolvedOutputPath);
+      if ('success' in processingResult) {
+        return processingResult;
       }
+
+      processedContent = processingResult.content;
+      needsConversion = processingResult.needsConversion;
 
       // Generate frontmatter if needed
       let finalContent = processedContent;
