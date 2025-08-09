@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { spawn } from 'child_process';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
+import { spawn } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 describe.skip('CLI Integration Tests', () => {
   let tempDir: string;
@@ -58,23 +58,24 @@ describe.skip('CLI Integration Tests', () => {
       // Create test file
       const testFile = path.join(tempDir, 'test.md');
       const outputDir = path.join(tempDir, 'output');
-      
-      await fs.writeFile(testFile, `# Test Document\n\nThis is a test document.\n\n## Features\n\n- Feature 1\n- Feature 2`);
-      
-      // Run conversion
-      const result = await runCLI([
-        'batch', 
+
+      await fs.writeFile(
         testFile,
-        '--output', outputDir,
-        '--verbose'
-      ]);
+        `# Test Document\n\nThis is a test document.\n\n## Features\n\n- Feature 1\n- Feature 2`
+      );
+
+      // Run conversion
+      const result = await runCLI(['batch', testFile, '--output', outputDir, '--verbose']);
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Successful: 1 files');
 
       // Check output file exists
       const outputFile = path.join(outputDir, 'test.md');
-      const exists = await fs.access(outputFile).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(outputFile)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
 
       // Check content has frontmatter
@@ -87,55 +88,52 @@ describe.skip('CLI Integration Tests', () => {
     it('should perform dry run without creating files', async () => {
       const testFile = path.join(tempDir, 'test.md');
       const outputDir = path.join(tempDir, 'output');
-      
+
       await fs.writeFile(testFile, `# Test Document\n\nThis is a test.`);
-      
-      const result = await runCLI([
-        'batch',
-        testFile,
-        '--output', outputDir,
-        '--dry-run'
-      ]);
+
+      const result = await runCLI(['batch', testFile, '--output', outputDir, '--dry-run']);
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Dry run - no files were modified');
 
       // Check output file was NOT created
       const outputFile = path.join(outputDir, 'test.md');
-      const exists = await fs.access(outputFile).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(outputFile)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(false);
     });
 
     it('should handle conversion options correctly', async () => {
       const testFile = path.join(tempDir, 'test.md');
       const outputDir = path.join(tempDir, 'output');
-      
+
       await fs.writeFile(testFile, `# Test Document\n\nThis is a test.`);
-      
+
       const result = await runCLI([
         'batch',
         testFile,
-        '--output', outputDir,
+        '--output',
+        outputDir,
         '--no-titles',
         '--no-descriptions',
         '--timestamps',
-        '--category', 'custom-category'
+        '--category',
+        'custom-category',
       ]);
 
       expect(result.exitCode).toBe(0);
-      
+
       const outputFile = path.join(outputDir, 'test.md');
       const content = await fs.readFile(outputFile, 'utf-8');
-      
+
       // Should not have auto-generated title/description but should have category
       expect(content).toContain('category: "custom-category"');
     });
 
     it('should handle non-existent input file', async () => {
-      const result = await runCLI([
-        'batch',
-        'non-existent-file.md'
-      ]);
+      const result = await runCLI(['batch', 'non-existent-file.md']);
 
       expect(result.exitCode).toBe(1);
       expect(result.stdout).toContain('does not exist');
@@ -145,19 +143,14 @@ describe.skip('CLI Integration Tests', () => {
       // Create test directory with multiple files
       const inputDir = path.join(tempDir, 'input');
       const outputDir = path.join(tempDir, 'output');
-      
+
       await fs.mkdir(inputDir, { recursive: true });
-      
+
       await fs.writeFile(path.join(inputDir, 'doc1.md'), '# Document 1\nContent 1');
       await fs.writeFile(path.join(inputDir, 'doc2.md'), '# Document 2\nContent 2');
       await fs.writeFile(path.join(inputDir, 'doc3.txt'), 'Plain text document');
-      
-      const result = await runCLI([
-        'batch',
-        inputDir,
-        '--output', outputDir,
-        '--verbose'
-      ]);
+
+      const result = await runCLI(['batch', inputDir, '--output', outputDir, '--verbose']);
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Processed: 3 files');
@@ -184,14 +177,16 @@ describe.skip('CLI Integration Tests', () => {
   });
 
   // Helper function to run CLI commands
-  async function runCLI(args: string[]): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  async function runCLI(
+    args: string[]
+  ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     return new Promise((resolve) => {
       let stdout = '';
       let stderr = '';
-      
+
       const child = spawn('node', [cliPath, ...args], {
         cwd: tempDir,
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       child.stdout?.on('data', (data) => {
@@ -207,7 +202,7 @@ describe.skip('CLI Integration Tests', () => {
         resolve({
           exitCode: exitCode || 0,
           stdout: stdout.trim(),
-          stderr: stderr.trim()
+          stderr: stderr.trim(),
         });
       });
 
@@ -217,7 +212,7 @@ describe.skip('CLI Integration Tests', () => {
         resolve({
           exitCode: 1,
           stdout: stdout.trim(),
-          stderr: 'Command timed out'
+          stderr: 'Command timed out',
         });
       }, 30000);
     });

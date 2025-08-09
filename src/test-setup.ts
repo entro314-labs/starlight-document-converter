@@ -1,5 +1,5 @@
 // Test setup file for vitest
-import { vi, afterAll, beforeEach } from 'vitest';
+import { afterAll, beforeEach, vi } from 'vitest';
 
 // Local type definitions for test mocks
 interface FilePropertyBag {
@@ -42,17 +42,23 @@ afterAll(() => {
 });
 
 // Mock setTimeout and setInterval for faster tests
-vi.stubGlobal('setTimeout', vi.fn((fn, delay) => {
-  if (delay && delay > 100) {
-    // For long delays, run immediately
-    return setImmediate(fn);
-  }
-  return setTimeout(fn, Math.min(delay || 0, 10));
-}));
+vi.stubGlobal(
+  'setTimeout',
+  vi.fn((fn, delay) => {
+    if (delay && delay > 100) {
+      // For long delays, run immediately
+      return setImmediate(fn);
+    }
+    return setTimeout(fn, Math.min(delay || 0, 10));
+  })
+);
 
-vi.stubGlobal('setInterval', vi.fn((fn, delay) => {
-  return setInterval(fn, Math.min(delay || 0, 10));
-}));
+vi.stubGlobal(
+  'setInterval',
+  vi.fn((fn, delay) => {
+    return setInterval(fn, Math.min(delay || 0, 10));
+  })
+);
 
 // Mock fetch for API tests
 global.fetch = vi.fn();
@@ -65,7 +71,11 @@ global.fetch = vi.fn();
   type: string;
   lastModified: number;
 
-  constructor(bits: (string | ArrayBuffer | ArrayBufferView)[], name: string, options: FilePropertyBag = {}) {
+  constructor(
+    bits: (string | ArrayBuffer | ArrayBufferView)[],
+    name: string,
+    options: FilePropertyBag = {}
+  ) {
     this.name = name;
     this.size = bits.reduce((acc, bit) => acc + (typeof bit === 'string' ? bit.length : 0), 0);
     this.type = options.type || '';
@@ -107,7 +117,7 @@ global.fetch = vi.fn();
 global.URL = {
   ...global.URL,
   createObjectURL: vi.fn(() => 'mock://blob-url'),
-  revokeObjectURL: vi.fn()
+  revokeObjectURL: vi.fn(),
 };
 
 // Mock Blob
@@ -115,7 +125,7 @@ global.URL = {
 (global as any).Blob = class MockBlob {
   size: number;
   type: string;
-  
+
   constructor(array: unknown[], options: BlobPropertyBag = {}) {
     this.size = array.reduce((acc, item) => acc + (item?.length || 0), 0);
     this.type = options.type || '';
@@ -134,11 +144,11 @@ const mockStorage = {
   }),
   clear: vi.fn(() => {
     mockStorage.store = {};
-  })
+  }),
 };
 
 Object.defineProperty(global, 'localStorage', {
-  value: mockStorage
+  value: mockStorage,
 });
 
 // Reset localStorage before each test
@@ -151,17 +161,17 @@ beforeEach(() => {
 Object.defineProperty(global, 'getComputedStyle', {
   value: vi.fn(() => ({
     getPropertyValue: vi.fn(() => ''),
-  }))
+  })),
 });
 
 // Mock navigator
 Object.defineProperty(global, 'navigator', {
   value: {
     clipboard: {
-      writeText: vi.fn(() => Promise.resolve())
+      writeText: vi.fn(() => Promise.resolve()),
     },
-    userAgent: 'node.js'
-  }
+    userAgent: 'node.js',
+  },
 });
 
 // Mock alert, confirm, prompt

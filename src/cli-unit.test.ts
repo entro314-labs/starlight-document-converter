@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('CLI Unit Tests', () => {
   beforeEach(() => {
@@ -6,7 +6,7 @@ describe('CLI Unit Tests', () => {
     vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit called');
     });
-    
+
     // Reset process.argv
     process.argv = ['node', 'dist/cli.js'];
   });
@@ -38,19 +38,19 @@ describe('CLI Unit Tests', () => {
         options: [
           { flag: '-o, --output <dir>', description: 'Output directory' },
           { flag: '--dry-run', description: 'Preview changes without writing files' },
-          { flag: '-v, --verbose', description: 'Show detailed output' }
-        ]
+          { flag: '-v, --verbose', description: 'Show detailed output' },
+        ],
       };
 
       expect(batchCommand.name).toBe('batch');
       expect(batchCommand.arguments).toContain('<input>');
-      expect(batchCommand.options.some(opt => opt.flag.includes('--dry-run'))).toBe(true);
+      expect(batchCommand.options.some((opt) => opt.flag.includes('--dry-run'))).toBe(true);
     });
 
     it('should define setup command', () => {
       const setupCommand = {
         name: 'setup',
-        description: 'Interactive project setup wizard'
+        description: 'Interactive project setup wizard',
       };
 
       expect(setupCommand.name).toBe('setup');
@@ -61,7 +61,7 @@ describe('CLI Unit Tests', () => {
       const watchCommand = {
         name: 'watch',
         description: 'Watch directory for changes',
-        arguments: ['<input>']
+        arguments: ['<input>'],
       };
 
       expect(watchCommand.name).toBe('watch');
@@ -72,7 +72,7 @@ describe('CLI Unit Tests', () => {
   describe('Option Parsing', () => {
     it('should parse output directory option', () => {
       const parseOutputOption = (args: string[]) => {
-        const outputIndex = args.findIndex(arg => arg === '-o' || arg === '--output');
+        const outputIndex = args.findIndex((arg) => arg === '-o' || arg === '--output');
         if (outputIndex !== -1 && outputIndex + 1 < args.length) {
           return args[outputIndex + 1];
         }
@@ -105,14 +105,14 @@ describe('CLI Unit Tests', () => {
             'convert                  Convert documents interactively',
             'batch [options] <input>  Convert documents in batch mode',
             'setup                    Interactive project setup wizard',
-            'watch [options] <input>  Watch directory for changes'
+            'watch [options] <input>  Watch directory for changes',
           ],
           examples: [
             'starlight-convert                    Interactive mode',
             'starlight-convert setup              Project setup wizard',
             'starlight-convert batch docs/        Convert directory',
-            'starlight-convert watch docs-import/ Watch for changes'
-          ]
+            'starlight-convert watch docs-import/ Watch for changes',
+          ],
         };
       };
 
@@ -164,14 +164,14 @@ describe('CLI Unit Tests', () => {
           addTimestamps: options.timestamps || false,
           defaultCategory: options.category || 'documentation',
           verbose: options.verbose || false,
-          dryRun: options.dryRun || false
+          dryRun: options.dryRun || false,
         };
       };
 
       const config1 = buildConverterConfig({
         output: 'custom-dir',
         verbose: true,
-        dryRun: true
+        dryRun: true,
       });
 
       expect(config1.outputDir).toBe('custom-dir');
@@ -183,7 +183,7 @@ describe('CLI Unit Tests', () => {
         noTitles: true,
         noDescriptions: true,
         timestamps: true,
-        category: 'custom'
+        category: 'custom',
       });
 
       expect(config2.generateTitles).toBe(false);
@@ -196,8 +196,17 @@ describe('CLI Unit Tests', () => {
   describe('File Validation', () => {
     it('should validate supported file extensions', () => {
       const validateFileExtension = (filename: string) => {
-        const supportedExtensions = ['.md', '.mdx', '.txt', '.html', '.htm', '.docx', '.doc', '.rtf'];
-        const ext = '.' + filename.split('.').pop()?.toLowerCase();
+        const supportedExtensions = [
+          '.md',
+          '.mdx',
+          '.txt',
+          '.html',
+          '.htm',
+          '.docx',
+          '.doc',
+          '.rtf',
+        ];
+        const ext = `.${filename.split('.').pop()?.toLowerCase()}`;
         return supportedExtensions.includes(ext);
       };
 
@@ -220,13 +229,13 @@ describe('CLI Unit Tests', () => {
       };
 
       expect(validatePath('docs/test.md')).toEqual({ valid: true, error: null });
-      expect(validatePath('../../../etc/passwd')).toEqual({ 
-        valid: false, 
-        error: 'Path traversal not allowed' 
+      expect(validatePath('../../../etc/passwd')).toEqual({
+        valid: false,
+        error: 'Path traversal not allowed',
       });
-      expect(validatePath('')).toEqual({ 
-        valid: false, 
-        error: 'Path cannot be empty' 
+      expect(validatePath('')).toEqual({
+        valid: false,
+        error: 'Path cannot be empty',
       });
     });
   });

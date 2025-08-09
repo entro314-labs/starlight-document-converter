@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DocumentConverter } from './converter.js';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
 
 describe.skip('DocumentConverter Extended Tests (SKIPPED - needs interface fixes)', () => {
   let converter: DocumentConverter;
@@ -12,7 +12,7 @@ describe.skip('DocumentConverter Extended Tests (SKIPPED - needs interface fixes
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'converter-extended-test-'));
     converter = new DocumentConverter({
       outputDir: tempDir,
-      verbose: false
+      verbose: false,
     });
   });
 
@@ -31,9 +31,9 @@ describe.skip('DocumentConverter Extended Tests (SKIPPED - needs interface fixes
         defaultCategory: 'custom-category',
         verbose: true,
         dryRun: true,
-        categoryPatterns: { 'api': 'API Reference' },
-        tagPatterns: { 'js': ['javascript', 'nodejs'] },
-        ignorePatterns: ['*.draft.md']
+        categoryPatterns: { api: 'API Reference' },
+        tagPatterns: { js: ['javascript', 'nodejs'] },
+        ignorePatterns: ['*.draft.md'],
       });
 
       expect(converter).toBeDefined();
@@ -47,7 +47,7 @@ describe.skip('DocumentConverter Extended Tests (SKIPPED - needs interface fixes
     it('should handle partial options', () => {
       const converter = new DocumentConverter({
         generateTitles: false,
-        verbose: true
+        verbose: true,
       });
       expect(converter).toBeDefined();
     });
@@ -72,16 +72,19 @@ describe.skip('DocumentConverter Extended Tests (SKIPPED - needs interface fixes
       `;
 
       await fs.writeFile(htmlFile, htmlContent);
-      
+
       const result = await converter.convertFile(htmlFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.outputPath).toBeDefined();
       expect(result.inputPath).toContain('test.html');
-      
+
       // Check that output file was created (if not dry run)
       if (!converter.options?.dryRun) {
-        const outputExists = await fs.access(result.outputPath).then(() => true).catch(() => false);
+        const outputExists = await fs
+          .access(result.outputPath)
+          .then(() => true)
+          .catch(() => false);
         expect(outputExists).toBe(true);
       }
     });
@@ -98,9 +101,9 @@ Another paragraph with some details.
 - List item 2`;
 
       await fs.writeFile(txtFile, txtContent);
-      
+
       const result = await converter.convertFile(txtFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.content).toContain('---');
       expect(result.content).toContain('# Test Document Title');
@@ -118,9 +121,9 @@ old-field: "should be preserved"
 This is existing markdown content.`;
 
       await fs.writeFile(mdFile, mdContent);
-      
+
       const result = await converter.convertFile(mdFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.content).toContain('title:');
       expect(result.content).toContain('description:');
@@ -155,9 +158,9 @@ Follow these steps to get started:
 This section covers more advanced concepts.`;
 
       await fs.writeFile(mdFile, content);
-      
+
       const result = await converter.convertFile(mdFile);
-      
+
       expect(result.success).toBe(true);
       expect(result).toHaveProperty('quality');
       if (result.quality) {
@@ -171,9 +174,9 @@ This section covers more advanced concepts.`;
       const content = `test`;
 
       await fs.writeFile(mdFile, content);
-      
+
       const result = await converter.convertFile(mdFile);
-      
+
       expect(result.success).toBe(true);
       if (result.quality) {
         expect(result.quality.level).toBe('low');
@@ -184,13 +187,13 @@ This section covers more advanced concepts.`;
   describe('Directory Processing', () => {
     it('should process nested directories when preserveStructure is true', async () => {
       const converter = new DocumentConverter({
-        outputDir: tempDir + '/output',
-        preserveStructure: true
+        outputDir: `${tempDir}/output`,
+        preserveStructure: true,
       });
 
       const inputDir = path.join(tempDir, 'input');
       const nestedDir = path.join(inputDir, 'nested');
-      
+
       await fs.mkdir(inputDir, { recursive: true });
       await fs.mkdir(nestedDir, { recursive: true });
 
@@ -198,9 +201,9 @@ This section covers more advanced concepts.`;
       await fs.writeFile(path.join(nestedDir, 'nested.md'), '# Nested Document\nNested content');
 
       const results = await converter.convertDirectory(inputDir);
-      
+
       expect(results).toHaveLength(2);
-      expect(results.every(r => r.success)).toBe(true);
+      expect(results.every((r) => r.success)).toBe(true);
 
       // Check that structure is preserved
       const outputFiles = await fs.readdir(path.join(tempDir, 'output'), { recursive: true });
@@ -213,7 +216,7 @@ This section covers more advanced concepts.`;
       await fs.mkdir(emptyDir);
 
       const results = await converter.convertDirectory(emptyDir);
-      
+
       expect(results).toHaveLength(0);
     });
 
@@ -226,7 +229,7 @@ This section covers more advanced concepts.`;
       await fs.writeFile(path.join(inputDir, 'data.json'), '{"key": "value"}');
 
       const results = await converter.convertDirectory(inputDir);
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].success).toBe(true);
       expect(results[0].inputPath).toContain('document.md');
@@ -238,10 +241,10 @@ This section covers more advanced concepts.`;
       const converter = new DocumentConverter({
         outputDir: tempDir,
         categoryPatterns: {
-          'tutorial': 'Learning',
-          'guide': 'Documentation',
-          'spec': 'Specifications'
-        }
+          tutorial: 'Learning',
+          guide: 'Documentation',
+          spec: 'Specifications',
+        },
       });
 
       const tutorialFile = path.join(tempDir, 'tutorials', 'tutorial.md');
@@ -249,7 +252,7 @@ This section covers more advanced concepts.`;
       await fs.writeFile(tutorialFile, '# Tutorial\nLearn something new');
 
       const result = await converter.convertFile(tutorialFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.content).toContain('category: "Learning"');
     });
@@ -258,16 +261,16 @@ This section covers more advanced concepts.`;
       const converter = new DocumentConverter({
         outputDir: tempDir,
         tagPatterns: {
-          'react': ['react', 'jsx', 'components'],
-          'backend': ['api', 'server', 'database']
-        }
+          react: ['react', 'jsx', 'components'],
+          backend: ['api', 'server', 'database'],
+        },
       });
 
       const reactFile = path.join(tempDir, 'react-guide.md');
       await fs.writeFile(reactFile, '# React Components\nLearn about React components and JSX');
 
       const result = await converter.convertFile(reactFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.content).toContain('tags:');
     });
@@ -279,7 +282,7 @@ This section covers more advanced concepts.`;
       await fs.writeFile(mdFile, '# Test\nContent');
 
       await converter.convertFile(mdFile);
-      
+
       const stats = converter.getStats();
       expect(stats.processed).toBe(1);
       expect(stats.successful).toBe(1);
@@ -293,7 +296,7 @@ This section covers more advanced concepts.`;
       } catch {
         // Expected to fail
       }
-      
+
       const stats = converter.getStats();
       expect(stats.errors).toBeGreaterThan(0);
     });
@@ -301,13 +304,13 @@ This section covers more advanced concepts.`;
     it('should provide file format statistics', async () => {
       const mdFile = path.join(tempDir, 'test.md');
       const txtFile = path.join(tempDir, 'test.txt');
-      
+
       await fs.writeFile(mdFile, '# MD Test\nContent');
       await fs.writeFile(txtFile, 'TXT Test\nContent');
 
       await converter.convertFile(mdFile);
       await converter.convertFile(txtFile);
-      
+
       const stats = converter.getStats();
       expect(stats.fileFormats['.md']).toBe(1);
       expect(stats.fileFormats['.txt']).toBe(1);
@@ -315,14 +318,14 @@ This section covers more advanced concepts.`;
 
     it('should print statistics when verbose is enabled', () => {
       const verboseConverter = new DocumentConverter({ verbose: true });
-      
+
       // Mock console.log to capture output
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
+
       verboseConverter.printStats();
-      
+
       expect(consoleSpy).toHaveBeenCalled();
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -330,20 +333,23 @@ This section covers more advanced concepts.`;
   describe('Dry Run Mode', () => {
     it('should not write files in dry run mode', async () => {
       const dryRunConverter = new DocumentConverter({
-        outputDir: tempDir + '/dry-run-output',
-        dryRun: true
+        outputDir: `${tempDir}/dry-run-output`,
+        dryRun: true,
       });
 
       const mdFile = path.join(tempDir, 'dry-run.md');
       await fs.writeFile(mdFile, '# Dry Run Test\nContent');
 
       const result = await dryRunConverter.convertFile(mdFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.content).toBeDefined();
 
       // Check that no output file was created
-      const outputExists = await fs.access(result.outputPath).then(() => true).catch(() => false);
+      const outputExists = await fs
+        .access(result.outputPath)
+        .then(() => true)
+        .catch(() => false);
       expect(outputExists).toBe(false);
     });
   });
@@ -353,7 +359,7 @@ This section covers more advanced concepts.`;
       // Create a read-only file (simulate permission error)
       const readOnlyFile = path.join(tempDir, 'readonly.md');
       await fs.writeFile(readOnlyFile, '# Read Only\nContent');
-      
+
       // Make it read-only by changing permissions
       await fs.chmod(readOnlyFile, 0o444);
 
@@ -372,8 +378,8 @@ This section covers more advanced concepts.`;
 
     it('should handle malformed content gracefully', async () => {
       const malformedFile = path.join(tempDir, 'malformed.md');
-      const malformedContent = Buffer.from([0xFF, 0xFE, 0x00, 0x00]); // Invalid UTF-8
-      
+      const malformedContent = Buffer.from([0xff, 0xfe, 0x00, 0x00]); // Invalid UTF-8
+
       await fs.writeFile(malformedFile, malformedContent);
 
       try {
@@ -395,21 +401,21 @@ description: "This file has no content"
 ---`;
 
       await fs.writeFile(frontmatterOnlyFile, content);
-      
+
       const result = await converter.convertFile(frontmatterOnlyFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.content).toContain('title:');
     });
 
     it('should handle very large files', async () => {
       const largeFile = path.join(tempDir, 'large.md');
-      const largeContent = '# Large File\n\n' + 'Lorem ipsum '.repeat(10000);
+      const largeContent = `# Large File\n\n${'Lorem ipsum '.repeat(10000)}`;
 
       await fs.writeFile(largeFile, largeContent);
-      
+
       const result = await converter.convertFile(largeFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.content.length).toBeGreaterThan(1000);
     });
@@ -419,9 +425,9 @@ description: "This file has no content"
       const content = '# Special Characters\nContent with special chars: äöü 文档';
 
       await fs.writeFile(specialFile, content);
-      
+
       const result = await converter.convertFile(specialFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.content).toContain('Special Characters');
     });

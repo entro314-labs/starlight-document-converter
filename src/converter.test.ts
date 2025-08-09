@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DocumentConverter } from './converter.js';
-import { mkdir, writeFile, rm, readFile } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
 
 describe('DocumentConverter', () => {
   let converter: DocumentConverter;
@@ -15,14 +15,14 @@ describe('DocumentConverter', () => {
     testDir = join(tmpdir(), `converter-test-${Date.now()}`);
     inputDir = join(testDir, 'input');
     outputDir = join(testDir, 'output');
-    
+
     await mkdir(inputDir, { recursive: true });
     await mkdir(outputDir, { recursive: true });
-    
+
     converter = new DocumentConverter({
       outputDir,
       verbose: false,
-      dryRun: false
+      dryRun: false,
     });
   });
 
@@ -54,17 +54,17 @@ Features:
       await writeFile(inputFile, testContent);
 
       const result = await converter.convertFile(inputFile);
-      
+
       expect(result.success).toBe(true);
       expect(result.inputPath).toBe(inputFile);
-      
+
       const outputContent = await readFile(result.outputPath, 'utf-8');
-      
+
       // Check frontmatter
       expect(outputContent).toMatch(/^---\n/);
       expect(outputContent).toContain('title: "Getting Started Guide"');
       expect(outputContent).toContain('description: "This is a simple guide for beginners."');
-      
+
       // Check content conversion
       expect(outputContent).toContain('## Installation');
       expect(outputContent).toContain('```\nnpm install package-name');
@@ -90,7 +90,7 @@ End of example.`;
 
       const result = await converter.convertFile(inputFile);
       const outputContent = await readFile(result.outputPath, 'utf-8');
-      
+
       expect(outputContent).toContain('```\nconst api = new API();');
       expect(outputContent).toContain('function example()');
       expect(outputContent).toContain('```');
@@ -124,7 +124,7 @@ End of example.`;
 
       const result = await converter.convertFile(inputFile);
       const outputContent = await readFile(result.outputPath, 'utf-8');
-      
+
       expect(outputContent).toContain('title: "API Documentation"');
       expect(outputContent).toContain('# User API');
       expect(outputContent).toContain('**authentication**');
@@ -138,13 +138,13 @@ End of example.`;
     it('should generate appropriate categories', async () => {
       const testContent = 'API Reference Guide\n\nComplete API documentation.';
       const inputFile = join(inputDir, 'api', 'reference.txt');
-      
+
       await mkdir(join(inputDir, 'api'), { recursive: true });
       await writeFile(inputFile, testContent);
 
       const result = await converter.convertFile(inputFile);
       const outputContent = await readFile(result.outputPath, 'utf-8');
-      
+
       expect(outputContent).toContain('category: "Reference"');
     });
 
@@ -163,7 +163,7 @@ This guide covers:
 
       const result = await converter.convertFile(inputFile);
       const outputContent = await readFile(result.outputPath, 'utf-8');
-      
+
       expect(outputContent).toContain('tags:');
       expect(outputContent).toMatch(/- javascript|react|api|database|performance/);
     });
@@ -181,7 +181,7 @@ Some content here.`;
 
       const result = await converter.convertFile(inputFile);
       const outputContent = await readFile(result.outputPath, 'utf-8');
-      
+
       expect(outputContent).toMatch(/^---\n/);
       expect(outputContent).toContain('title: "Existing Guide"');
       expect(outputContent).toContain('# Existing Guide');
@@ -192,7 +192,7 @@ Some content here.`;
     it('should respect dryRun option', async () => {
       const dryConverter = new DocumentConverter({
         outputDir,
-        dryRun: true
+        dryRun: true,
       });
 
       const testContent = 'Test content';
@@ -200,9 +200,9 @@ Some content here.`;
       await writeFile(inputFile, testContent);
 
       const result = await dryConverter.convertFile(inputFile);
-      
+
       expect(result.success).toBe(true);
-      
+
       // File should not actually exist in dry run
       try {
         await readFile(result.outputPath, 'utf-8');
@@ -216,19 +216,19 @@ Some content here.`;
       const customConverter = new DocumentConverter({
         outputDir,
         categoryPatterns: {
-          'custom': 'Custom Category'
-        }
+          custom: 'Custom Category',
+        },
       });
 
       const testContent = 'Custom guide content';
       const inputFile = join(inputDir, 'custom', 'guide.txt');
-      
+
       await mkdir(join(inputDir, 'custom'), { recursive: true });
       await writeFile(inputFile, testContent);
 
       const result = await customConverter.convertFile(inputFile);
       const outputContent = await readFile(result.outputPath, 'utf-8');
-      
+
       expect(outputContent).toContain('category: "Custom Category"');
     });
   });
@@ -239,7 +239,7 @@ Some content here.`;
       await writeFile(inputFile, Buffer.from([0x00, 0x01, 0x02, 0x03]));
 
       const result = await converter.convertFile(inputFile);
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toContain('Unsupported file format');
     });
@@ -248,7 +248,7 @@ Some content here.`;
       const inputFile = join(inputDir, 'non-existent.txt');
 
       const result = await converter.convertFile(inputFile);
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
     });
@@ -259,7 +259,7 @@ Some content here.`;
       const files = [
         { name: 'doc1.txt', content: 'Document 1' },
         { name: 'doc2.html', content: '<h1>Document 2</h1>' },
-        { name: 'doc3.md', content: '# Document 3' }
+        { name: 'doc3.md', content: '# Document 3' },
       ];
 
       for (const file of files) {
@@ -268,7 +268,7 @@ Some content here.`;
       }
 
       const stats = converter.getStats();
-      
+
       expect(stats.processed).toBe(3);
       expect(stats.errors).toBe(0);
       expect(stats.formats.get('.txt')).toBe(1);

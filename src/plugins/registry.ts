@@ -1,9 +1,4 @@
-import type { 
-  FileProcessor, 
-  MetadataEnhancer, 
-  QualityValidator, 
-  PluginRegistry 
-} from './types.js';
+import type { FileProcessor, MetadataEnhancer, PluginRegistry, QualityValidator } from './types.js';
 
 /**
  * Central plugin registry for managing file processors, metadata enhancers, and quality validators
@@ -18,10 +13,10 @@ export class DefaultPluginRegistry implements PluginRegistry {
    */
   registerProcessor(processor: FileProcessor): void {
     const key = `${processor.metadata.name}@${processor.metadata.version}`;
-    
+
     // Validate processor
     this.validateProcessor(processor);
-    
+
     this.processors.set(key, processor);
     console.log(`Registered processor: ${processor.metadata.name} v${processor.metadata.version}`);
   }
@@ -32,12 +27,12 @@ export class DefaultPluginRegistry implements PluginRegistry {
   registerEnhancer(enhancer: MetadataEnhancer): void {
     // Validate enhancer
     this.validateEnhancer(enhancer);
-    
+
     this.enhancers.push(enhancer);
-    
+
     // Sort by priority (higher priority first)
     this.enhancers.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-    
+
     console.log(`Registered enhancer: ${enhancer.metadata.name} v${enhancer.metadata.version}`);
   }
 
@@ -47,7 +42,7 @@ export class DefaultPluginRegistry implements PluginRegistry {
   registerValidator(validator: QualityValidator): void {
     // Validate validator
     this.validateValidator(validator);
-    
+
     this.validators.push(validator);
     console.log(`Registered validator: ${validator.metadata.name} v${validator.metadata.version}`);
   }
@@ -63,7 +58,7 @@ export class DefaultPluginRegistry implements PluginRegistry {
    * Get processors that can handle a specific file extension
    */
   getProcessorsForExtension(extension: string): FileProcessor[] {
-    return this.getProcessors().filter(processor => 
+    return this.getProcessors().filter((processor) =>
       processor.extensions.includes(extension.toLowerCase())
     );
   }
@@ -96,15 +91,15 @@ export class DefaultPluginRegistry implements PluginRegistry {
    */
   getStats() {
     const processorExtensions = new Set<string>();
-    this.getProcessors().forEach(p => 
-      p.extensions.forEach(ext => processorExtensions.add(ext))
+    this.getProcessors().forEach((p) =>
+      p.extensions.forEach((ext) => processorExtensions.add(ext))
     );
 
     return {
       processors: this.processors.size,
       enhancers: this.enhancers.length,
       validators: this.validators.length,
-      supportedExtensions: Array.from(processorExtensions)
+      supportedExtensions: Array.from(processorExtensions),
     };
   }
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { starlightDocumentConverter } from './integration.js';
 import type { StarlightIntegrationConfig } from './types.js';
 
@@ -7,7 +7,7 @@ vi.mock('fs', async () => {
   const actual = await vi.importActual('fs');
   return {
     ...actual,
-    watch: vi.fn(() => ({ close: vi.fn() }))
+    watch: vi.fn(() => ({ close: vi.fn() })),
   };
 });
 
@@ -27,13 +27,13 @@ describe('Starlight Integration', () => {
     mockLogger = {
       info: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn()
+      error: vi.fn(),
     };
 
     mockAstroConfig = {
       root: {
-        pathname: '/mock/root'
-      }
+        pathname: '/mock/root',
+      },
     };
 
     vi.clearAllMocks();
@@ -42,7 +42,7 @@ describe('Starlight Integration', () => {
   describe('Integration Configuration', () => {
     it('should create integration with default config', () => {
       const integration = starlightDocumentConverter();
-      
+
       expect(integration.name).toBe('starlight-document-converter');
       expect(integration.hooks).toBeDefined();
       expect(integration.hooks['astro:config:setup']).toBeDefined();
@@ -57,12 +57,12 @@ describe('Starlight Integration', () => {
         converter: {
           outputDir: 'custom-output',
           generateTitles: false,
-          verbose: true
-        }
+          verbose: true,
+        },
       };
 
       const integration = starlightDocumentConverter(config);
-      
+
       expect(integration.name).toBe('starlight-document-converter');
       expect(integration.hooks).toBeDefined();
     });
@@ -70,11 +70,11 @@ describe('Starlight Integration', () => {
     it('should merge user config with defaults', () => {
       const partialConfig: StarlightIntegrationConfig = {
         watch: true,
-        inputDirs: ['custom-dir']
+        inputDirs: ['custom-dir'],
       };
 
       const integration = starlightDocumentConverter(partialConfig);
-      
+
       // Integration should be created successfully with merged config
       expect(integration).toBeDefined();
     });
@@ -84,7 +84,7 @@ describe('Starlight Integration', () => {
     it('should handle astro:config:setup hook when enabled', async () => {
       const integration = starlightDocumentConverter({
         enabled: true,
-        inputDirs: ['test-input']
+        inputDirs: ['test-input'],
       });
 
       const setupHook = integration.hooks['astro:config:setup'];
@@ -94,20 +94,18 @@ describe('Starlight Integration', () => {
         // Mock the conversion to avoid file system operations
         const mockContext = {
           config: mockAstroConfig,
-          logger: mockLogger
+          logger: mockLogger,
         };
 
         await setupHook(mockContext);
 
-        expect(mockLogger.info).toHaveBeenCalledWith(
-          'Setting up Starlight Document Converter'
-        );
+        expect(mockLogger.info).toHaveBeenCalledWith('Setting up Starlight Document Converter');
       }
     });
 
     it('should skip setup when disabled', async () => {
       const integration = starlightDocumentConverter({
-        enabled: false
+        enabled: false,
       });
 
       const setupHook = integration.hooks['astro:config:setup'];
@@ -116,14 +114,12 @@ describe('Starlight Integration', () => {
       if (setupHook) {
         const mockContext = {
           config: mockAstroConfig,
-          logger: mockLogger
+          logger: mockLogger,
         };
 
         await setupHook(mockContext);
 
-        expect(mockLogger.info).toHaveBeenCalledWith(
-          'Document converter disabled'
-        );
+        expect(mockLogger.info).toHaveBeenCalledWith('Document converter disabled');
       }
     });
 
@@ -131,7 +127,7 @@ describe('Starlight Integration', () => {
       const integration = starlightDocumentConverter({
         enabled: true,
         watch: true,
-        inputDirs: ['test-dir']
+        inputDirs: ['test-dir'],
       });
 
       const doneHook = integration.hooks['astro:config:done'];
@@ -139,24 +135,20 @@ describe('Starlight Integration', () => {
 
       if (doneHook) {
         const mockContext = {
-          logger: mockLogger
+          logger: mockLogger,
         };
 
         await doneHook(mockContext);
 
-        expect(mockLogger.info).toHaveBeenCalledWith(
-          'Starlight Document Converter ready'
-        );
-        expect(mockLogger.info).toHaveBeenCalledWith(
-          'Watching directories: test-dir'
-        );
+        expect(mockLogger.info).toHaveBeenCalledWith('Starlight Document Converter ready');
+        expect(mockLogger.info).toHaveBeenCalledWith('Watching directories: test-dir');
       }
     });
 
     it.skip('should not show watching message when watch is disabled', async () => {
       const integration = starlightDocumentConverter({
         enabled: true,
-        watch: false
+        watch: false,
       });
 
       const doneHook = integration.hooks['astro:config:done'];
@@ -164,15 +156,13 @@ describe('Starlight Integration', () => {
 
       if (doneHook) {
         const mockContext = {
-          logger: mockLogger
+          logger: mockLogger,
         };
 
         await doneHook(mockContext);
 
-        expect(mockLogger.info).toHaveBeenCalledWith(
-          'Starlight Document Converter ready'
-        );
-        
+        expect(mockLogger.info).toHaveBeenCalledWith('Starlight Document Converter ready');
+
         // Should not mention watching
         expect(mockLogger.info).not.toHaveBeenCalledWith(
           expect.stringContaining('Watching directories')
@@ -184,19 +174,19 @@ describe('Starlight Integration', () => {
   describe('File Watching', () => {
     it('should set up file watchers when enabled', () => {
       // Note: File watching is tested through integration setup
-      
+
       const integration = starlightDocumentConverter({
         enabled: true,
         watch: true,
-        inputDirs: ['input1', 'input2']
+        inputDirs: ['input1', 'input2'],
       });
 
       const setupHook = integration.hooks['astro:config:setup'];
-      
+
       if (setupHook) {
         const mockContext = {
           config: mockAstroConfig,
-          logger: mockLogger
+          logger: mockLogger,
         };
 
         setupHook(mockContext);
@@ -210,7 +200,7 @@ describe('Starlight Integration', () => {
     it('should not set up watchers when disabled', () => {
       const integration = starlightDocumentConverter({
         enabled: true,
-        watch: false
+        watch: false,
       });
 
       // Should still create integration successfully
@@ -223,15 +213,15 @@ describe('Starlight Integration', () => {
     it('should handle errors during directory processing', async () => {
       const integration = starlightDocumentConverter({
         enabled: true,
-        inputDirs: ['non-existent-dir']
+        inputDirs: ['non-existent-dir'],
       });
 
       const setupHook = integration.hooks['astro:config:setup'];
-      
+
       if (setupHook) {
         const mockContext = {
           config: mockAstroConfig,
-          logger: mockLogger
+          logger: mockLogger,
         };
 
         // Should not throw even with non-existent directory
@@ -266,10 +256,10 @@ describe('Starlight Integration', () => {
           defaultCategory: 'custom',
           verbose: true,
           dryRun: true,
-          categoryPatterns: { 'api': 'API Reference' },
-          tagPatterns: { 'tech': ['javascript', 'typescript'] },
-          ignorePatterns: ['*.draft.md']
-        }
+          categoryPatterns: { api: 'API Reference' },
+          tagPatterns: { tech: ['javascript', 'typescript'] },
+          ignorePatterns: ['*.draft.md'],
+        },
       };
 
       const integration = starlightDocumentConverter(config);

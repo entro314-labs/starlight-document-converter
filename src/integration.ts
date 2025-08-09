@@ -16,11 +16,16 @@ interface Logger {
   warn(message: string): void;
   error(message: string): void;
 }
-import type { StarlightIntegrationConfig } from './types.js';
+
+import { watch } from 'node:fs';
+import { resolve } from 'node:path';
 import { DocumentConverter } from './converter.js';
-import { watch } from 'fs';
-import { resolve } from 'path';
-import { detectStarlightConfig, getRecommendedInputDirs, isStarlightProject } from './utils/starlight-detector.js';
+import type { StarlightIntegrationConfig } from './types.js';
+import {
+  detectStarlightConfig,
+  getRecommendedInputDirs,
+  isStarlightProject,
+} from './utils/starlight-detector.js';
 
 export function starlightDocumentConverter(
   userConfig: StarlightIntegrationConfig = {}
@@ -31,15 +36,23 @@ export function starlightDocumentConverter(
   return {
     name: 'starlight-document-converter',
     hooks: {
-      'astro:config:setup': ({ config: astroConfig, logger }: { config: AstroConfig; logger: Logger }) => {
+      'astro:config:setup': ({
+        config: astroConfig,
+        logger,
+      }: {
+        config: AstroConfig;
+        logger: Logger;
+      }) => {
         const projectRoot = astroConfig.root.pathname;
-        
+
         // Detect Starlight configuration
         const starlightConfig = detectStarlightConfig(projectRoot);
         const isStarlight = isStarlightProject(projectRoot);
-        
+
         if (!isStarlight) {
-          logger.warn('Starlight not detected in this project. Document converter may not work as expected.');
+          logger.warn(
+            'Starlight not detected in this project. Document converter may not work as expected.'
+          );
         }
 
         // Smart configuration with detection
@@ -59,10 +72,10 @@ export function starlightDocumentConverter(
             categoryPatterns: {},
             tagPatterns: {},
             ignorePatterns: [],
-            ...userConfig.converter
-          }
+            ...userConfig.converter,
+          },
         };
-        
+
         if (!config.enabled) {
           logger.info('Document converter disabled');
           return;
@@ -80,36 +93,38 @@ export function starlightDocumentConverter(
             const fullPath = resolve(astroConfig.root.pathname, dir);
             try {
               const results = await converter.convertDirectory(fullPath);
-              const successful = results.filter(r => r.success).length;
-              const failed = results.filter(r => !r.success).length;
-              
+              const successful = results.filter((r) => r.success).length;
+              const failed = results.filter((r) => !r.success).length;
+
               if (successful > 0 || failed > 0) {
-                logger.info(`Converted ${successful} documents from ${dir}${failed > 0 ? ` (${failed} failed)` : ''}`);
+                logger.info(
+                  `Converted ${successful} documents from ${dir}${failed > 0 ? ` (${failed} failed)` : ''}`
+                );
               }
             } catch (error) {
               logger.warn(`Could not process directory ${dir}: ${error}`);
             }
           })
-        ).catch(error => {
+        ).catch((error) => {
           logger.error(`Document conversion error: ${error}`);
         });
 
         // Set up file watching if enabled
         if (config.watch) {
-          config.inputDirs.forEach(dir => {
+          config.inputDirs.forEach((dir) => {
             const fullPath = resolve(astroConfig.root.pathname, dir);
-            
+
             try {
               const watcher = watch(fullPath, { recursive: true }, async (eventType, filename) => {
                 if (!filename || eventType !== 'change') return;
-                
+
                 const filePath = resolve(fullPath, filename);
                 const ext = filename.split('.').pop()?.toLowerCase();
-                
+
                 // Only process supported formats
                 if (['docx', 'doc', 'txt', 'html', 'htm', 'md', 'rtf'].includes(ext || '')) {
                   logger.info(`Converting changed file: ${filename}`);
-                  
+
                   try {
                     await converter.convertFile(filePath);
                     logger.info(`✅ Converted: ${filename}`);
@@ -120,11 +135,10 @@ export function starlightDocumentConverter(
               });
 
               logger.info(`Watching ${dir} for document changes`);
-              
+
               // Clean up watcher on process exit
               process.on('SIGINT', () => watcher.close());
               process.on('SIGTERM', () => watcher.close());
-              
             } catch (error) {
               logger.warn(`Could not watch directory ${dir}: ${error}`);
             }
@@ -135,13 +149,13 @@ export function starlightDocumentConverter(
       'astro:config:done': ({ logger }: { logger: Logger }) => {
         if (config?.enabled) {
           logger.info('Starlight Document Converter ready');
-          
+
           if (config.watch) {
             logger.info(`Watching directories: ${config.inputDirs.join(', ')}`);
           }
         }
-      }
-    }
+      },
+    },
   };
 }
 

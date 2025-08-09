@@ -1,4 +1,4 @@
-import type { MetadataEnhancer, DocumentMetadata, ProcessingContext } from '../types.js';
+import type { DocumentMetadata, MetadataEnhancer, ProcessingContext } from '../types.js';
 
 /**
  * Built-in markdown metadata enhancer that improves title and description extraction
@@ -8,10 +8,10 @@ export const markdownEnhancer: MetadataEnhancer = {
     name: 'markdown-enhancer',
     version: '1.0.0',
     description: 'Enhances metadata extraction for markdown files',
-    author: 'Starlight Document Converter'
+    author: 'Starlight Document Converter',
   },
   priority: 50,
-  
+
   enhance: (metadata: DocumentMetadata, context: ProcessingContext): DocumentMetadata => {
     // Read the original content to extract better metadata
     if (context.extension === '.md' || context.extension === '.mdx') {
@@ -22,7 +22,7 @@ export const markdownEnhancer: MetadataEnhancer = {
           metadata.title = titleFromHeading;
         }
       }
-      
+
       // Enhanced description extraction
       if (!metadata.description) {
         const descriptionFromContent = extractDescriptionFromMarkdown(context.inputPath);
@@ -30,16 +30,16 @@ export const markdownEnhancer: MetadataEnhancer = {
           metadata.description = descriptionFromContent;
         }
       }
-      
+
       // Add markdown-specific tags
       const markdownTags = extractMarkdownTags(context.inputPath);
       if (markdownTags.length > 0) {
         metadata.tags = [...(metadata.tags || []), ...markdownTags];
       }
     }
-    
+
     return metadata;
-  }
+  },
 };
 
 function extractTitleFromMarkdown(_filePath: string): string | undefined {
@@ -47,7 +47,7 @@ function extractTitleFromMarkdown(_filePath: string): string | undefined {
   // 1. First H1 heading
   // 2. Title in frontmatter
   // 3. Filename if no other title found
-  
+
   // For now, return undefined to use existing logic
   return undefined;
 }
@@ -57,7 +57,7 @@ function extractDescriptionFromMarkdown(_filePath: string): string | undefined {
   // 1. Description in frontmatter
   // 2. First paragraph after title
   // 3. Leading paragraph before first heading
-  
+
   return undefined;
 }
 
@@ -67,6 +67,6 @@ function extractMarkdownTags(_filePath: string): string[] {
   // 2. Link patterns (API endpoints, repos, etc.)
   // 3. Heading structure complexity
   // 4. Image/diagram presence
-  
+
   return [];
 }

@@ -1,20 +1,31 @@
 #!/usr/bin/env node
 
-import { intro, outro, text, select, multiselect, confirm, spinner, note, cancel, isCancel } from '@clack/prompts';
-import { DocumentConverter } from './converter.js';
-import type { ConversionResult } from './types.js';
-import { resolve, relative, basename } from 'path';
-import { existsSync, lstatSync, readdirSync } from 'fs';
+import { existsSync, lstatSync, readdirSync } from 'node:fs';
+import { basename, relative, resolve } from 'node:path';
+import {
+  cancel,
+  confirm,
+  intro,
+  isCancel,
+  multiselect,
+  note,
+  outro,
+  select,
+  spinner,
+  text,
+} from '@clack/prompts';
 import { Command } from 'commander';
 import pc from 'picocolors';
-import { getSmartDefaults, getOutputDirectory, detectInputSources } from './utils/cli-helpers.js';
+import { DocumentConverter } from './converter.js';
+import type { ConversionResult } from './types.js';
+import { detectInputSources, getOutputDirectory, getSmartDefaults } from './utils/cli-helpers.js';
 
 const program = new Command();
 
 // Helper functions
 const getFormattedStats = (results: ConversionResult[]) => {
-  const successful = results.filter(r => r.success).length;
-  const failed = results.filter(r => !r.success).length;
+  const successful = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
   return { successful, failed, total: results.length };
 };
 
@@ -45,45 +56,59 @@ async function interactiveConvert() {
   // Get smart defaults for the current project
   const smartDefaults = getSmartDefaults();
   const detectedSources = detectInputSources();
-  
+
   // Show project detection info
   if (smartDefaults.isStarlightProject) {
-    note(`✅ Detected Starlight project: ${pc.cyan(smartDefaults.title || 'Documentation')}`, 'Project Info');
+    note(
+      `✅ Detected Starlight project: ${pc.cyan(smartDefaults.title || 'Documentation')}`,
+      'Project Info'
+    );
   } else {
     note(`⚠️  Starlight not detected - using fallback configuration`, 'Project Info');
   }
-  
+
   if (smartDefaults.recommendations.length > 0) {
     note(smartDefaults.recommendations.join('\n'), 'Recommendations');
   }
 
   // Smart input source detection
   let inputPath: string;
-  
+
   if (detectedSources.length > 0) {
-    note(`Found document directories: ${detectedSources.map(d => pc.cyan(d)).join(', ')}`, 'Available Sources');
+    // Check if first source is the Starlight docs directory
+    const isStarlightDir = detectedSources[0] === smartDefaults.outputDir || 
+                          detectedSources[0].includes('src/content/docs');
     
+    const message = isStarlightDir 
+      ? `Found Starlight content directory and ${detectedSources.length > 1 ? 'other directories' : 'import directories'}: ${detectedSources.map((d) => pc.cyan(d)).join(', ')}`
+      : `Found document directories: ${detectedSources.map((d) => pc.cyan(d)).join(', ')}`;
+    
+    note(message, 'Available Sources');
+
     const sourceChoice = await select({
       message: 'Choose input source:',
       options: [
-        ...detectedSources.map(source => ({
-          value: source,
-          label: `📁 ${source}`,
-          hint: 'Existing document directory'
-        })),
+        ...detectedSources.map((source, index) => {
+          const isMainContentDir = index === 0 && isStarlightDir;
+          return {
+            value: source,
+            label: `📁 ${source}`,
+            hint: isMainContentDir ? 'Your Starlight content directory' : 'Document directory',
+          };
+        }),
         {
           value: 'custom',
           label: '✏️  Custom path',
-          hint: 'Specify a different path'
-        }
-      ]
+          hint: 'Specify a different path',
+        },
+      ],
     });
-    
+
     if (isCancel(sourceChoice)) {
       cancel('Operation cancelled');
       return process.exit(0);
     }
-    
+
     if (sourceChoice === 'custom') {
       const customPath = await text({
         message: 'Enter path to convert:',
@@ -94,14 +119,14 @@ async function interactiveConvert() {
           const type = detectInputType(resolved);
           if (type === 'not-found') return 'Path does not exist';
           return undefined;
-        }
+        },
       });
-      
+
       if (isCancel(customPath)) {
         cancel('Operation cancelled');
         return process.exit(0);
       }
-      
+
       inputPath = customPath as string;
     } else {
       inputPath = sourceChoice as string;
@@ -117,14 +142,14 @@ async function interactiveConvert() {
         const type = detectInputType(resolved);
         if (type === 'not-found') return 'Path does not exist';
         return undefined;
-      }
+      },
     });
 
     if (isCancel(customPath)) {
       cancel('Operation cancelled');
       return process.exit(0);
     }
-    
+
     inputPath = customPath as string;
   }
 
@@ -141,7 +166,7 @@ async function interactiveConvert() {
     const sampleFiles = getSampleFiles(resolvedInput);
     if (sampleFiles.length > 0) {
       note(
-        `Found ${sampleFiles.length} convertible files:\n${sampleFiles.map(f => `  • ${f}`).join('\n')}${sampleFiles.length === 5 ? '\n  ... and potentially more' : ''}`,
+        `Found ${sampleFiles.length} convertible files:\n${sampleFiles.map((f) => `  • ${f}`).join('\n')}${sampleFiles.length === 5 ? '\n  ... and potentially more' : ''}`,
         'Preview'
       );
     }
@@ -153,7 +178,7 @@ async function interactiveConvert() {
   const outputDir = await text({
     message: 'Where should the converted files be saved?',
     placeholder: smartDefaults.outputDir,
-    initialValue: smartDefaults.outputDir
+    initialValue: smartDefaults.outputDir,
   });
 
   if (isCancel(outputDir)) {
@@ -164,7 +189,7 @@ async function interactiveConvert() {
   // Advanced options
   const advancedOptions = await confirm({
     message: 'Configure advanced options?',
-    initialValue: false
+    initialValue: false,
   });
 
   let converterOptions: Record<string, unknown> = {
@@ -174,14 +199,14 @@ async function interactiveConvert() {
     generateDescriptions: true,
     addTimestamps: false,
     verbose: false,
-    dryRun: false
+    dryRun: false,
   };
 
   if (advancedOptions && !isCancel(advancedOptions)) {
     // Structure preservation
     const preserveStructure = await confirm({
       message: 'Preserve directory structure?',
-      initialValue: true
+      initialValue: true,
     });
 
     if (isCancel(preserveStructure)) {
@@ -193,11 +218,23 @@ async function interactiveConvert() {
     const contentOptions = await multiselect({
       message: 'What should be auto-generated?',
       options: [
-        { value: 'titles', label: 'Titles from content', hint: 'Extract titles from headings or filenames' },
-        { value: 'descriptions', label: 'Descriptions from content', hint: 'Generate descriptions from first paragraph' },
-        { value: 'timestamps', label: 'Last updated timestamps', hint: 'Add conversion date to frontmatter' }
+        {
+          value: 'titles',
+          label: 'Titles from content',
+          hint: 'Extract titles from headings or filenames',
+        },
+        {
+          value: 'descriptions',
+          label: 'Descriptions from content',
+          hint: 'Generate descriptions from first paragraph',
+        },
+        {
+          value: 'timestamps',
+          label: 'Last updated timestamps',
+          hint: 'Add conversion date to frontmatter',
+        },
       ],
-      initialValues: ['titles', 'descriptions']
+      initialValues: ['titles', 'descriptions'],
     });
 
     if (isCancel(contentOptions)) {
@@ -210,9 +247,9 @@ async function interactiveConvert() {
       message: 'Output preferences:',
       options: [
         { value: 'verbose', label: 'Verbose output', hint: 'Show detailed conversion logs' },
-        { value: 'dryRun', label: 'Dry run', hint: 'Preview changes without writing files' }
+        { value: 'dryRun', label: 'Dry run', hint: 'Preview changes without writing files' },
       ],
-      initialValues: []
+      initialValues: [],
     });
 
     if (isCancel(outputOptions)) {
@@ -228,13 +265,13 @@ async function interactiveConvert() {
       generateDescriptions: (contentOptions as string[]).includes('descriptions'),
       addTimestamps: (contentOptions as string[]).includes('timestamps'),
       verbose: (outputOptions as string[]).includes('verbose'),
-      dryRun: (outputOptions as string[]).includes('dryRun')
+      dryRun: (outputOptions as string[]).includes('dryRun'),
     };
   }
 
   // Confirmation before conversion
   const confirmConversion = await confirm({
-    message: `${converterOptions.dryRun ? 'Preview' : 'Convert'} ${inputType === 'directory' ? 'directory' : 'file'}?`
+    message: `${converterOptions.dryRun ? 'Preview' : 'Convert'} ${inputType === 'directory' ? 'directory' : 'file'}?`,
   });
 
   if (!confirmConversion || isCancel(confirmConversion)) {
@@ -249,36 +286,38 @@ async function interactiveConvert() {
   try {
     const converter = new DocumentConverter(converterOptions);
 
-    const results = inputType === 'directory' 
-      ? await converter.convertDirectory(resolvedInput)
-      : [await converter.convertFile(resolvedInput)];
+    const results =
+      inputType === 'directory'
+        ? await converter.convertDirectory(resolvedInput)
+        : [await converter.convertFile(resolvedInput)];
 
     s.stop(`Conversion ${converterOptions.dryRun ? 'preview' : 'completed'}!`);
 
     const stats = getFormattedStats(results);
-    
+
     if (stats.successful > 0) {
       note(
         `${pc.green('✅ Successful:')} ${stats.successful} files\n` +
-        (stats.failed > 0 ? `${pc.red('❌ Failed:')} ${stats.failed} files\n` : '') +
-        (converterOptions.dryRun ? pc.yellow('🧪 Dry run - no files were modified') : ''),
+          (stats.failed > 0 ? `${pc.red('❌ Failed:')} ${stats.failed} files\n` : '') +
+          (converterOptions.dryRun ? pc.yellow('🧪 Dry run - no files were modified') : ''),
         'Results'
       );
     }
 
     // Show sample conversions
-    const successfulResults = results.filter(r => r.success).slice(0, 3);
+    const successfulResults = results.filter((r) => r.success).slice(0, 3);
     if (successfulResults.length > 0 && !converterOptions.dryRun) {
       note(
-        `${successfulResults.map(r => `• ${pc.cyan(relative(process.cwd(), r.inputPath))} → ${pc.green(relative(process.cwd(), r.outputPath))}`).join('\n')}`,
+        `${successfulResults.map((r) => `• ${pc.cyan(relative(process.cwd(), r.inputPath))} → ${pc.green(relative(process.cwd(), r.outputPath))}`).join('\n')}`,
         'Sample conversions'
       );
     }
 
     converter.printStats();
 
-    outro(`${pc.green('🎉 All done!')} Your documents have been ${converterOptions.dryRun ? 'previewed' : 'converted successfully'}.`);
-
+    outro(
+      `${pc.green('🎉 All done!')} Your documents have been ${converterOptions.dryRun ? 'previewed' : 'converted successfully'}.`
+    );
   } catch (error) {
     s.stop('Conversion failed');
     note(`${pc.red('❌ Error:')} ${error}`, 'Conversion failed');
@@ -294,9 +333,17 @@ async function configurationWizard() {
     message: 'What type of project are you setting up?',
     options: [
       { value: 'new', label: 'New Starlight project', hint: 'Complete setup with Astro config' },
-      { value: 'existing', label: 'Existing Starlight project', hint: 'Add converter to existing setup' },
-      { value: 'standalone', label: 'Standalone CLI usage', hint: 'Just use the command line tool' }
-    ]
+      {
+        value: 'existing',
+        label: 'Existing Starlight project',
+        hint: 'Add converter to existing setup',
+      },
+      {
+        value: 'standalone',
+        label: 'Standalone CLI usage',
+        hint: 'Just use the command line tool',
+      },
+    ],
   });
 
   if (isCancel(projectType)) {
@@ -307,9 +354,9 @@ async function configurationWizard() {
   if (projectType === 'standalone') {
     note(
       `You can now use the converter with:\n\n` +
-      `${pc.cyan('npx starlight-convert <input> [options]')}\n\n` +
-      `For interactive mode:\n` +
-      `${pc.cyan('npx starlight-convert')}`,
+        `${pc.cyan('npx starlight-convert <input> [options]')}\n\n` +
+        `For interactive mode:\n` +
+        `${pc.cyan('npx starlight-convert')}`,
       'CLI Usage'
     );
     outro('🎉 Setup complete!');
@@ -320,7 +367,7 @@ async function configurationWizard() {
   const inputDirs = await text({
     message: 'Which directories should be monitored for documents?',
     placeholder: 'docs-import,documents,content-drafts',
-    initialValue: 'docs-import'
+    initialValue: 'docs-import',
   });
 
   if (isCancel(inputDirs)) {
@@ -328,12 +375,12 @@ async function configurationWizard() {
     return process.exit(0);
   }
 
-  const inputDirsList = (inputDirs as string).split(',').map(d => d.trim());
+  const inputDirsList = (inputDirs as string).split(',').map((d) => d.trim());
 
   // Watch mode
   const enableWatch = await confirm({
     message: 'Enable automatic file watching?',
-    initialValue: true
+    initialValue: true,
   });
 
   if (isCancel(enableWatch)) {
@@ -384,30 +431,27 @@ export default defineConfig({
   ],
 });`;
 
-  note(
-    `Add this to your ${pc.cyan('astro.config.mjs')}:\n\n${pc.dim(config)}`,
-    'Configuration'
-  );
+  note(`Add this to your ${pc.cyan('astro.config.mjs')}:\n\n${pc.dim(config)}`, 'Configuration');
 
   const setupDirectories = await confirm({
     message: 'Create input directories now?',
-    initialValue: true
+    initialValue: true,
   });
 
   if (setupDirectories && !isCancel(setupDirectories)) {
     const s = spinner();
     s.start('Creating directories...');
-    
+
     try {
-      const { mkdir } = await import('fs/promises');
+      const { mkdir } = await import('node:fs/promises');
       for (const dir of inputDirsList) {
         await mkdir(dir, { recursive: true });
       }
       s.stop('Directories created!');
-      
+
       note(
-        `Created directories:\n${inputDirsList.map(d => `• ${pc.green(d)}`).join('\n')}\n\n` +
-        `Drop your documents into these folders and they'll be automatically converted!`,
+        `Created directories:\n${inputDirsList.map((d) => `• ${pc.green(d)}`).join('\n')}\n\n` +
+          `Drop your documents into these folders and they'll be automatically converted!`,
         'Next Steps'
       );
     } catch (error) {
@@ -443,9 +487,9 @@ program
   .description('Convert documents in batch mode')
   .argument('<input>', 'Input file or directory to convert')
   .option('-o, --output <dir>', 'Output directory (auto-detected if not specified)')
-  .option('--no-preserve', 'Don\'t preserve directory structure')
-  .option('--no-titles', 'Don\'t auto-generate titles')
-  .option('--no-descriptions', 'Don\'t auto-generate descriptions')
+  .option('--no-preserve', "Don't preserve directory structure")
+  .option('--no-titles', "Don't auto-generate titles")
+  .option('--no-descriptions', "Don't auto-generate descriptions")
   .option('--timestamps', 'Add lastUpdated timestamps')
   .option('--category <category>', 'Default category for documents', 'documentation')
   .option('-v, --verbose', 'Show detailed output')
@@ -455,7 +499,7 @@ program
 
     const inputPath = resolve(input);
     const inputType = detectInputType(inputPath);
-    
+
     // Use smart output directory detection
     const outputDir = getOutputDirectory(options.output);
 
@@ -463,7 +507,7 @@ program
       note(`${pc.red('❌ Error:')} Input path "${input}" does not exist`, 'Error');
       process.exit(1);
     }
-    
+
     // Show smart detection info
     const smartDefaults = getSmartDefaults();
     if (smartDefaults.isStarlightProject) {
@@ -484,26 +528,26 @@ program
         addTimestamps: options.timestamps,
         defaultCategory: options.category,
         verbose: options.verbose,
-        dryRun: options.dryRun
+        dryRun: options.dryRun,
       });
 
-      const results = inputType === 'directory'
-        ? await converter.convertDirectory(inputPath)
-        : [await converter.convertFile(inputPath)];
+      const results =
+        inputType === 'directory'
+          ? await converter.convertDirectory(inputPath)
+          : [await converter.convertFile(inputPath)];
 
       s.stop(`${options.dryRun ? 'Preview' : 'Conversion'} completed!`);
 
       const stats = getFormattedStats(results);
       note(
         `${pc.green('✅ Successful:')} ${stats.successful} files\n` +
-        (stats.failed > 0 ? `${pc.red('❌ Failed:')} ${stats.failed} files\n` : '') +
-        (options.dryRun ? pc.yellow('🧪 Dry run - no files were modified') : ''),
+          (stats.failed > 0 ? `${pc.red('❌ Failed:')} ${stats.failed} files\n` : '') +
+          (options.dryRun ? pc.yellow('🧪 Dry run - no files were modified') : ''),
         'Results'
       );
 
       converter.printStats();
       outro('🎉 Batch conversion completed!');
-
     } catch (error) {
       s.stop('Conversion failed');
       note(`${pc.red('❌ Error:')} ${error}`, 'Conversion failed');
@@ -537,20 +581,20 @@ program
 
     note(`Watching ${pc.cyan(relative(process.cwd(), inputPath))} for changes...`, 'Monitoring');
 
-    const { watch } = await import('fs');
+    const { watch } = await import('node:fs');
     const converter = new DocumentConverter({
       outputDir: options.output,
-      verbose: options.verbose
+      verbose: options.verbose,
     });
 
     const watcher = watch(inputPath, { recursive: true }, async (eventType, filename) => {
       if (!filename || eventType !== 'change') return;
-      
+
       const ext = filename.split('.').pop()?.toLowerCase();
       if (['docx', 'doc', 'txt', 'html', 'htm', 'md', 'rtf'].includes(ext || '')) {
         const s = spinner();
         s.start(`Converting ${filename}...`);
-        
+
         try {
           await converter.convertFile(resolve(inputPath, filename));
           s.stop(`${pc.green('✅')} Converted: ${filename}`);
@@ -569,7 +613,9 @@ program
   });
 
 // Help command
-program.addHelpText('after', `
+program.addHelpText(
+  'after',
+  `
 ${pc.dim('Examples:')}
   ${pc.cyan('starlight-convert')}                    Interactive mode
   ${pc.cyan('starlight-convert setup')}              Project setup wizard
@@ -577,7 +623,8 @@ ${pc.dim('Examples:')}
   ${pc.cyan('starlight-convert watch docs-import/')} Watch for changes
   
 ${pc.dim('For more help, visit:')} ${pc.underline('https://github.com/entro314-labs/starlight-document-converter')}
-`);
+`
+);
 
 // Parse CLI arguments
 if (process.argv.length === 2) {

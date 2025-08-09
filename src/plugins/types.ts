@@ -20,7 +20,10 @@ export interface FileProcessor {
 
 export interface MetadataEnhancer {
   /** Enhancement function */
-  enhance: (metadata: DocumentMetadata, context: ProcessingContext) => Promise<DocumentMetadata> | DocumentMetadata;
+  enhance: (
+    metadata: DocumentMetadata,
+    context: ProcessingContext
+  ) => Promise<DocumentMetadata> | DocumentMetadata;
   /** Plugin metadata */
   metadata: {
     name: string;
@@ -34,7 +37,11 @@ export interface MetadataEnhancer {
 
 export interface QualityValidator {
   /** Validation function */
-  validate: (content: string, metadata: DocumentMetadata, context: ProcessingContext) => QualityReport;
+  validate: (
+    content: string,
+    metadata: DocumentMetadata,
+    context: ProcessingContext
+  ) => QualityReport;
   /** Plugin metadata */
   metadata: {
     name: string;

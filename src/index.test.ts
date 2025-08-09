@@ -1,10 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import type { ConversionResult, ConverterOptions, StarlightIntegrationConfig } from './index.js';
 import { DocumentConverter, starlightDocumentConverter } from './index.js';
-import type { 
-  ConverterOptions, 
-  ConversionResult, 
-  StarlightIntegrationConfig 
-} from './index.js';
 
 describe('Package Exports', () => {
   it('should export DocumentConverter class', () => {
@@ -32,19 +28,19 @@ describe('Package Exports', () => {
     // Test that types are accessible by using them
     const options: ConverterOptions = {
       outputDir: 'test',
-      preserveStructure: true
+      preserveStructure: true,
     };
-    
+
     const result: ConversionResult = {
       success: true,
       inputPath: 'input.md',
       outputPath: 'output.md',
-      content: 'test content'
+      content: 'test content',
     };
 
     const config: StarlightIntegrationConfig = {
       enabled: true,
-      watch: false
+      watch: false,
     };
 
     expect(options).toBeDefined();
@@ -66,7 +62,7 @@ describe('Integration Usage', () => {
       generateTitles: true,
       generateDescriptions: true,
       addTimestamps: true,
-      verbose: true
+      verbose: true,
     };
 
     const converter = new DocumentConverter(options);
@@ -81,8 +77,8 @@ describe('Integration Usage', () => {
       converter: {
         outputDir: 'src/content/docs',
         generateTitles: true,
-        generateDescriptions: true
-      }
+        generateDescriptions: true,
+      },
     };
 
     const integration = starlightDocumentConverter(config);
@@ -103,7 +99,7 @@ describe('Package API Consistency', () => {
     // Ensure the main exports are what we expect
     const exports = {
       DocumentConverter,
-      starlightDocumentConverter
+      starlightDocumentConverter,
     };
 
     expect(Object.keys(exports)).toContain('DocumentConverter');

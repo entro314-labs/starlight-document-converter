@@ -57,14 +57,14 @@ export interface StarlightIntegrationConfig {
   inputDirs?: string[];
 }
 
-export type SupportedFormat = 
-  | '.docx' 
-  | '.doc' 
-  | '.txt' 
-  | '.html' 
-  | '.htm' 
-  | '.md' 
-  | '.mdx' 
+export type SupportedFormat =
+  | '.docx'
+  | '.doc'
+  | '.txt'
+  | '.html'
+  | '.htm'
+  | '.md'
+  | '.mdx'
   | '.rtf';
 
 export interface FileProcessor {
