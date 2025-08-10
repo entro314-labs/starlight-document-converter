@@ -480,7 +480,7 @@ export default defineConfig({
 program
   .name('starlight-convert')
   .description('🌟 Beautiful document converter for Starlight')
-  .version('1.5.0')
+  .version('1.6.1')
   .action(async () => {
     // Default interactive mode
     await interactiveConvert()
@@ -821,7 +821,7 @@ program
   })
 
 // Enhanced Help command
-program.addHelpText('before', createBrandHeader('Starlight Document Converter', '1.5.0'))
+program.addHelpText('before', createBrandHeader('Starlight Document Converter', '1.6.1'))
 
 program.addHelpText(
   'after',

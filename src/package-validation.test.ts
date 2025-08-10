@@ -17,7 +17,7 @@ describe('Package Validation', () => {
       const { stdout } = await execAsync('node dist/cli.js --help')
 
       // Should contain brand header
-      expect(stdout).toContain('Starlight Document Converter v1.5.0')
+      expect(stdout).toContain('Starlight Document Converter v1.6.1')
       expect(stdout).toContain('╔') // Box border
       expect(stdout).toContain('╗') // Box border
 
@@ -121,7 +121,7 @@ This document has proper frontmatter.`
 
       // Test basic CLI functionality
       const { stdout } = await execAsync('node dist/cli.js --version')
-      expect(stdout.trim()).toBe('1.5.0')
+      expect(stdout.trim()).toBe('1.6.1')
     })
 
     it('should handle Unicode symbols correctly', async () => {
@@ -174,7 +174,7 @@ This document has proper frontmatter.`
 
       const results = await Promise.all(promises)
       results.forEach(({ stdout }) => {
-        expect(stdout.trim()).toBe('1.5.0')
+        expect(stdout.trim()).toBe('1.6.1')
       })
     })
   })
@@ -251,11 +251,11 @@ This document has proper frontmatter.`
 
     it('should maintain up-to-date version information', async () => {
       const { stdout } = await execAsync('node dist/cli.js --version')
-      expect(stdout.trim()).toBe('1.5.0')
+      expect(stdout.trim()).toBe('1.6.1')
 
       // Should match package.json version
       const pkg = require('../package.json')
-      expect(pkg.version).toBe('1.5.0')
+      expect(pkg.version).toBe('1.6.1')
     })
   })
 

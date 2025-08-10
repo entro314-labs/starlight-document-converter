@@ -15,7 +15,7 @@ describe('CLI Integration Tests', () => {
   describe('Brand Header Integration', () => {
     it('should create consistent brand headers across different contexts', () => {
       const appHeader = createBrandHeader('Starlight Document Converter')
-      const versionHeader = createBrandHeader('Starlight Document Converter', '1.5.0')
+      const versionHeader = createBrandHeader('Starlight Document Converter', '1.6.1')
       const shortHeader = createBrandHeader('CLI Tool')
       const longHeader = createBrandHeader(
         'Very Long Application Name That Tests Wrapping Behavior'
@@ -365,7 +365,7 @@ describe('CLI Integration Tests', () => {
       // Simulate a complete CLI interaction
 
       // 1. Show brand header
-      const header = createBrandHeader('Starlight Document Converter', '1.5.0')
+      const header = createBrandHeader('Starlight Document Converter', '1.6.1')
       expect(header).toBeTruthy()
 
       // 2. Show help sections
