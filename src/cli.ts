@@ -18,6 +18,7 @@ import { Command } from 'commander'
 import pc from 'picocolors'
 import { DocumentConverter } from './converter.js'
 import type { ConversionResult } from './types.js'
+import type { ValidationStats } from './utils/cli-commands.js'
 import { detectInputSources, getOutputDirectory, getSmartDefaults } from './utils/cli-helpers.js'
 import {
   symbols,
@@ -728,7 +729,7 @@ program
 
       const s = createSpinner('content validation')
 
-      let stats: { passed: number; failed: number; total: number }
+      let stats: ValidationStats
 
       if (inputType === 'directory') {
         stats = await validateDirectory(inputPath, validateOptions)
