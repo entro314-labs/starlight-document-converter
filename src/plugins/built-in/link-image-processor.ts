@@ -7,11 +7,13 @@ export class LinkImageProcessor {
   private baseDir: string
   private outputDir: string
   private assetsDir: string
+  private logger?: { warn: (msg: string) => void; error: (msg: string, error?: any) => void }
 
-  constructor(baseDir: string, outputDir: string, assetsDir = 'assets') {
+  constructor(baseDir: string, outputDir: string, assetsDir = 'assets', logger?: { warn: (msg: string) => void; error: (msg: string, error?: any) => void }) {
     this.baseDir = baseDir
     this.outputDir = outputDir
     this.assetsDir = assetsDir
+    this.logger = logger
   }
 
   /**
@@ -226,41 +228,94 @@ export class LinkImageProcessor {
     targetFilePath: string
   ): Promise<ImageInfo> {
     const sourceDir = dirname(sourceFilePath)
-    let resolvedPath: string
+    let resolvedPath: string = imagePath // Initialize with original path
     let copied = false
     let outputPath: string | undefined
+    const possiblePaths: string[] = []
 
     try {
-      // Resolve image path
+      // Try multiple resolution strategies
       if (imagePath.startsWith('./') || imagePath.startsWith('../') || !imagePath.startsWith('/')) {
-        resolvedPath = resolve(sourceDir, imagePath)
+        // Relative path - try from source directory
+        possiblePaths.push(resolve(sourceDir, imagePath))
+        
+        // Also try from common image directories
+        possiblePaths.push(resolve(sourceDir, 'images', basename(imagePath)))
+        possiblePaths.push(resolve(sourceDir, 'assets', basename(imagePath)))
+        possiblePaths.push(resolve(this.baseDir, 'images', basename(imagePath)))
+        possiblePaths.push(resolve(this.baseDir, 'assets', basename(imagePath)))
       } else {
-        resolvedPath = resolve(this.baseDir, imagePath.substring(1))
+        // Absolute path
+        possiblePaths.push(resolve(this.baseDir, imagePath.substring(1)))
       }
 
-      // Check if image exists
-      try {
-        await stat(resolvedPath)
+      // If it's just a filename, search in common directories
+      if (!imagePath.includes('/')) {
+        possiblePaths.push(resolve(sourceDir, 'images', imagePath))
+        possiblePaths.push(resolve(sourceDir, 'assets', imagePath))
+        possiblePaths.push(resolve(this.baseDir, 'images', imagePath))
+        possiblePaths.push(resolve(this.baseDir, 'assets', imagePath))
+        possiblePaths.push(resolve(this.baseDir, 'src', 'assets', imagePath))
+        possiblePaths.push(resolve(this.baseDir, 'public', imagePath))
+      }
 
-        // Copy image to assets directory
-        const imageName = basename(resolvedPath)
-        const targetDir = dirname(targetFilePath)
+      // Try to find the image in any of the possible locations
+      let foundPath: string | null = null
+      for (const path of possiblePaths) {
+        try {
+          await stat(path)
+          foundPath = path
+          resolvedPath = path
+          break
+        } catch {
+          // Continue searching
+        }
+      }
+
+      if (foundPath) {
+        // Copy image to assets directory with collision handling
+        const imageName = basename(foundPath)
+        const imageExt = extname(imageName)
+        const imageBase = basename(imageName, imageExt)
         const assetsPath = join(dirname(this.outputDir), this.assetsDir)
 
         // Create assets directory if it doesn't exist
         await mkdir(assetsPath, { recursive: true })
 
-        outputPath = join(assetsPath, imageName)
+        // Handle filename collisions
+        let finalImageName = imageName
+        let counter = 1
+        while (true) {
+          const candidatePath = join(assetsPath, finalImageName)
+          try {
+            await stat(candidatePath)
+            // File exists, try with suffix
+            finalImageName = `${imageBase}-${counter}${imageExt}`
+            counter++
+          } catch {
+            // File doesn't exist, we can use this name
+            outputPath = candidatePath
+            break
+          }
+        }
 
         // Copy the image
-        await copyFile(resolvedPath, outputPath)
+        await copyFile(foundPath, outputPath)
         copied = true
-      } catch (error) {
-        // Image doesn't exist or couldn't be copied
+      } else {
+        // Image not found - keep original path but log warning
         resolvedPath = imagePath
+        if (this.logger) {
+          this.logger.warn(`Image not found: ${imagePath}`)
+          this.logger.warn(`Searched in: ${possiblePaths.join(', ')}`)
+          this.logger.warn('Consider running with --process-images flag or ensuring images are in the correct location')
+        }
       }
     } catch (error) {
       resolvedPath = imagePath
+      if (this.logger) {
+        this.logger.error(`Error processing image ${imagePath}:`, error)
+      }
     }
 
     return {
@@ -277,8 +332,83 @@ export class LinkImageProcessor {
    */
   private getRelativeImagePath(imagePath: string, targetFilePath: string): string {
     const targetDir = dirname(targetFilePath)
-    const relativePath = relative(targetDir, imagePath)
-    return relativePath.replace(/\\/g, '/')
+    let relativePath = relative(targetDir, imagePath)
+    
+    // Convert Windows paths to forward slashes
+    relativePath = relativePath.replace(/\\/g, '/')
+    
+    // For Astro compatibility, if the image is in assets directory,
+    // we might need to adjust the path format
+    if (relativePath.includes('../assets/')) {
+      // Create a cleaner path for Astro imports
+      const imageName = basename(imagePath)
+      // Keep the relative path but ensure it's properly formatted
+      return relativePath
+    }
+    
+    return relativePath
+  }
+
+  /**
+   * Generate an image report
+   */
+  generateImageReport(images: ImageInfo[]): {
+    total: number
+    copied: number
+    external: number
+    missing: number
+    missingImages: string[]
+  } {
+    const external = images.filter((img) => img.original.startsWith('http')).length
+    const copied = images.filter((img) => img.copied).length
+    const missing = images.filter((img) => !img.copied && !img.original.startsWith('http')).length
+    const missingImages = images
+      .filter((img) => !img.copied && !img.original.startsWith('http'))
+      .map((img) => img.original)
+
+    return {
+      total: images.length,
+      copied,
+      external,
+      missing,
+      missingImages,
+    }
+  }
+
+  /**
+   * Generate suggestions for missing images
+   */
+  generateImageSuggestions(missingImages: string[]): string[] {
+    const suggestions: string[] = []
+    
+    if (missingImages.length > 0) {
+      suggestions.push('🖼️  Missing Images Found')
+      suggestions.push('') 
+      suggestions.push('The following images could not be found during conversion:')
+      suggestions.push('')
+      
+      missingImages.forEach((img, index) => {
+        suggestions.push(`${index + 1}. ${img}`)
+      })
+      
+      suggestions.push('')
+      suggestions.push('💡 To fix this:')
+      suggestions.push('1. Ensure images exist in one of these locations:')
+      suggestions.push('   • Same directory as the source file')
+      suggestions.push('   • ./images/ subdirectory')
+      suggestions.push('   • ./assets/ subdirectory') 
+      suggestions.push('   • Project root /images/ or /assets/')
+      suggestions.push('   • /src/assets/ directory')
+      suggestions.push('   • /public/ directory')
+      suggestions.push('')
+      suggestions.push('2. Or run the conversion with --process-images flag')
+      suggestions.push('')
+      suggestions.push('3. For Astro projects, consider placing images in:')
+      suggestions.push('   • src/assets/ for processed images')
+      suggestions.push('   • public/ for static images')
+    }
+    
+    return suggestions
   }
 
   /**
@@ -305,26 +435,6 @@ export class LinkImageProcessor {
     }
   }
 
-  /**
-   * Generate an image report
-   */
-  generateImageReport(images: ImageInfo[]): {
-    total: number
-    copied: number
-    external: number
-    missing: number
-  } {
-    const copied = images.filter((i) => i.copied)
-    const external = images.filter((i) => i.original.startsWith('http'))
-    const missing = images.filter((i) => !(i.copied || i.original.startsWith('http')))
-
-    return {
-      total: images.length,
-      copied: copied.length,
-      external: external.length,
-      missing: missing.length,
-    }
-  }
 
   /**
    * Extract all images from content for batch processing

@@ -245,6 +245,35 @@ cp ~/documents/*.docx docs-import/
 npx @entro314labs/starlight-document-converter batch docs-import/
 ```
 
+### Image Handling
+
+The converter automatically processes images during conversion:
+
+**Automatic Search Locations:**
+- Same directory as source file
+- `./images/` subdirectory
+- `./assets/` subdirectory  
+- Project root `/images/` or `/assets/`
+- `/src/assets/` directory
+- `/public/` directory
+
+**For Missing Images:**
+```bash
+# Get detailed missing image report
+sdc batch docs/ --verbose
+
+# Copy images to assets and update paths
+sdc batch docs/ --process-images
+
+# Preview image processing without changes
+sdc batch docs/ --process-images --dry-run
+```
+
+**Astro-Specific Recommendations:**
+- Place images in `src/assets/` for optimized processing
+- Use `public/` for static images that don't need optimization
+- Avoid bare filenames - use relative paths for better reliability
+
 ### Word Document Conversion
 
 Input (`guide.docx`):

@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.6.1] - 2025-08-10
+## [1.7.0] - 2025-08-10
 
 ### 🎉 New Features
+
+#### Enhanced Image Processing
+- **Improved image resolution algorithm** with multiple search strategies
+  - Searches in common image directories automatically
+  - Supports `./images/`, `./assets/`, `/src/assets/`, `/public/` locations
+  - Enhanced error handling and user feedback
+  - Better collision handling for duplicate image names
+  - Detailed missing image reports with suggestions
 
 #### Command Aliases
 - **Added shorter command aliases** for improved user experience
