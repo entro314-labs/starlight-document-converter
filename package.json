@@ -89,7 +89,7 @@
     "check": "biome check src/",
     "check:fix": "biome check --write src/",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run check && npm run build && npm run test && npm run typecheck",
+    "prepublishOnly": "npm run lint && npm run build && npm run test && npm run typecheck",
     "release": "npm run prepublishOnly && npm publish"
   },
   "repository": {
