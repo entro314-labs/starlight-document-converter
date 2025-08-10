@@ -1,15 +1,15 @@
 // Main exports for the package
 
 // Utility exports for advanced usage
-export { default as mammoth } from 'mammoth';
-export { default as TurndownService } from 'turndown';
-export { DocumentConverter } from './converter.js';
+export { default as mammoth } from 'mammoth'
+export { default as TurndownService } from 'turndown'
+export { DocumentConverter } from './converter.js'
 export {
   starlightDocumentConverter as default,
   starlightDocumentConverter,
-} from './integration.js';
+} from './integration.js'
 // Plugin system exports
-export * from './plugins/index.js';
+export * from './plugins/index.js'
 // Type exports
 export type {
   ConversionContext,
@@ -20,4 +20,4 @@ export type {
   FileProcessor,
   StarlightIntegrationConfig,
   SupportedFormat,
-} from './types.js';
+} from './types.js'

@@ -1,21 +1,21 @@
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
-import { basename, dirname, extname, join } from 'node:path';
-import chalk from 'chalk';
-import matter from 'gray-matter';
-import mammoth from 'mammoth';
-import TurndownService from 'turndown';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { basename, dirname, extname, join } from 'node:path'
+import chalk from 'chalk'
+import matter from 'gray-matter'
+import mammoth from 'mammoth'
+import TurndownService from 'turndown'
 import type {
   ConversionOptions,
   ConversionResult,
   ConversionStats,
   DocumentMetadata,
   SupportedFormat,
-} from './types.js';
+} from './types.js'
 
 export class DocumentConverter {
-  private options: Required<ConversionOptions>;
-  private stats: ConversionStats;
-  private turndownService: TurndownService;
+  private options: Required<ConversionOptions>
+  private stats: ConversionStats
+  private turndownService: TurndownService
 
   constructor(options: ConversionOptions = {}) {
     this.options = {
@@ -37,20 +37,20 @@ export class DocumentConverter {
       fixLinks: options.fixLinks ?? false,
       generateSidebar: options.generateSidebar ?? false,
       maxDescriptionLength: options.maxDescriptionLength ?? 160,
-    };
+    }
 
     this.stats = {
       processed: 0,
       skipped: 0,
       errors: 0,
       formats: new Map(),
-    };
+    }
 
     this.turndownService = new TurndownService({
       headingStyle: 'atx',
       codeBlockStyle: 'fenced',
       bulletListMarker: '-',
-    });
+    })
   }
 
   private getDefaultCategoryPatterns(): Record<string, string> {
@@ -66,7 +66,7 @@ export class DocumentConverter {
       project: 'Projects',
       blog: 'Blog',
       docs: 'Documentation',
-    };
+    }
   }
 
   private getDefaultTagPatterns(): Record<string, string[]> {
@@ -86,82 +86,82 @@ export class DocumentConverter {
       security: ['security', 'auth', 'authentication'],
       performance: ['performance', 'optimization', 'cache'],
       testing: ['test', 'testing', 'jest', 'vitest'],
-    };
+    }
   }
 
   private getDefaultIgnorePatterns(): string[] {
-    return ['node_modules/**', '.git/**', 'dist/**', '.astro/**', '**/*.log', '**/.*'];
+    return ['node_modules/**', '.git/**', 'dist/**', '.astro/**', '**/*.log', '**/.*']
   }
 
   private log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
     if (this.options.verbose || level === 'error') {
-      const timestamp = new Date().toISOString().slice(11, 19);
+      const timestamp = new Date().toISOString().slice(11, 19)
       const coloredMessage =
         level === 'error'
           ? chalk.red(message)
           : level === 'warn'
             ? chalk.yellow(message)
-            : chalk.blue(message);
+            : chalk.blue(message)
 
-      console.log(`[${chalk.gray(timestamp)}] ${coloredMessage}`);
+      console.log(`[${chalk.gray(timestamp)}] ${coloredMessage}`)
     }
   }
 
   private extractTitle(content: string, filename: string): string | undefined {
-    if (!this.options.generateTitles) return undefined;
+    if (!this.options.generateTitles) return
 
     // Try to find title in HTML first (highest priority for HTML docs)
-    const titleMatch = content.match(/<title[^>]*>([^<]+)<\/title>/i);
-    if (titleMatch) return titleMatch[1].trim();
+    const titleMatch = content.match(/<title[^>]*>([^<]+)<\/title>/i)
+    if (titleMatch) return titleMatch[1].trim()
 
     // For plain text, try to find the first line that looks like a title
-    const lines = content.split('\n').filter((line) => line.trim());
+    const lines = content.split('\n').filter((line) => line.trim())
     if (lines.length > 0) {
-      const firstLine = lines[0].trim();
+      const firstLine = lines[0].trim()
       // If first line is not a heading marker and looks like a title
       if (!firstLine.startsWith('#') && firstLine.length > 0 && firstLine.length < 100) {
         // Check if it's likely a title (no period at end, reasonable length)
-        if (!firstLine.endsWith('.') && !firstLine.includes('\n')) {
-          return firstLine;
+        if (!(firstLine.endsWith('.') || firstLine.includes('\n'))) {
+          return firstLine
         }
       }
     }
 
     // Try to find H1 heading in markdown
-    const h1Match = content.match(/^#\s+(.+)$/m);
-    if (h1Match) return h1Match[1].trim();
+    const h1Match = content.match(/^#\s+(.+)$/m)
+    if (h1Match) return h1Match[1].trim()
 
     // Try to find any heading
-    const headingMatch = content.match(/^#{1,6}\s+(.+)$/m);
-    if (headingMatch) return headingMatch[1].trim();
+    const headingMatch = content.match(/^#{1,6}\s+(.+)$/m)
+    if (headingMatch) return headingMatch[1].trim()
 
     // Use filename as fallback
     return filename
       .replace(/\.[^/.]+$/, '')
       .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, (l) => l.toUpperCase());
+      .replace(/\b\w/g, (l) => l.toUpperCase())
   }
 
   private extractDescription(content: string): string | undefined {
-    if (!this.options.generateDescriptions) return undefined;
+    if (!this.options.generateDescriptions) return
 
-    const paragraphs = this.extractParagraphs(content);
-    const startIndex = this.getDescriptionStartIndex(paragraphs);
+    const paragraphs = this.extractParagraphs(content)
+    const startIndex = this.getDescriptionStartIndex(paragraphs)
 
     for (let i = startIndex; i < paragraphs.length; i++) {
-      const result = this.processDescriptionParagraph(paragraphs[i]);
-      if (result) return result;
+      const result = this.processDescriptionParagraph(paragraphs[i])
+      if (result) return result
     }
 
-    return undefined;
+    return
   }
 
   private extractParagraphs(content: string): string[] {
-    const withoutFrontmatter = content.replace(/^---[\s\S]*?---/, '').trim();
+    const withoutFrontmatter = content.replace(/^---[\s\S]*?---/, '').trim()
     return withoutFrontmatter
       .split(/\n\s*\n/)
       .map((p) => p.trim())
-      .filter((p) => p.length > 0);
+      .filter((p) => p.length > 0)
   }
 
   private getDescriptionStartIndex(paragraphs: string[]): number {
@@ -171,9 +171,9 @@ export class DocumentConverter {
       !paragraphs[0].endsWith('.') &&
       !paragraphs[0].includes('\n')
     ) {
-      return 1;
+      return 1
     }
-    return 0;
+    return 0
   }
 
   private isStructuralElement(paragraph: string): boolean {
@@ -186,7 +186,7 @@ export class DocumentConverter {
       paragraph.match(/^\d+\./) !== null ||
       paragraph.startsWith('>') ||
       paragraph.match(/^Table|^Figure|^Image|^Code|^Example:/i) !== null
-    );
+    )
   }
 
   private cleanParagraph(paragraph: string): string {
@@ -194,50 +194,50 @@ export class DocumentConverter {
       .replace(/[#*_`[\]]/g, '')
       .replace(/\s+/g, ' ')
       .replace(/^\s*[-*]\s*/, '')
-      .trim();
+      .trim()
   }
 
   private processDescriptionParagraph(paragraph: string): string | undefined {
     if (this.isStructuralElement(paragraph)) {
-      return undefined;
+      return
     }
 
-    const cleanParagraph = this.cleanParagraph(paragraph);
-    if (cleanParagraph.length < 20) return undefined;
+    const cleanParagraph = this.cleanParagraph(paragraph)
+    if (cleanParagraph.length < 20) return
 
     if (cleanParagraph.length > 200) {
-      return this.truncateDescription(cleanParagraph);
+      return this.truncateDescription(cleanParagraph)
     }
 
-    const result = cleanParagraph.endsWith('.') ? cleanParagraph : `${cleanParagraph}.`;
+    const result = cleanParagraph.endsWith('.') ? cleanParagraph : `${cleanParagraph}.`
 
     if (result.length >= 20 && !result.match(/^(Table|Figure|Image|Code|Example):/i)) {
-      return result;
+      return result
     }
 
-    return undefined;
+    return
   }
 
   private truncateDescription(text: string): string {
-    const truncated = text.substring(0, 150);
-    const lastSpace = truncated.lastIndexOf(' ');
-    const result = lastSpace > 100 ? truncated.substring(0, lastSpace) : truncated;
-    return `${result}...`;
+    const truncated = text.substring(0, 150)
+    const lastSpace = truncated.lastIndexOf(' ')
+    const result = lastSpace > 100 ? truncated.substring(0, lastSpace) : truncated
+    return `${result}...`
   }
 
   private extractTags(content: string, filename: string, category: string): string[] {
-    const tags = new Set<string>();
-    const text = content.toLowerCase();
+    const tags = new Set<string>()
+    const text = content.toLowerCase()
 
-    this.addTechTags(tags, text);
-    this.addCategoryTags(tags, category);
-    this.addContentTypeTags(tags, text);
-    this.addFilenameTags(tags, filename);
-    this.addComplexityTags(tags, content, text);
+    this.addTechTags(tags, text)
+    this.addCategoryTags(tags, category)
+    this.addContentTypeTags(tags, text)
+    this.addFilenameTags(tags, filename)
+    this.addComplexityTags(tags, content, text)
 
     return Array.from(tags)
       .filter((tag) => tag.length > 2)
-      .slice(0, 8);
+      .slice(0, 8)
   }
 
   private getTechPatterns(): Record<string, string[]> {
@@ -266,21 +266,21 @@ export class DocumentConverter {
       api: ['api', 'endpoint', 'rest', 'graphql'],
       guide: ['tutorial', 'guide', 'walkthrough', 'how-to'],
       reference: ['reference', 'documentation', 'docs'],
-    };
+    }
   }
 
   private addTechTags(tags: Set<string>, text: string): void {
-    const techPatterns = this.getTechPatterns();
+    const techPatterns = this.getTechPatterns()
     for (const [tag, patterns] of Object.entries(techPatterns)) {
       if (patterns.some((pattern) => text.includes(pattern))) {
-        tags.add(tag);
+        tags.add(tag)
       }
     }
   }
 
   private addCategoryTags(tags: Set<string>, category: string): void {
     if (category && category !== 'documentation') {
-      tags.add(category.toLowerCase().replace(/\s+/g, '-'));
+      tags.add(category.toLowerCase().replace(/\s+/g, '-'))
     }
   }
 
@@ -294,50 +294,50 @@ export class DocumentConverter {
       { pattern: /debug|troubleshoot|error/, tag: 'debugging' },
       { pattern: /business|strategy|plan/, tag: 'business' },
       { pattern: /market|revenue|funding/, tag: 'business-strategy' },
-    ];
+    ]
 
     for (const { pattern, tag } of contentPatterns) {
       if (text.match(pattern)) {
-        tags.add(tag);
+        tags.add(tag)
       }
     }
   }
 
   private addFilenameTags(tags: Set<string>, filename: string): void {
-    const filenameLower = filename.toLowerCase();
+    const filenameLower = filename.toLowerCase()
     const filenamePatterns = [
       { includes: 'readme', tag: 'overview' },
       { includes: 'changelog', tag: 'changelog' },
       { includes: 'contributing', tag: 'contributing' },
       { includes: 'license', tag: 'legal' },
-    ];
+    ]
 
     for (const { includes, tag } of filenamePatterns) {
       if (filenameLower.includes(includes)) {
-        tags.add(tag);
+        tags.add(tag)
       }
     }
   }
 
   private addComplexityTags(tags: Set<string>, content: string, text: string): void {
-    const codeBlocks = (content.match(/```/g) || []).length / 2;
-    if (codeBlocks > 3) tags.add('code-heavy');
-    if (content.length > 5000) tags.add('comprehensive');
-    if (text.includes('beginner') || text.includes('getting started')) tags.add('beginner');
-    if (text.includes('advanced') || text.includes('expert')) tags.add('advanced');
+    const codeBlocks = (content.match(/```/g) || []).length / 2
+    if (codeBlocks > 3) tags.add('code-heavy')
+    if (content.length > 5000) tags.add('comprehensive')
+    if (text.includes('beginner') || text.includes('getting started')) tags.add('beginner')
+    if (text.includes('advanced') || text.includes('expert')) tags.add('advanced')
   }
 
   private generateCategory(content: string, _filename: string, filePath: string): string {
     // Path-based detection (existing logic)
-    const pathParts = filePath.split('/').filter((p) => p && p !== '.');
+    const pathParts = filePath.split('/').filter((p) => p && p !== '.')
     for (const [pattern, categoryName] of Object.entries(this.options.categoryPatterns)) {
       if (pathParts.some((p) => p.toLowerCase().includes(pattern.toLowerCase()))) {
-        return categoryName;
+        return categoryName
       }
     }
 
     // Content-based analysis
-    const text = content.toLowerCase();
+    const text = content.toLowerCase()
 
     // API/Reference detection
     if (
@@ -347,7 +347,7 @@ export class DocumentConverter {
       text.includes('parameter') ||
       text.includes('response')
     ) {
-      return 'Reference';
+      return 'Reference'
     }
 
     // Tutorial/Guide detection
@@ -359,7 +359,7 @@ export class DocumentConverter {
       text.match(/\d+\.\s/) ||
       text.includes('how to')
     ) {
-      return 'Guides';
+      return 'Guides'
     }
 
     // Business/Planning detection
@@ -371,7 +371,7 @@ export class DocumentConverter {
       text.includes('funding') ||
       text.includes('investor')
     ) {
-      return 'Business';
+      return 'Business'
     }
 
     // Technical/Architecture detection
@@ -383,7 +383,7 @@ export class DocumentConverter {
       text.includes('database') ||
       text.includes('infrastructure')
     ) {
-      return 'Architecture';
+      return 'Architecture'
     }
 
     // Configuration/Setup detection
@@ -393,85 +393,85 @@ export class DocumentConverter {
       text.includes('installation') ||
       text.includes('environment')
     ) {
-      return 'Configuration';
+      return 'Configuration'
     }
 
-    return this.options.defaultCategory;
+    return this.options.defaultCategory
   }
 
   private generateFrontmatterYaml(metadata: DocumentMetadata): string {
-    const yamlLines: string[] = [];
+    const yamlLines: string[] = []
 
     // Title - always quoted and escaped
     if (metadata.title) {
-      const escapedTitle = metadata.title.replace(/"/g, '\\"').replace(/\n/g, ' ');
-      yamlLines.push(`title: "${escapedTitle}"`);
+      const escapedTitle = metadata.title.replace(/"/g, '\\"').replace(/\n/g, ' ')
+      yamlLines.push(`title: "${escapedTitle}"`)
     }
 
     // Description - handle multiline and special characters
     if (metadata.description) {
-      const desc = metadata.description.replace(/"/g, '\\"').replace(/\n/g, ' ');
+      const desc = metadata.description.replace(/"/g, '\\"').replace(/\n/g, ' ')
       if (desc.length > 80) {
         // Use literal block scalar for long descriptions
-        yamlLines.push('description: |');
-        yamlLines.push(`  ${desc}`);
+        yamlLines.push('description: |')
+        yamlLines.push(`  ${desc}`)
       } else {
-        yamlLines.push(`description: "${desc}"`);
+        yamlLines.push(`description: "${desc}"`)
       }
     }
 
     // Category
     if (metadata.category && metadata.category !== 'documentation') {
-      yamlLines.push(`category: "${metadata.category}"`);
+      yamlLines.push(`category: "${metadata.category}"`)
     }
 
     // Tags array
     if (metadata.tags && metadata.tags.length > 0) {
-      yamlLines.push('tags:');
-      metadata.tags.forEach((tag) => yamlLines.push(`  - ${tag}`));
+      yamlLines.push('tags:')
+      metadata.tags.forEach((tag) => yamlLines.push(`  - ${tag}`))
     }
 
     // SEO enhancements
     if (metadata.lastUpdated) {
-      yamlLines.push(`lastUpdated: ${metadata.lastUpdated}`);
+      yamlLines.push(`lastUpdated: ${metadata.lastUpdated}`)
     }
 
-    return yamlLines.join('\n');
+    return yamlLines.join('\n')
   }
 
   private validateConvertedContent(
     content: string,
     metadata: DocumentMetadata
   ): {
-    isValid: boolean;
-    warnings: string[];
-    suggestions: string[];
-    quality: 'high' | 'medium' | 'low';
+    isValid: boolean
+    warnings: string[]
+    suggestions: string[]
+    quality: 'high' | 'medium' | 'low'
   } {
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
+    const warnings: string[] = []
+    const suggestions: string[] = []
 
-    this.validateTitle(metadata.title, warnings);
-    this.validateDescription(metadata.description, warnings, suggestions);
-    this.validateContentStructure(content, suggestions);
-    this.validateCodeContent(content, metadata, suggestions);
+    this.validateTitle(metadata.title, warnings)
+    this.validateDescription(metadata.description, warnings, suggestions)
+    this.validateContentStructure(content, suggestions)
+    this.validateCodeContent(content, metadata, suggestions)
 
-    const quality = this.calculateQuality(warnings, metadata);
+    const quality = this.calculateQuality(warnings, metadata)
 
     return {
       isValid: warnings.length === 0,
       warnings,
       suggestions,
       quality,
-    };
+    }
   }
 
   private validateTitle(title: string | undefined, warnings: string[]): void {
     if (!title || title.length < 5) {
-      warnings.push('Title is too short or missing');
+      warnings.push('Title is too short or missing')
     }
     if (title && title.length > 100) {
-      warnings.push('Title is unusually long');
+      warnings.push('Title is unusually long')
     }
   }
 
@@ -481,21 +481,21 @@ export class DocumentConverter {
     suggestions: string[]
   ): void {
     if (!description) {
-      warnings.push('Description is missing');
-      suggestions.push('Consider adding a brief description of the document content');
+      warnings.push('Description is missing')
+      suggestions.push('Consider adding a brief description of the document content')
     } else if (description.length < 20) {
-      warnings.push('Description is very short');
+      warnings.push('Description is very short')
     } else if (description.length > 200) {
-      suggestions.push('Description is long, consider summarizing key points');
+      suggestions.push('Description is long, consider summarizing key points')
     }
   }
 
   private validateContentStructure(content: string, suggestions: string[]): void {
-    const headingCount = (content.match(/^#{1,6}\s/gm) || []).length;
+    const headingCount = (content.match(/^#{1,6}\s/gm) || []).length
     if (headingCount === 0) {
-      suggestions.push('Consider adding headings to improve document structure');
+      suggestions.push('Consider adding headings to improve document structure')
     } else if (headingCount > 20) {
-      suggestions.push('Document has many headings, consider reorganizing content');
+      suggestions.push('Document has many headings, consider reorganizing content')
     }
   }
 
@@ -504,9 +504,9 @@ export class DocumentConverter {
     metadata: DocumentMetadata,
     suggestions: string[]
   ): void {
-    const codeBlocks = (content.match(/```/g) || []).length / 2;
+    const codeBlocks = (content.match(/```/g) || []).length / 2
     if (codeBlocks > 0 && !metadata.tags?.includes('code-heavy')) {
-      suggestions.push('Document contains code - consider adding relevant technical tags');
+      suggestions.push('Document contains code - consider adding relevant technical tags')
     }
   }
 
@@ -514,13 +514,13 @@ export class DocumentConverter {
     warnings: string[],
     metadata: DocumentMetadata
   ): 'high' | 'medium' | 'low' {
-    let qualityScore = 100;
-    if (warnings.length > 0) qualityScore -= warnings.length * 15;
-    if (!metadata.description) qualityScore -= 25;
-    if (!metadata.category || metadata.category === 'documentation') qualityScore -= 10;
-    if (!metadata.tags || metadata.tags.length === 0) qualityScore -= 10;
+    let qualityScore = 100
+    if (warnings.length > 0) qualityScore -= warnings.length * 15
+    if (!metadata.description) qualityScore -= 25
+    if (!metadata.category || metadata.category === 'documentation') qualityScore -= 10
+    if (!metadata.tags || metadata.tags.length === 0) qualityScore -= 10
 
-    return qualityScore >= 80 ? 'high' : qualityScore >= 60 ? 'medium' : 'low';
+    return qualityScore >= 80 ? 'high' : qualityScore >= 60 ? 'medium' : 'low'
   }
 
   private generateFrontmatter(
@@ -528,29 +528,29 @@ export class DocumentConverter {
     filename: string,
     filePath: string
   ): DocumentMetadata {
-    const frontmatter: DocumentMetadata = {};
+    const frontmatter: DocumentMetadata = {}
 
-    const title = this.extractTitle(content, filename);
-    if (title) frontmatter.title = title;
+    const title = this.extractTitle(content, filename)
+    if (title) frontmatter.title = title
 
-    const description = this.extractDescription(content);
-    if (description) frontmatter.description = description;
+    const description = this.extractDescription(content)
+    if (description) frontmatter.description = description
 
     // Enhanced category detection
-    const category = this.generateCategory(content, filename, filePath);
+    const category = this.generateCategory(content, filename, filePath)
     if (category !== 'documentation') {
-      frontmatter.category = category;
+      frontmatter.category = category
     }
 
     // Enhanced tag extraction
-    const tags = this.extractTags(content, filename, category);
-    if (tags.length > 0) frontmatter.tags = tags;
+    const tags = this.extractTags(content, filename, category)
+    if (tags.length > 0) frontmatter.tags = tags
 
     if (this.options.addTimestamps) {
-      frontmatter.lastUpdated = new Date().toISOString().split('T')[0];
+      frontmatter.lastUpdated = new Date().toISOString().split('T')[0]
     }
 
-    return frontmatter;
+    return frontmatter
   }
 
   private isSupportedFormat(ext: string): ext is SupportedFormat {
@@ -563,8 +563,8 @@ export class DocumentConverter {
       '.md',
       '.mdx',
       '.rtf',
-    ];
-    return supportedFormats.includes(ext as SupportedFormat);
+    ]
+    return supportedFormats.includes(ext as SupportedFormat)
   }
 
   private isTextBasedFile(ext: string): boolean {
@@ -616,14 +616,14 @@ export class DocumentConverter {
       '.gradle',
       '.cmake',
       '.dockerfile',
-    ];
-    return textExtensions.includes(ext.toLowerCase());
+    ]
+    return textExtensions.includes(ext.toLowerCase())
   }
 
   private shouldSkipFile(filename: string, ext: string): { skip: boolean; reason?: string } {
     // Skip hidden files and system files
     if (filename.startsWith('.') && !['.md', '.html', '.htm', '.txt'].includes(ext)) {
-      return { skip: true, reason: 'hidden file' };
+      return { skip: true, reason: 'hidden file' }
     }
 
     // Skip common binary/asset file extensions
@@ -672,42 +672,42 @@ export class DocumentConverter {
       '.pkg',
       '.deb',
       '.rpm',
-    ];
+    ]
 
     if (binaryExtensions.includes(ext.toLowerCase())) {
-      return { skip: true, reason: 'binary file' };
+      return { skip: true, reason: 'binary file' }
     }
 
     // Skip if not supported and not text-based
-    if (!this.isSupportedFormat(ext) && !this.isTextBasedFile(ext)) {
-      return { skip: true, reason: 'unsupported format' };
+    if (!(this.isSupportedFormat(ext) || this.isTextBasedFile(ext))) {
+      return { skip: true, reason: 'unsupported format' }
     }
 
-    return { skip: false };
+    return { skip: false }
   }
 
   private convertPlainText(content: string): string {
-    const lines = content.split('\n');
-    const markdown: string[] = [];
-    let inCodeBlock = false;
+    const lines = content.split('\n')
+    const markdown: string[] = []
+    let inCodeBlock = false
 
     for (let i = 0; i < lines.length; i++) {
-      const result = this.processPlainTextLine(lines, i, inCodeBlock);
-      inCodeBlock = result.inCodeBlock;
+      const result = this.processPlainTextLine(lines, i, inCodeBlock)
+      inCodeBlock = result.inCodeBlock
 
       if (result.output) {
-        markdown.push(result.output);
+        markdown.push(result.output)
       }
       if (result.additionalOutput) {
-        markdown.push(result.additionalOutput);
+        markdown.push(result.additionalOutput)
       }
     }
 
     if (inCodeBlock) {
-      markdown.push('```');
+      markdown.push('```')
     }
 
-    return markdown.join('\n');
+    return markdown.join('\n')
   }
 
   private processPlainTextLine(
@@ -715,11 +715,11 @@ export class DocumentConverter {
     index: number,
     inCodeBlock: boolean
   ): { output?: string; additionalOutput?: string; inCodeBlock: boolean } {
-    const line = lines[index];
-    const trimmed = line.trim();
+    const line = lines[index]
+    const trimmed = line.trim()
 
     if (!trimmed && inCodeBlock) {
-      return { output: line, inCodeBlock };
+      return { output: line, inCodeBlock }
     }
 
     // Check if this is a code line
@@ -729,9 +729,9 @@ export class DocumentConverter {
           output: '```',
           additionalOutput: line.replace(/^ {4}/, ''),
           inCodeBlock: true,
-        };
+        }
       }
-      return { output: line.replace(/^ {4}/, ''), inCodeBlock: true };
+      return { output: line.replace(/^ {4}/, ''), inCodeBlock: true }
     }
 
     // Exit code block if needed
@@ -740,13 +740,13 @@ export class DocumentConverter {
         output: '```',
         additionalOutput: this.convertNonCodeLine(line, trimmed, lines, index),
         inCodeBlock: false,
-      };
+      }
     }
 
     return {
       output: this.convertNonCodeLine(line, trimmed, lines, index),
       inCodeBlock,
-    };
+    }
   }
 
   private isCodeLine(line: string, trimmed: string): boolean {
@@ -754,11 +754,11 @@ export class DocumentConverter {
       line.match(/^ {4}/) !== null ||
       line.match(/^\t/) !== null ||
       trimmed.match(/^(function|const|let|var|class|import|export|<\w+|{\s*$)/) !== null
-    );
+    )
   }
 
   private isIndentedLine(line: string): boolean {
-    return line.match(/^ {4}/) !== null || line.match(/^\t/) !== null;
+    return line.match(/^ {4}/) !== null || line.match(/^\t/) !== null
   }
 
   private convertNonCodeLine(
@@ -769,46 +769,47 @@ export class DocumentConverter {
   ): string {
     // Convert headings
     if (trimmed.endsWith(':') && index + 1 < lines.length && lines[index + 1].trim()) {
-      return `## ${trimmed.slice(0, -1)}`;
+      return `## ${trimmed.slice(0, -1)}`
     }
 
     // Convert bullet points
     if (trimmed.match(/^[-*•]\s/)) {
-      return line.replace(/^(\s*)[-*•]\s/, '$1- ');
+      return line.replace(/^(\s*)[-*•]\s/, '$1- ')
     }
 
-    return line;
+    return line
   }
 
   private convertHTML(content: string): string {
     try {
-      return this.turndownService.turndown(content).trim();
+      return this.turndownService.turndown(content).trim()
     } catch (error) {
-      this.log(`Turndown conversion failed, using fallback: ${error}`, 'warn');
+      this.log(`Turndown conversion failed, using fallback: ${error}`, 'warn')
       // Basic fallback conversion
       return content
         .replace(
           /<h([1-6])[^>]*>(.*?)<\/h[1-6]>/gi,
-          (_, level, text) => `${'#'.repeat(parseInt(level))} ${text.replace(/<[^>]*>/g, '')}`
+          (_, level, text) =>
+            `${'#'.repeat(Number.parseInt(level))} ${text.replace(/<[^>]*>/g, '')}`
         )
         .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n')
         .replace(/<[^>]*>/g, '')
-        .trim();
+        .trim()
     }
   }
 
   private async convertWordDocument(filePath: string): Promise<string> {
     try {
-      const result = await mammoth.convertToHtml({ path: filePath });
+      const result = await mammoth.convertToHtml({ path: filePath })
 
       if (result.messages.length > 0) {
-        this.log(`Word conversion warnings for ${filePath}:`, 'warn');
-        result.messages.forEach((msg) => this.log(`  ${msg.message}`, 'warn'));
+        this.log(`Word conversion warnings for ${filePath}:`, 'warn')
+        result.messages.forEach((msg) => this.log(`  ${msg.message}`, 'warn'))
       }
 
-      return this.convertHTML(result.value);
+      return this.convertHTML(result.value)
     } catch (error) {
-      throw new Error(`Failed to convert Word document: ${error}`);
+      throw new Error(`Failed to convert Word document: ${error}`)
     }
   }
 
@@ -819,9 +820,9 @@ export class DocumentConverter {
       .replace(/[{}]/g, '') // Remove braces
       .replace(/\\\\/g, '\\') // Unescape backslashes
       .replace(/\\'/g, "'") // Unescape quotes
-      .trim();
+      .trim()
 
-    return this.convertPlainText(text);
+    return this.convertPlainText(text)
   }
 
   private async processFileByType(
@@ -835,53 +836,53 @@ export class DocumentConverter {
         return {
           content: await this.convertWordDocument(inputPath),
           needsConversion: true,
-        };
+        }
 
       case '.rtf': {
-        const rtfContent = await readFile(inputPath, 'utf-8');
+        const rtfContent = await readFile(inputPath, 'utf-8')
         return {
           content: this.convertRTF(rtfContent),
           needsConversion: true,
-        };
+        }
       }
 
       case '.txt': {
-        const textContent = await readFile(inputPath, 'utf-8');
+        const textContent = await readFile(inputPath, 'utf-8')
         return {
           content: this.convertPlainText(textContent),
           needsConversion: true,
-        };
+        }
       }
 
       case '.html':
       case '.htm': {
-        const htmlContent = await readFile(inputPath, 'utf-8');
+        const htmlContent = await readFile(inputPath, 'utf-8')
         return {
           content: this.convertHTML(htmlContent),
           needsConversion: true,
-        };
+        }
       }
 
       case '.md':
       case '.mdx': {
-        const mdContent = await readFile(inputPath, 'utf-8');
-        const parsed = matter(mdContent);
+        const mdContent = await readFile(inputPath, 'utf-8')
+        const parsed = matter(mdContent)
         return {
           content: mdContent,
           needsConversion: Object.keys(parsed.data).length === 0,
-        };
+        }
       }
 
       default:
         // Try to process text-based files as plain text
         if (this.isTextBasedFile(ext)) {
           try {
-            const textContent = await readFile(inputPath, 'utf-8');
-            this.log(`Processing ${ext} file as plain text`, 'info');
+            const textContent = await readFile(inputPath, 'utf-8')
+            this.log(`Processing ${ext} file as plain text`, 'info')
             return {
               content: this.convertPlainText(textContent),
               needsConversion: true,
-            };
+            }
           } catch (error) {
             return {
               success: false,
@@ -889,7 +890,7 @@ export class DocumentConverter {
               outputPath,
               skipped: true,
               errorMessage: `Failed to read text file: ${error}`,
-            };
+            }
           }
         } else {
           // Skip unsupported file formats gracefully
@@ -899,112 +900,112 @@ export class DocumentConverter {
             outputPath,
             skipped: true,
             errorMessage: `Skipped unsupported file format: ${ext}`,
-          };
+          }
         }
     }
   }
 
   async convertFile(inputPath: string, outputPath?: string): Promise<ConversionResult> {
     try {
-      const filename = basename(inputPath);
-      const ext = extname(inputPath).toLowerCase();
+      const filename = basename(inputPath)
+      const ext = extname(inputPath).toLowerCase()
       const resolvedOutputPath =
-        outputPath || join(this.options.outputDir, filename.replace(/\.[^/.]+$/, '.md'));
+        outputPath || join(this.options.outputDir, filename.replace(/\.[^/.]+$/, '.md'))
 
       // Check if file should be skipped
-      const skipCheck = this.shouldSkipFile(filename, ext);
+      const skipCheck = this.shouldSkipFile(filename, ext)
       if (skipCheck.skip) {
-        this.log(`Skipping ${filename}: ${skipCheck.reason}`, 'info');
-        this.stats.skipped++;
+        this.log(`Skipping ${filename}: ${skipCheck.reason}`, 'info')
+        this.stats.skipped++
         return {
           success: false,
           inputPath,
           outputPath: resolvedOutputPath,
           skipped: true,
           errorMessage: `Skipped: ${skipCheck.reason}`,
-        };
+        }
       }
 
-      this.stats.formats.set(ext, (this.stats.formats.get(ext) || 0) + 1);
+      this.stats.formats.set(ext, (this.stats.formats.get(ext) || 0) + 1)
 
-      let processedContent = '';
-      let needsConversion = false;
+      let processedContent = ''
+      let needsConversion = false
 
       // Process based on file extension
-      const processingResult = await this.processFileByType(inputPath, ext, resolvedOutputPath);
+      const processingResult = await this.processFileByType(inputPath, ext, resolvedOutputPath)
       if ('success' in processingResult) {
-        return processingResult;
+        return processingResult
       }
 
-      processedContent = processingResult.content;
-      needsConversion = processingResult.needsConversion;
+      processedContent = processingResult.content
+      needsConversion = processingResult.needsConversion
 
       // Generate frontmatter if needed
-      let finalContent = processedContent;
-      let metadata: DocumentMetadata = {};
+      let finalContent = processedContent
+      let metadata: DocumentMetadata = {}
 
       if (needsConversion || !processedContent.startsWith('---')) {
-        metadata = this.generateFrontmatter(processedContent, filename, inputPath);
+        metadata = this.generateFrontmatter(processedContent, filename, inputPath)
 
-        const frontmatterYaml = this.generateFrontmatterYaml(metadata);
+        const frontmatterYaml = this.generateFrontmatterYaml(metadata)
 
-        const contentWithoutFrontmatter = processedContent.replace(/^---[\s\S]*?---/, '').trim();
-        finalContent = `---\n${frontmatterYaml}\n---\n\n${contentWithoutFrontmatter}`;
+        const contentWithoutFrontmatter = processedContent.replace(/^---[\s\S]*?---/, '').trim()
+        finalContent = `---\n${frontmatterYaml}\n---\n\n${contentWithoutFrontmatter}`
       }
 
       // Quality validation
-      const validation = this.validateConvertedContent(finalContent, metadata);
+      const validation = this.validateConvertedContent(finalContent, metadata)
 
       // Ensure output directory exists
-      const outputDir = dirname(resolvedOutputPath);
-      await mkdir(outputDir, { recursive: true });
+      const outputDir = dirname(resolvedOutputPath)
+      await mkdir(outputDir, { recursive: true })
 
       // Write the file
       if (!this.options.dryRun) {
-        await writeFile(resolvedOutputPath, finalContent, 'utf-8');
+        await writeFile(resolvedOutputPath, finalContent, 'utf-8')
       }
 
       // Enhanced logging with quality information
       const qualityEmoji =
-        validation.quality === 'high' ? '🟢' : validation.quality === 'medium' ? '🟡' : '🔴';
-      this.log(`✅ ${qualityEmoji} Converted: ${inputPath} → ${resolvedOutputPath}`);
+        validation.quality === 'high' ? '🟢' : validation.quality === 'medium' ? '🟡' : '🔴'
+      this.log(`✅ ${qualityEmoji} Converted: ${inputPath} → ${resolvedOutputPath}`)
 
       // Log quality issues if verbose
       if (this.options.verbose && validation.warnings.length > 0) {
-        validation.warnings.forEach((warning) => this.log(`   ⚠️  ${warning}`, 'warn'));
+        validation.warnings.forEach((warning) => this.log(`   ⚠️  ${warning}`, 'warn'))
       }
 
-      this.stats.processed++;
+      this.stats.processed++
 
       return {
         success: true,
         inputPath,
         outputPath: resolvedOutputPath,
         metadata,
-      };
+      }
     } catch (error) {
-      const errorMessage = `Error processing ${inputPath}: ${error}`;
-      this.log(errorMessage, 'error');
-      this.stats.errors++;
+      const errorMessage = `Error processing ${inputPath}: ${error}`
+      this.log(errorMessage, 'error')
+      this.stats.errors++
 
       return {
         success: false,
         inputPath,
         outputPath: outputPath || '',
         error: errorMessage,
-      };
+      }
     }
   }
 
   async convertDirectory(inputDir: string, outputDir?: string): Promise<ConversionResult[]> {
-    const results: ConversionResult[] = [];
-    const resolvedOutputDir = outputDir || this.options.outputDir;
+    const results: ConversionResult[] = []
+    const resolvedOutputDir = outputDir || this.options.outputDir
 
     try {
-      const entries = await readdir(inputDir, { withFileTypes: true });
+      const entries = await readdir(inputDir, { withFileTypes: true })
 
       for (const entry of entries) {
-        const inputPath = join(inputDir, entry.name);
+        const inputPath = join(inputDir, entry.name)
 
         // Skip ignored patterns
         if (
@@ -1012,51 +1013,51 @@ export class DocumentConverter {
             inputPath.includes(pattern.replace('/**', '').replace('**/', ''))
           )
         ) {
-          continue;
+          continue
         }
 
         if (entry.isDirectory()) {
           const nestedOutputDir = this.options.preserveStructure
             ? join(resolvedOutputDir, entry.name)
-            : resolvedOutputDir;
+            : resolvedOutputDir
 
-          const nestedResults = await this.convertDirectory(inputPath, nestedOutputDir);
-          results.push(...nestedResults);
+          const nestedResults = await this.convertDirectory(inputPath, nestedOutputDir)
+          results.push(...nestedResults)
         } else {
           const outputPath = this.options.preserveStructure
             ? join(resolvedOutputDir, entry.name.replace(/\.[^/.]+$/, '.md'))
-            : join(resolvedOutputDir, entry.name.replace(/\.[^/.]+$/, '.md'));
+            : join(resolvedOutputDir, entry.name.replace(/\.[^/.]+$/, '.md'))
 
-          const result = await this.convertFile(inputPath, outputPath);
-          results.push(result);
+          const result = await this.convertFile(inputPath, outputPath)
+          results.push(result)
         }
       }
     } catch (error) {
-      this.log(`Error processing directory ${inputDir}: ${error}`, 'error');
+      this.log(`Error processing directory ${inputDir}: ${error}`, 'error')
     }
 
-    return results;
+    return results
   }
 
   getStats(): ConversionStats {
-    return { ...this.stats };
+    return { ...this.stats }
   }
 
   printStats(): void {
-    console.log(`\n${chalk.bold('📊 Conversion Statistics:')}`);
-    console.log(`  ${chalk.green('✅ Processed:')} ${this.stats.processed} files`);
-    console.log(`  ${chalk.yellow('⏭️  Skipped:')} ${this.stats.skipped} files`);
-    console.log(`  ${chalk.red('❌ Errors:')} ${this.stats.errors} files`);
+    console.log(`\n${chalk.bold('📊 Conversion Statistics:')}`)
+    console.log(`  ${chalk.green('✅ Processed:')} ${this.stats.processed} files`)
+    console.log(`  ${chalk.yellow('⏭️  Skipped:')} ${this.stats.skipped} files`)
+    console.log(`  ${chalk.red('❌ Errors:')} ${this.stats.errors} files`)
 
     if (this.stats.formats.size > 0) {
-      console.log(`\n${chalk.bold('📁 File formats processed:')}`);
+      console.log(`\n${chalk.bold('📁 File formats processed:')}`)
       for (const [ext, count] of this.stats.formats.entries()) {
-        console.log(`  ${chalk.cyan(ext || '(no extension)')}: ${count} files`);
+        console.log(`  ${chalk.cyan(ext || '(no extension)')}: ${count} files`)
       }
     }
 
     if (this.options.dryRun) {
-      console.log(`\n${chalk.yellow('🧪 Dry run completed - no files were actually modified.')}`);
+      console.log(`\n${chalk.yellow('🧪 Dry run completed - no files were actually modified.')}`)
     }
   }
 }

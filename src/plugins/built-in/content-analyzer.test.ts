@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { ContentAnalyzer } from './content-analyzer.js';
+import { describe, it, expect } from 'vitest'
+import { ContentAnalyzer } from './content-analyzer.js'
 
 describe('ContentAnalyzer', () => {
-  const analyzer = new ContentAnalyzer();
+  const analyzer = new ContentAnalyzer()
 
   describe('analyzeContent', () => {
     it('should analyze markdown content and generate metadata', () => {
@@ -34,34 +34,34 @@ fetch('/auth/login', {
 
 ### GET /users
 
-Retrieve a list of users.`;
+Retrieve a list of users.`
 
-      const result = analyzer.analyzeContent(content, '/docs/api.md');
+      const result = analyzer.analyzeContent(content, '/docs/api.md')
 
-      expect(result.metadata.title).toBe('API Documentation');
-      expect(result.metadata.description).toContain('comprehensive guide');
-      expect(result.metadata.category).toBe('Reference');
-      expect(result.metadata.tags).toContain('api');
-      expect(result.metadata.tags).toContain('javascript');
+      expect(result.metadata.title).toBe('API Documentation')
+      expect(result.metadata.description).toContain('comprehensive guide')
+      expect(result.metadata.category).toBe('Reference')
+      expect(result.metadata.tags).toContain('api')
+      expect(result.metadata.tags).toContain('javascript')
 
-      expect(result.analysis.wordCount).toBeGreaterThan(40);
-      expect(result.analysis.readingTime).toBeGreaterThan(0);
-      expect(result.analysis.contentType).toBe('reference');
-      expect(result.analysis.complexity).toMatch(/simple|moderate|complex/);
-      expect(result.analysis.headingStructure.length).toBeGreaterThan(0);
-    });
+      expect(result.analysis.wordCount).toBeGreaterThan(40)
+      expect(result.analysis.readingTime).toBeGreaterThan(0)
+      expect(result.analysis.contentType).toBe('reference')
+      expect(result.analysis.complexity).toMatch(/simple|moderate|complex/)
+      expect(result.analysis.headingStructure.length).toBeGreaterThan(0)
+    })
 
     it('should detect tutorial content', () => {
       const content = `# Getting Started Tutorial
 
 Step 1: Install the package
 Step 2: Configure your project
-Finally, run your first conversion.`;
+Finally, run your first conversion.`
 
-      const result = analyzer.analyzeContent(content, '/guides/tutorial.md');
-      expect(result.analysis.contentType).toBe('tutorial');
-      expect(result.metadata.category).toBe('Guides');
-    });
+      const result = analyzer.analyzeContent(content, '/guides/tutorial.md')
+      expect(result.analysis.contentType).toBe('tutorial')
+      expect(result.metadata.category).toBe('Guides')
+    })
 
     it('should detect guide content', () => {
       const content = `# How to Setup Your Environment
@@ -70,20 +70,20 @@ This guide will help you set up your development environment.
 
 ## Overview
 
-Getting started is easy...`;
+Getting started is easy...`
 
-      const result = analyzer.analyzeContent(content, '/guides/setup.md');
-      expect(result.analysis.contentType).toBe('guide');
-      expect(result.metadata.tags).toContain('guide');
-    });
+      const result = analyzer.analyzeContent(content, '/guides/setup.md')
+      expect(result.analysis.contentType).toBe('guide')
+      expect(result.metadata.tags).toContain('guide')
+    })
 
     it('should assess content complexity', () => {
       const simpleContent = `# Simple
 
-Short content.`;
-      
-      const simpleResult = analyzer.analyzeContent(simpleContent, '/simple.md');
-      expect(simpleResult.analysis.complexity).toBe('simple');
+Short content.`
+
+      const simpleResult = analyzer.analyzeContent(simpleContent, '/simple.md')
+      expect(simpleResult.analysis.complexity).toBe('simple')
 
       const complexContent = `# Complex Document
 
@@ -122,11 +122,11 @@ code block 4
 [Link 8](http://example8.com)
 [Link 9](http://example9.com)
 [Link 10](http://example10.com)
-[Link 11](http://example11.com)`;
+[Link 11](http://example11.com)`
 
-      const complexResult = analyzer.analyzeContent(complexContent, '/complex.md');
-      expect(complexResult.analysis.complexity).toBe('complex');
-    });
+      const complexResult = analyzer.analyzeContent(complexContent, '/complex.md')
+      expect(complexResult.analysis.complexity).toBe('complex')
+    })
 
     it('should extract topics from content', () => {
       const content = `# **React** Development Guide
@@ -135,41 +135,41 @@ Learn about **useState**, **useEffect**, and other **React hooks**.
 
 ## **TypeScript** Integration
 
-Working with **TypeScript** in React projects.`;
+Working with **TypeScript** in React projects.`
 
-      const result = analyzer.analyzeContent(content, '/react-ts.md');
-      expect(result.metadata.tags).toContain('react');
-      expect(result.metadata.tags).toContain('typescript');
-    });
+      const result = analyzer.analyzeContent(content, '/react-ts.md')
+      expect(result.metadata.tags).toContain('react')
+      expect(result.metadata.tags).toContain('typescript')
+    })
 
     it('should infer category from path', () => {
       const content = `# Test Content
 
-Some content.`;
+Some content.`
 
-      const result = analyzer.analyzeContent(content, '/api/endpoints.md');
-      expect(result.metadata.category).toBe('Reference');
-    });
+      const result = analyzer.analyzeContent(content, '/api/endpoints.md')
+      expect(result.metadata.category).toBe('Reference')
+    })
 
     it('should generate reading time estimate', () => {
       const content = `# Test Document
 
-${'This is a paragraph with multiple words to test reading time calculation. '.repeat(50)}`;
+${'This is a paragraph with multiple words to test reading time calculation. '.repeat(50)}`
 
-      const result = analyzer.analyzeContent(content, '/test.md');
-      expect(result.analysis.readingTime).toBeGreaterThan(1);
-      expect(result.analysis.wordCount).toBeGreaterThan(300);
-    });
+      const result = analyzer.analyzeContent(content, '/test.md')
+      expect(result.analysis.readingTime).toBeGreaterThan(1)
+      expect(result.analysis.wordCount).toBeGreaterThan(300)
+    })
 
     it('should handle content without frontmatter', () => {
       const content = `# Plain Markdown
 
-This is plain markdown without frontmatter.`;
+This is plain markdown without frontmatter.`
 
-      const result = analyzer.analyzeContent(content, '/plain.md');
-      expect(result.metadata.title).toBe('Plain Markdown');
-      expect(result.metadata.description).toContain('plain markdown');
-    });
+      const result = analyzer.analyzeContent(content, '/plain.md')
+      expect(result.metadata.title).toBe('Plain Markdown')
+      expect(result.metadata.description).toContain('plain markdown')
+    })
 
     it('should preserve existing metadata', () => {
       const content = `---
@@ -181,29 +181,35 @@ tags:
 
 # Different Title
 
-Different description here.`;
+Different description here.`
 
-      const result = analyzer.analyzeContent(content, '/test.md');
-      expect(result.metadata.title).toBe('Existing Title');
-      expect(result.metadata.description).toBe('Existing description');
-      expect(result.metadata.tags).toContain('existing-tag');
-    });
-  });
+      const result = analyzer.analyzeContent(content, '/test.md')
+      expect(result.metadata.title).toBe('Existing Title')
+      expect(result.metadata.description).toBe('Existing description')
+      expect(result.metadata.tags).toContain('existing-tag')
+    })
+  })
 
   describe('category inference', () => {
     it('should infer AI category from path and content', () => {
-      const result = analyzer.analyzeContent('# AI Guide\n\nMachine learning content.', '/ai/guide.md');
-      expect(result.metadata.category).toBe('AI & ML');
-    });
+      const result = analyzer.analyzeContent(
+        '# AI Guide\n\nMachine learning content.',
+        '/ai/guide.md'
+      )
+      expect(result.metadata.category).toBe('AI & ML')
+    })
 
     it('should infer Design category', () => {
-      const result = analyzer.analyzeContent('# UI Components\n\nDesign system components.', '/design/ui.md');
-      expect(result.metadata.category).toBe('Design System');
-    });
+      const result = analyzer.analyzeContent(
+        '# UI Components\n\nDesign system components.',
+        '/design/ui.md'
+      )
+      expect(result.metadata.category).toBe('Design System')
+    })
 
     it('should default to Documentation', () => {
-      const result = analyzer.analyzeContent('# Random Content\n\nSome content.', '/random/file.md');
-      expect(result.metadata.category).toBe('Documentation');
-    });
-  });
-});
+      const result = analyzer.analyzeContent('# Random Content\n\nSome content.', '/random/file.md')
+      expect(result.metadata.category).toBe('Documentation')
+    })
+  })
+})

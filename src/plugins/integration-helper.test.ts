@@ -1,112 +1,116 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { PluginIntegrationHelper } from './integration-helper.js';
-import { pluginRegistry } from './registry.js';
-import type { MetadataEnhancer, FileProcessor, QualityValidator } from './types.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { PluginIntegrationHelper } from './integration-helper.js'
+import { pluginRegistry } from './registry.js'
+import type { MetadataEnhancer, FileProcessor, QualityValidator } from './types.js'
 
 describe('PluginIntegrationHelper', () => {
   beforeEach(() => {
-    pluginRegistry.clear();
-  });
+    pluginRegistry.clear()
+  })
 
   describe('enhanceMetadata', () => {
     it('should apply multiple metadata enhancers in priority order', async () => {
       const highPriorityEnhancer: MetadataEnhancer = {
-        metadata: { name: 'high-priority', version: '1.0.0', description: 'High priority enhancer' },
+        metadata: {
+          name: 'high-priority',
+          version: '1.0.0',
+          description: 'High priority enhancer',
+        },
         priority: 100,
-        enhance: async (metadata) => ({ ...metadata, highPriorityField: 'added' })
-      };
+        enhance: async (metadata) => ({ ...metadata, highPriorityField: 'added' }),
+      }
 
       const lowPriorityEnhancer: MetadataEnhancer = {
         metadata: { name: 'low-priority', version: '1.0.0', description: 'Low priority enhancer' },
         priority: 10,
-        enhance: async (metadata) => ({ ...metadata, lowPriorityField: 'added' })
-      };
+        enhance: async (metadata) => ({ ...metadata, lowPriorityField: 'added' }),
+      }
 
-      pluginRegistry.registerEnhancer(highPriorityEnhancer);
-      pluginRegistry.registerEnhancer(lowPriorityEnhancer);
+      pluginRegistry.registerEnhancer(highPriorityEnhancer)
+      pluginRegistry.registerEnhancer(lowPriorityEnhancer)
 
       const context = {
         inputPath: '/test.md',
         outputPath: '/output.md',
         filename: 'test.md',
         extension: '.md' as const,
-        options: {}
-      };
+        options: {},
+      }
 
-      const result = await PluginIntegrationHelper.enhanceMetadata({}, context);
+      const result = await PluginIntegrationHelper.enhanceMetadata({}, context)
 
-      expect(result.highPriorityField).toBe('added');
-      expect(result.lowPriorityField).toBe('added');
-    });
+      expect(result.highPriorityField).toBe('added')
+      expect(result.lowPriorityField).toBe('added')
+    })
 
     it('should handle enhancer failures gracefully', async () => {
       const failingEnhancer: MetadataEnhancer = {
         metadata: { name: 'failing', version: '1.0.0', description: 'Failing enhancer' },
         enhance: async () => {
-          throw new Error('Enhancer failed');
-        }
-      };
+          throw new Error('Enhancer failed')
+        },
+      }
 
       const workingEnhancer: MetadataEnhancer = {
         metadata: { name: 'working', version: '1.0.0', description: 'Working enhancer' },
-        enhance: async (metadata) => ({ ...metadata, workingField: 'success' })
-      };
+        enhance: async (metadata) => ({ ...metadata, workingField: 'success' }),
+      }
 
-      pluginRegistry.registerEnhancer(failingEnhancer);
-      pluginRegistry.registerEnhancer(workingEnhancer);
+      pluginRegistry.registerEnhancer(failingEnhancer)
+      pluginRegistry.registerEnhancer(workingEnhancer)
 
       const context = {
         inputPath: '/test.md',
         outputPath: '/output.md',
         filename: 'test.md',
         extension: '.md' as const,
-        options: {}
-      };
+        options: {},
+      }
 
       // Mock console.warn to avoid noise in tests
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-      const result = await PluginIntegrationHelper.enhanceMetadata({}, context);
+      const result = await PluginIntegrationHelper.enhanceMetadata({}, context)
 
-      expect(result.workingField).toBe('success');
+      expect(result.workingField).toBe('success')
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Enhancer failing failed:'),
         expect.any(Error)
-      );
+      )
 
-      consoleSpy.mockRestore();
-    });
-  });
+      consoleSpy.mockRestore()
+    })
+  })
 
   describe('processContent', () => {
     it('should process content through multiple processors', async () => {
       const processor1: FileProcessor = {
         extensions: ['.md'],
         metadata: { name: 'processor1', version: '1.0.0', description: 'First processor' },
-        process: async (content) => content + ' [processed by 1]'
-      };
+        process: async (content) => content + ' [processed by 1]',
+      }
 
       const processor2: FileProcessor = {
         extensions: ['.md'],
         metadata: { name: 'processor2', version: '1.0.0', description: 'Second processor' },
-        process: async (content) => content + ' [processed by 2]'
-      };
+        process: async (content) => content + ' [processed by 2]',
+      }
 
-      pluginRegistry.registerProcessor(processor1);
-      pluginRegistry.registerProcessor(processor2);
+      pluginRegistry.registerProcessor(processor1)
+      pluginRegistry.registerProcessor(processor2)
 
       const context = {
         inputPath: '/test.md',
         outputPath: '/output.md',
         filename: 'test.md',
         extension: '.md' as const,
-        options: { verbose: false }
-      };
+        options: { verbose: false },
+      }
 
-      const result = await PluginIntegrationHelper.processContent('original content', context);
+      const result = await PluginIntegrationHelper.processContent('original content', context)
 
-      expect(result).toBe('original content [processed by 1] [processed by 2]');
-    });
+      expect(result).toBe('original content [processed by 1] [processed by 2]')
+    })
 
     it('should apply preprocessing and postprocessing', async () => {
       const processor: FileProcessor = {
@@ -114,47 +118,51 @@ describe('PluginIntegrationHelper', () => {
         metadata: { name: 'full-processor', version: '1.0.0', description: 'Full processor' },
         preprocess: async (content) => `[pre] ${content}`,
         process: async (content) => `[main] ${content}`,
-        postprocess: async (content) => `${content} [post]`
-      };
+        postprocess: async (content) => `${content} [post]`,
+      }
 
-      pluginRegistry.registerProcessor(processor);
+      pluginRegistry.registerProcessor(processor)
 
       const context = {
         inputPath: '/test.md',
         outputPath: '/output.md',
         filename: 'test.md',
         extension: '.md' as const,
-        options: {}
-      };
+        options: {},
+      }
 
-      const result = await PluginIntegrationHelper.processContent('content', context);
+      const result = await PluginIntegrationHelper.processContent('content', context)
 
-      expect(result).toBe('[main] [pre] content [post]');
-    });
+      expect(result).toBe('[main] [pre] content [post]')
+    })
 
     it('should skip processors that fail validation', async () => {
       const processor: FileProcessor = {
         extensions: ['.md'],
-        metadata: { name: 'validating-processor', version: '1.0.0', description: 'Validating processor' },
+        metadata: {
+          name: 'validating-processor',
+          version: '1.0.0',
+          description: 'Validating processor',
+        },
         validate: async () => false,
-        process: async (content) => content + ' [should not be processed]'
-      };
+        process: async (content) => content + ' [should not be processed]',
+      }
 
-      pluginRegistry.registerProcessor(processor);
+      pluginRegistry.registerProcessor(processor)
 
       const context = {
         inputPath: '/test.md',
         outputPath: '/output.md',
         filename: 'test.md',
         extension: '.md' as const,
-        options: {}
-      };
+        options: {},
+      }
 
-      const result = await PluginIntegrationHelper.processContent('content', context);
+      const result = await PluginIntegrationHelper.processContent('content', context)
 
-      expect(result).toBe('content');
-    });
-  });
+      expect(result).toBe('content')
+    })
+  })
 
   describe('validateContent', () => {
     it('should run all validators and collect results', () => {
@@ -164,9 +172,9 @@ describe('PluginIntegrationHelper', () => {
           score: 85,
           level: 'high',
           issues: [{ type: 'info', message: 'Info from validator 1', severity: 1 }],
-          suggestions: ['Suggestion 1']
-        })
-      };
+          suggestions: ['Suggestion 1'],
+        }),
+      }
 
       const validator2: QualityValidator = {
         metadata: { name: 'validator2', version: '1.0.0', description: 'Second validator' },
@@ -174,30 +182,30 @@ describe('PluginIntegrationHelper', () => {
           score: 70,
           level: 'medium',
           issues: [{ type: 'warning', message: 'Warning from validator 2', severity: 5 }],
-          suggestions: ['Suggestion 2']
-        })
-      };
+          suggestions: ['Suggestion 2'],
+        }),
+      }
 
-      pluginRegistry.registerValidator(validator1);
-      pluginRegistry.registerValidator(validator2);
+      pluginRegistry.registerValidator(validator1)
+      pluginRegistry.registerValidator(validator2)
 
       const context = {
         inputPath: '/test.md',
         outputPath: '/output.md',
         filename: 'test.md',
         extension: '.md' as const,
-        options: {}
-      };
+        options: {},
+      }
 
-      const results = PluginIntegrationHelper.validateContent('content', {}, context);
+      const results = PluginIntegrationHelper.validateContent('content', {}, context)
 
-      expect(results).toHaveLength(2);
-      expect(results[0].validator).toBe('validator1');
-      expect(results[0].score).toBe(85);
-      expect(results[1].validator).toBe('validator2');
-      expect(results[1].score).toBe(70);
-    });
-  });
+      expect(results).toHaveLength(2)
+      expect(results[0].validator).toBe('validator1')
+      expect(results[0].score).toBe(85)
+      expect(results[1].validator).toBe('validator2')
+      expect(results[1].score).toBe(70)
+    })
+  })
 
   describe('createProcessingContext', () => {
     it('should create a valid processing context', () => {
@@ -208,67 +216,69 @@ describe('PluginIntegrationHelper', () => {
         '.md',
         { verbose: true },
         { custom: 'data' }
-      );
+      )
 
-      expect(context.inputPath).toBe('/input.md');
-      expect(context.outputPath).toBe('/output.md');
-      expect(context.filename).toBe('input.md');
-      expect(context.extension).toBe('.md');
-      expect(context.options.verbose).toBe(true);
-      expect(context.data?.custom).toBe('data');
-    });
-  });
+      expect(context.inputPath).toBe('/input.md')
+      expect(context.outputPath).toBe('/output.md')
+      expect(context.filename).toBe('input.md')
+      expect(context.extension).toBe('.md')
+      expect(context.options.verbose).toBe(true)
+      expect(context.data?.custom).toBe('data')
+    })
+  })
 
   describe('validatePluginSetup', () => {
     it('should validate complete plugin setup', () => {
       const processor: FileProcessor = {
         extensions: ['.md', '.mdx', '.json'],
         metadata: { name: 'test-processor', version: '1.0.0', description: 'Test' },
-        process: async (content) => content
-      };
+        process: async (content) => content,
+      }
 
       const enhancer: MetadataEnhancer = {
         metadata: { name: 'test-enhancer', version: '1.0.0', description: 'Test' },
-        enhance: async (metadata) => metadata
-      };
+        enhance: async (metadata) => metadata,
+      }
 
       const validator: QualityValidator = {
         metadata: { name: 'test-validator', version: '1.0.0', description: 'Test' },
-        validate: () => ({ score: 100, level: 'high', issues: [], suggestions: [] })
-      };
+        validate: () => ({ score: 100, level: 'high', issues: [], suggestions: [] }),
+      }
 
-      pluginRegistry.registerProcessor(processor);
-      pluginRegistry.registerEnhancer(enhancer);
-      pluginRegistry.registerValidator(validator);
+      pluginRegistry.registerProcessor(processor)
+      pluginRegistry.registerEnhancer(enhancer)
+      pluginRegistry.registerValidator(validator)
 
-      const result = PluginIntegrationHelper.validatePluginSetup();
+      const result = PluginIntegrationHelper.validatePluginSetup()
 
-      expect(result.valid).toBe(true);
-      expect(result.issues).toHaveLength(0);
-    });
+      expect(result.valid).toBe(true)
+      expect(result.issues).toHaveLength(0)
+    })
 
     it('should detect missing plugin types', () => {
-      const result = PluginIntegrationHelper.validatePluginSetup();
+      const result = PluginIntegrationHelper.validatePluginSetup()
 
-      expect(result.valid).toBe(false);
-      expect(result.issues).toContain('No file processors registered');
-      expect(result.issues).toContain('No metadata enhancers registered');
-      expect(result.issues).toContain('No quality validators registered');
-    });
+      expect(result.valid).toBe(false)
+      expect(result.issues).toContain('No file processors registered')
+      expect(result.issues).toContain('No metadata enhancers registered')
+      expect(result.issues).toContain('No quality validators registered')
+    })
 
     it('should detect missing required extensions', () => {
       const processor: FileProcessor = {
         extensions: ['.txt'], // Missing .md, .mdx, .json
         metadata: { name: 'test-processor', version: '1.0.0', description: 'Test' },
-        process: async (content) => content
-      };
+        process: async (content) => content,
+      }
 
-      pluginRegistry.registerProcessor(processor);
+      pluginRegistry.registerProcessor(processor)
 
-      const result = PluginIntegrationHelper.validatePluginSetup();
+      const result = PluginIntegrationHelper.validatePluginSetup()
 
-      expect(result.valid).toBe(false);
-      expect(result.issues.some(issue => issue.includes('Missing processors for extensions'))).toBe(true);
-    });
-  });
-});
+      expect(result.valid).toBe(false)
+      expect(
+        result.issues.some((issue) => issue.includes('Missing processors for extensions'))
+      ).toBe(true)
+    })
+  })
+})

@@ -1,159 +1,151 @@
 export interface ConversionOptions {
   /** Output directory for converted files */
-  outputDir?: string;
+  outputDir?: string
   /** Preserve directory structure */
-  preserveStructure?: boolean;
+  preserveStructure?: boolean
   /** Auto-generate titles from content */
-  generateTitles?: boolean;
+  generateTitles?: boolean
   /** Auto-generate descriptions from content */
-  generateDescriptions?: boolean;
+  generateDescriptions?: boolean
   /** Add lastUpdated timestamps */
-  addTimestamps?: boolean;
+  addTimestamps?: boolean
   /** Default category for documents */
-  defaultCategory?: string;
+  defaultCategory?: string
   /** Enable verbose logging */
-  verbose?: boolean;
+  verbose?: boolean
   /** Dry run mode (no file writes) */
-  dryRun?: boolean;
+  dryRun?: boolean
   /** Custom category patterns */
-  categoryPatterns?: Record<string, string>;
+  categoryPatterns?: Record<string, string>
   /** Custom tag patterns */
-  tagPatterns?: Record<string, string[]>;
+  tagPatterns?: Record<string, string[]>
   /** Files to ignore */
-  ignorePatterns?: string[];
+  ignorePatterns?: string[]
   /** Repair existing frontmatter */
-  repairMode?: boolean;
+  repairMode?: boolean
   /** Validate content structure */
-  validateContent?: boolean;
+  validateContent?: boolean
   /** Generate table of contents */
-  generateToc?: boolean;
+  generateToc?: boolean
   /** Process images and copy them */
-  processImages?: boolean;
+  processImages?: boolean
   /** Fix internal links */
-  fixLinks?: boolean;
+  fixLinks?: boolean
   /** Auto-generate sidebar configuration */
-  generateSidebar?: boolean;
+  generateSidebar?: boolean
   /** Maximum description length */
-  maxDescriptionLength?: number;
+  maxDescriptionLength?: number
 }
 
 export interface ConversionStats {
-  processed: number;
-  skipped: number;
-  errors: number;
-  formats: Map<string, number>;
+  processed: number
+  skipped: number
+  errors: number
+  formats: Map<string, number>
 }
 
 export interface DocumentMetadata {
-  title?: string;
-  description?: string;
-  category?: string;
-  tags?: string[];
-  lastUpdated?: string;
-  author?: string;
-  draft?: boolean;
-  readingTime?: number;
-  wordCount?: number;
-  contentType?: string;
-  complexity?: string;
-  [key: string]: unknown;
+  title?: string
+  description?: string
+  category?: string
+  tags?: string[]
+  lastUpdated?: string
+  author?: string
+  draft?: boolean
+  readingTime?: number
+  wordCount?: number
+  contentType?: string
+  complexity?: string
+  [key: string]: unknown
 }
 
 export interface ConversionResult {
-  success: boolean;
-  inputPath: string;
-  outputPath: string;
-  skipped?: boolean;
-  error?: string;
-  errorMessage?: string;
-  metadata?: DocumentMetadata;
+  success: boolean
+  inputPath: string
+  outputPath: string
+  skipped?: boolean
+  error?: string
+  errorMessage?: string
+  metadata?: DocumentMetadata
 }
 
 export interface StarlightIntegrationConfig {
   /** Enable the document converter integration */
-  enabled?: boolean;
+  enabled?: boolean
   /** Conversion options */
-  converter?: ConversionOptions;
+  converter?: ConversionOptions
   /** Watch for file changes and auto-convert */
-  watch?: boolean;
+  watch?: boolean
   /** Input directories to monitor */
-  inputDirs?: string[];
+  inputDirs?: string[]
 }
 
-export type SupportedFormat =
-  | '.docx'
-  | '.doc'
-  | '.txt'
-  | '.html'
-  | '.htm'
-  | '.md'
-  | '.mdx'
-  | '.rtf';
+export type SupportedFormat = '.docx' | '.doc' | '.txt' | '.html' | '.htm' | '.md' | '.mdx' | '.rtf'
 
 export interface FileProcessor {
-  extensions: SupportedFormat[];
-  process: (filePath: string, options: ConversionOptions) => Promise<string>;
+  extensions: SupportedFormat[]
+  process: (filePath: string, options: ConversionOptions) => Promise<string>
 }
 
 export interface ConversionContext {
-  inputPath: string;
-  outputPath: string;
-  filename: string;
-  extension: SupportedFormat;
-  content: string;
-  options: ConversionOptions;
+  inputPath: string
+  outputPath: string
+  filename: string
+  extension: SupportedFormat
+  content: string
+  options: ConversionOptions
 }
 
 export interface ValidationResult {
-  valid: boolean;
-  issues: ValidationIssue[];
-  metadata?: DocumentMetadata;
-  score?: QualityScore;
+  valid: boolean
+  issues: ValidationIssue[]
+  metadata?: DocumentMetadata
+  score?: QualityScore
 }
 
 export interface ValidationIssue {
-  type: 'error' | 'warning';
-  field?: string;
-  message: string;
-  suggestion?: string;
+  type: 'error' | 'warning'
+  field?: string
+  message: string
+  suggestion?: string
 }
 
 export interface QualityScore {
-  overall: 'good' | 'fair' | 'poor';
-  titleScore: number;
-  descriptionScore: number;
-  contentScore: number;
-  structureScore: number;
-  suggestions: string[];
+  overall: 'good' | 'fair' | 'poor'
+  titleScore: number
+  descriptionScore: number
+  contentScore: number
+  structureScore: number
+  suggestions: string[]
 }
 
 export interface RepairResult {
-  success: boolean;
-  fixed: boolean;
-  issues: string[];
-  originalContent: string;
-  repairedContent: string;
+  success: boolean
+  fixed: boolean
+  issues: string[]
+  originalContent: string
+  repairedContent: string
 }
 
 export interface TocEntry {
-  level: number;
-  title: string;
-  anchor: string;
-  children?: TocEntry[];
+  level: number
+  title: string
+  anchor: string
+  children?: TocEntry[]
 }
 
 export interface LinkInfo {
-  original: string;
-  resolved: string;
-  isInternal: boolean;
-  exists: boolean;
-  needsRepair: boolean;
+  original: string
+  resolved: string
+  isInternal: boolean
+  exists: boolean
+  needsRepair: boolean
 }
 
 export interface ImageInfo {
-  original: string;
-  resolved: string;
-  copied: boolean;
-  outputPath?: string;
-  alt?: string;
+  original: string
+  resolved: string
+  copied: boolean
+  outputPath?: string
+  alt?: string
 }

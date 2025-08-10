@@ -1,31 +1,31 @@
 ---
 // ConversionDashboard.astro - Embedded Starlight component for conversion management
-import { getCollection } from 'astro:content';
+import { getCollection } from 'astro:content'
 
 export interface Props {
-  title?: string;
-  showStats?: boolean;
-  showRecentConversions?: boolean;
-  maxRecentItems?: number;
+  title?: string
+  showStats?: boolean
+  showRecentConversions?: boolean
+  maxRecentItems?: number
 }
 
-const { 
-  title = "Document Converter Dashboard",
+const {
+  title = 'Document Converter Dashboard',
   showStats = true,
   showRecentConversions = true,
-  maxRecentItems = 5
-} = Astro.props;
+  maxRecentItems = 5,
+} = Astro.props
 
 // Get conversion history from local storage or API
 // In a real implementation, this would fetch from a database
-const conversionHistory = [];
+const conversionHistory = []
 const stats = {
   totalConverted: 0,
   highQuality: 0,
   mediumQuality: 0,
   lowQuality: 0,
-  recentActivity: []
-};
+  recentActivity: [],
+}
 ---
 
 <div class="starlight-conversion-dashboard">

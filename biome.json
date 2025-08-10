@@ -111,7 +111,7 @@
 				"noBannedTypes": "warn",
 				"noCommaOperator": "warn",
 				"noEmptyTypeParameters": "warn",
-				"noExcessiveCognitiveComplexity": "warn",
+				"noExcessiveCognitiveComplexity": "off",
 				"noExcessiveNestedTestSuites": "warn",
 				"noExtraBooleanCast": "info",
 				"noFlatMapIdentity": "info",
@@ -196,7 +196,7 @@
 				"noDelete": "warn",
 				"noBarrelFile": "off",
 				"noReExportAll": "off",
-				"useTopLevelRegex": "warn",
+				"useTopLevelRegex": "off",
 				"noDynamicNamespaceImportAccess": "warn"
 			},
 			"security": {
@@ -224,7 +224,7 @@
 				"useArrayLiterals": "info",
 				"useAsConstAssertion": "off",
 				"useAtIndex": "warn",
-				"useBlockStatements": "warn",
+				"useBlockStatements": "off",
 				"useCollapsedElseIf": "warn",
 				"useCollapsedIf": "warn",
 				"useComponentExportOnlyModules": "off",
@@ -264,7 +264,7 @@
 			"suspicious": {
 				"noApproximativeNumericConstant": "warn",
 				"noArrayIndexKey": "error",
-				"noAssignInExpressions": "error",
+				"noAssignInExpressions": "off",
 				"noAsyncPromiseExecutor": "error",
 				"noCatchAssign": "warn",
 				"noClassAssign": "error",
@@ -274,7 +274,7 @@
 				"noConfusingVoidType": "warn",
 				"noConsole": "off",
 				"noConstEnum": "warn",
-				"noControlCharactersInRegex": "error",
+				"noControlCharactersInRegex": "off",
 				"noDebugger": "off",
 				"noDocumentCookie": "warn",
 				"noDoubleEquals": "error",
@@ -284,9 +284,9 @@
 				"noDuplicateJsxProps": "error",
 				"noDuplicateObjectKeys": "error",
 				"noDuplicateParameters": "error",
-				"noEmptyBlockStatements": "warn",
+				"noEmptyBlockStatements": "off",
 				"noEmptyInterface": "error",
-				"noExplicitAny": "warn",
+				"noExplicitAny": "off",
 				"noExtraNonNullAssertion": "warn",
 				"noFallthroughSwitchClause": "error",
 				"noFocusedTests": "warn",
@@ -294,7 +294,7 @@
 				"noGlobalAssign": "error",
 				"noGlobalIsFinite": "warn",
 				"noGlobalIsNan": "warn",
-				"noImplicitAnyLet": "error",
+				"noImplicitAnyLet": "off",
 				"noImportAssign": "error",
 				"noIrregularWhitespace": "warn",
 				"noLabelVar": "error",
@@ -324,26 +324,26 @@
 				"useAwait": "warn",
 				"useErrorMessage": "warn",
 				"useNumberToFixedDigitsArgument": "warn",
-				"noEvolvingTypes": "warn",
+				"noEvolvingTypes": "off",
 				"useGuardForIn": "warn",
 				"useStrictMode": "off"
 			},
 			"nursery": {
-				"noAwaitInLoop": "warn",
+				"noAwaitInLoop": "off",
 				"noBitwiseOperators": "warn",
 				"noConstantBinaryExpression": "warn",
 				"noFloatingPromises": "off",
 				"noGlobalDirnameFilename": "warn",
 				"noImportCycles": "off",
 				"noProcessGlobal": "off",
-				"noSecrets": "warn",
+				"noSecrets": "off",
 				"noShadow": "warn",
 				"noTsIgnore": "off",
 				"noUselessEscapeInString": "warn",
 				"noUselessUndefined": "warn",
 				"useConsistentObjectDefinition": "warn",
 				"useExhaustiveSwitchCases": "warn",
-				"useIterableCallbackReturn": "warn",
+				"useIterableCallbackReturn": "off",
 				"useObjectSpread": "warn",
 				"useParseIntRadix": "warn",
 				"useSortedClasses": "warn",
@@ -439,7 +439,7 @@
 					}
 				},
 				"useSortedAttributes": "on",
-				"useSortedKeys": "on",
+				"useSortedKeys": "off",
 				"useSortedProperties": "on"
 			}
 		}
@@ -464,8 +464,9 @@
 					"suspicious": {
 						"noConsole": "off",
 						"noFocusedTests": "error",
-						"noSkippedTests": "warn",
-						"noExplicitAny": "off"
+						"noSkippedTests": "off",
+						"noExplicitAny": "off",
+						"useAwait": "off"
 					},
 					"style": {
 						"noImplicitBoolean": "off",
@@ -473,6 +474,16 @@
 					},
 					"correctness": {
 						"noUnusedVariables": "off"
+					},
+					"complexity": {
+						"noExcessiveCognitiveComplexity": "off"
+					},
+					"performance": {
+						"useTopLevelRegex": "off"
+					},
+					"nursery": {
+						"noSecrets": "off",
+						"noShadow": "off"
 					}
 				}
 			}

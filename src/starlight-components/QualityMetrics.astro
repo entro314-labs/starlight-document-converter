@@ -1,18 +1,18 @@
 ---
 // QualityMetrics.astro - Analytics display component for Starlight
 export interface Props {
-  title?: string;
-  showDetailedBreakdown?: boolean;
-  maxItems?: number;
-  timeframe?: 'day' | 'week' | 'month' | 'all';
+  title?: string
+  showDetailedBreakdown?: boolean
+  maxItems?: number
+  timeframe?: 'day' | 'week' | 'month' | 'all'
 }
 
-const { 
-  title = "Conversion Quality Analytics",
+const {
+  title = 'Conversion Quality Analytics',
   showDetailedBreakdown = true,
   maxItems = 10,
-  timeframe = 'week'
-} = Astro.props;
+  timeframe = 'week',
+} = Astro.props
 
 // In a real implementation, this would fetch from an analytics API
 const metrics = {
@@ -22,23 +22,23 @@ const metrics = {
     highQuality: 45,
     mediumQuality: 62,
     lowQuality: 20,
-    qualityTrend: '+5%'
+    qualityTrend: '+5%',
   },
   breakdown: {
     titleGeneration: { score: 85, trend: '+3%' },
     descriptionQuality: { score: 72, trend: '+8%' },
     contentStructure: { score: 88, trend: '-2%' },
     tagRelevance: { score: 67, trend: '+12%' },
-    metadataComplete: { score: 94, trend: '+1%' }
+    metadataComplete: { score: 94, trend: '+1%' },
   },
   topIssues: [
     { issue: 'Short descriptions', count: 23, impact: 'medium' },
     { issue: 'Generic titles', count: 18, impact: 'high' },
     { issue: 'Missing tags', count: 15, impact: 'low' },
     { issue: 'Poor structure', count: 12, impact: 'high' },
-    { issue: 'No categories', count: 8, impact: 'medium' }
-  ]
-};
+    { issue: 'No categories', count: 8, impact: 'medium' },
+  ],
+}
 ---
 
 <div class="quality-metrics-panel">
