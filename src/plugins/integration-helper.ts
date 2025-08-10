@@ -1,5 +1,6 @@
 import { pluginRegistry } from './registry.js'
-import type { DocumentMetadata, ConversionOptions } from '../types.js'
+
+import type { ConversionOptions, DocumentMetadata } from '../types.js'
 import type { ProcessingContext } from './types.js'
 
 /**

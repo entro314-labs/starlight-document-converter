@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import {
   createBrandHeader,
-  formatHelpSection,
-  createResultsTable,
   createIssuesTable,
+  createResultsTable,
+  formatHelpSection,
 } from './utils/cli-styling.js'
 
 describe('CLI Integration Tests', () => {

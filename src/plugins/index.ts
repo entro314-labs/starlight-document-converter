@@ -1,16 +1,16 @@
 // Plugin system exports
 
+export { ContentAnalyzer } from './built-in/content-analyzer.js'
+export { FrontmatterRepair } from './built-in/frontmatter-repair.js'
 export { jsonProcessor } from './built-in/json-processor.js'
-export { markdownProcessor } from './built-in/markdown-processor.js'
+export { LinkImageProcessor } from './built-in/link-image-processor.js'
 // Built-in plugins
 export { markdownEnhancer } from './built-in/markdown-enhancer.js'
+export { markdownProcessor } from './built-in/markdown-processor.js'
 export { contentQualityValidator } from './built-in/quality-validator.js'
-export { FrontmatterRepair } from './built-in/frontmatter-repair.js'
-export { LinkImageProcessor } from './built-in/link-image-processor.js'
 export { TocGenerator } from './built-in/toc-generator.js'
-export { ContentAnalyzer } from './built-in/content-analyzer.js'
-export { DefaultPluginRegistry, pluginRegistry } from './registry.js'
 export { PluginIntegrationHelper } from './integration-helper.js'
+export { DefaultPluginRegistry, pluginRegistry } from './registry.js'
 export * from './types.js'
 
 // Convenience function to register all built-in plugins

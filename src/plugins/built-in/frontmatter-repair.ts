@@ -1,10 +1,11 @@
 import matter from 'gray-matter'
+
 import type {
-  ValidationResult,
-  ValidationIssue,
-  RepairResult,
-  QualityScore,
   DocumentMetadata,
+  QualityScore,
+  RepairResult,
+  ValidationIssue,
+  ValidationResult,
 } from '../../types.js'
 import type { MetadataEnhancer, ProcessingContext, QualityValidator } from '../types.js'
 
@@ -444,7 +445,7 @@ export class FrontmatterRepair {
         }
       }
 
-      return this.cleanString(description) + '.'
+      return `${this.cleanString(description)}.`
     }
 
     // Fallback descriptions based on filename/title
@@ -465,11 +466,11 @@ export class FrontmatterRepair {
     const pathParts = filePath.split('/')
 
     if (pathParts.length > 1) {
-      const category = pathParts[pathParts.length - 2]
-      return this.cleanFilename(category)
+      const category = pathParts.at(-2)
+      return category ? this.cleanFilename(category) : undefined
     }
 
-    return
+    return undefined
   }
 
   private cleanString(str: string): string {

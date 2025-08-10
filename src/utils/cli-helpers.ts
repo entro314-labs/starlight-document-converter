@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+
 import { detectStarlightConfig, isStarlightProject } from './starlight-detector.js'
 
 /**

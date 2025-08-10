@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest'
 import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
-import { writeFile, unlink, mkdir, rmdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
+import { mkdir, rmdir, unlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { promisify } from 'node:util'
+
+import { describe, expect, it } from 'vitest'
 
 const execAsync = promisify(exec)
 
@@ -194,9 +195,9 @@ This document has proper frontmatter.`
       const commands = ['batch', 'setup', 'watch', 'repair', 'validate']
 
       const results = await Promise.all(
-        commands.map(command => execAsync(`node dist/cli.js ${command} --help`))
+        commands.map((command) => execAsync(`node dist/cli.js ${command} --help`))
       )
-      
+
       for (const { stdout } of results) {
         expect(stdout).toBeTruthy()
         expect(stdout).toContain('Usage:')
@@ -212,7 +213,7 @@ This document has proper frontmatter.`
       // Should pass typecheck without errors
       expect(stderr).not.toContain('error')
       expect(stderr).not.toContain('failed')
-      
+
       // Typecheck should complete successfully
       expect(stdout).toContain('tsc --noEmit')
       expect(stderr).toBe('')

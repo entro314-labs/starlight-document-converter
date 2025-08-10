@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { starlightDocumentConverter } from './integration.js'
+
 import type { StarlightIntegrationConfig } from './types.js'
 
 // Mock file system operations

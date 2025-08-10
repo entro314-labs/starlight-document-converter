@@ -7,20 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Additional CLI utility modules and enhanced command structure
+## [1.6.0] - 2025-08-10
+
+### 🎉 New Features
+
+#### Command Aliases
+- **Added shorter command aliases** for improved user experience
+  - `sdc` - Short alias (Starlight Document Converter)
+  - `starvert` - Memorable alias (Star + Convert)
+  - Original `starlight-convert` still available
+  - All aliases provide identical functionality
+  - Reduces typing from 17 characters to 3-8 characters
+
+### 📚 Documentation
+
+#### CLI Usage Updates
+- **Fixed incorrect npx command** in documentation
+  - Corrected from `npx starlight-convert` to `npx @entro314labs/starlight-document-converter`
+  - Added clear distinction between npx usage and post-install commands
+  - Updated all usage examples with proper scoped package name
+  - Added comprehensive alias documentation with usage examples
+
+#### Enhanced User Experience
+- **Improved command reference section**
+  - Clear notes about global installation vs npx usage
+  - Examples for both short aliases and full commands
+  - Better organization of installation and usage instructions
+
+### 🔧 Technical Improvements
+
+#### Code Quality & Architecture
+- Enhanced CLI utility modules and command structure
 - Cross-platform styling improvements for better terminal compatibility
 - Extended plugin architecture with new built-in processors
 - Enhanced integration testing suite
-
-### Changed
 - Improved code organization with better separation of concerns
 - Refined plugin type definitions for better extensibility
 - Enhanced converter logic for more robust document processing
 
-### Fixed
-- Various minor bug fixes and performance improvements
+### 🐛 Bug Fixes
+- Fixed TypeScript compilation errors in plugin modules
 - Enhanced error handling in edge cases
+- Various minor bug fixes and performance improvements
+- Applied comprehensive code formatting improvements
 
 ## [1.5.0] - 2025-08-09
 

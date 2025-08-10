@@ -1,4 +1,5 @@
 import matter from 'gray-matter'
+
 import type { DocumentMetadata, TocEntry } from '../../types.js'
 
 export class ContentAnalyzer {

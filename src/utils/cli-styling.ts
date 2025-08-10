@@ -1,8 +1,8 @@
-import pc from 'picocolors'
-import gradient from 'gradient-string'
 import boxen from 'boxen'
 import Table from 'cli-table3'
 import figures from 'figures'
+import gradient from 'gradient-string'
+import pc from 'picocolors'
 
 // Cross-platform symbols
 export const symbols = {

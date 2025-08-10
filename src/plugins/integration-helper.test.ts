@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { PluginIntegrationHelper } from './integration-helper.js'
 import { pluginRegistry } from './registry.js'
-import type { MetadataEnhancer, FileProcessor, QualityValidator } from './types.js'
+
+import type { FileProcessor, MetadataEnhancer, QualityValidator } from './types.js'
 
 describe('PluginIntegrationHelper', () => {
   beforeEach(() => {
@@ -87,13 +89,13 @@ describe('PluginIntegrationHelper', () => {
       const processor1: FileProcessor = {
         extensions: ['.md'],
         metadata: { name: 'processor1', version: '1.0.0', description: 'First processor' },
-        process: async (content) => content + ' [processed by 1]',
+        process: async (content) => `${content} [processed by 1]`,
       }
 
       const processor2: FileProcessor = {
         extensions: ['.md'],
         metadata: { name: 'processor2', version: '1.0.0', description: 'Second processor' },
-        process: async (content) => content + ' [processed by 2]',
+        process: async (content) => `${content} [processed by 2]`,
       }
 
       pluginRegistry.registerProcessor(processor1)
@@ -145,7 +147,7 @@ describe('PluginIntegrationHelper', () => {
           description: 'Validating processor',
         },
         validate: async () => false,
-        process: async (content) => content + ' [should not be processed]',
+        process: async (content) => `${content} [should not be processed]`,
       }
 
       pluginRegistry.registerProcessor(processor)

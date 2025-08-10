@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { symbols } from './cli-styling.js'
 
 describe('Cross-Platform Styling Compatibility', () => {
@@ -133,7 +134,7 @@ describe('Cross-Platform Styling Compatibility', () => {
       // Test with severely limited environment
       process.env.TERM = 'dumb'
       process.env.LC_ALL = 'C'
-      delete process.env.COLORTERM
+      process.env.COLORTERM = undefined
 
       Object.entries(symbols).forEach(([name, symbol]) => {
         // Even in limited environments, should provide some representation
@@ -271,7 +272,7 @@ describe('Cross-Platform Styling Compatibility', () => {
       })
 
       // Test tmux as well
-      delete process.env.STY
+      process.env.STY = undefined
       process.env.TMUX = '/tmp/tmux-1000/default,12345,0'
 
       Object.values(symbols).forEach((symbol) => {
@@ -329,7 +330,7 @@ describe('Cross-Platform Styling Compatibility', () => {
     it('should not cause performance issues in slow terminals', () => {
       // Simulate slow terminal environment
       process.env.TERM = 'vt100'
-      delete process.env.COLORTERM
+      process.env.COLORTERM = undefined
 
       const start = Date.now()
 

@@ -1,7 +1,9 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+
 import { DocumentConverter } from './converter.js'
 
 // Regex constants moved to module level for performance
@@ -268,14 +270,10 @@ Some content here.`
       ]
 
       // Write all files first
-      await Promise.all(
-        files.map(file => writeFile(join(inputDir, file.name), file.content))
-      )
-      
+      await Promise.all(files.map((file) => writeFile(join(inputDir, file.name), file.content)))
+
       // Then convert all files
-      await Promise.all(
-        files.map(file => converter.convertFile(join(inputDir, file.name)))
-      )
+      await Promise.all(files.map((file) => converter.convertFile(join(inputDir, file.name))))
 
       const stats = converter.getStats()
 

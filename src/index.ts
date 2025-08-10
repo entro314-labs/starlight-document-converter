@@ -3,6 +3,7 @@
 // Utility exports for advanced usage
 export { default as mammoth } from 'mammoth'
 export { default as TurndownService } from 'turndown'
+
 export { DocumentConverter } from './converter.js'
 export {
   starlightDocumentConverter as default,
@@ -10,6 +11,7 @@ export {
 } from './integration.js'
 // Plugin system exports
 export * from './plugins/index.js'
+
 // Type exports
 export type {
   ConversionContext,

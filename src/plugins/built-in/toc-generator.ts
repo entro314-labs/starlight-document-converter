@@ -111,7 +111,7 @@ export class TocGenerator {
       }
 
       // Find the appropriate parent level
-      while (stack.length > 0 && stack[stack.length - 1].level >= heading.level) {
+      while (stack.length > 0 && stack.at(-1)!.level >= heading.level) {
         stack.pop()
       }
 
@@ -120,7 +120,7 @@ export class TocGenerator {
         root.push(entry)
       } else {
         // This is a child heading
-        const parent = stack[stack.length - 1]
+        const parent = stack.at(-1)!
         if (!parent.children) {
           parent.children = []
         }
@@ -163,7 +163,7 @@ export class TocGenerator {
   renderTocAsMarkdown(toc: TocEntry[]): string {
     const lines = ['## Table of Contents', '']
     this.renderTocLevel(toc, lines, 0)
-    return lines.join('\n') + '\n'
+    return `${lines.join('\n')}\n`
   }
 
   /**
@@ -243,11 +243,11 @@ export class TocGenerator {
       if (frontmatterEnd !== -1) {
         const frontmatter = content.substring(0, frontmatterEnd + 5)
         const body = content.substring(frontmatterEnd + 5)
-        return frontmatter + '\n' + tocMarkdown + '\n' + body.trim()
+        return `${frontmatter}\n${tocMarkdown}\n${body.trim()}`
       }
     }
 
-    return tocMarkdown + '\n' + content
+    return `${tocMarkdown}\n${content}`
   }
 
   /**
@@ -274,11 +274,11 @@ export class TocGenerator {
       const beforeHeading = workingContent.substring(0, headingEnd)
       const afterHeading = workingContent.substring(headingEnd)
 
-      return frontmatter + beforeHeading + '\n\n' + tocMarkdown + '\n' + afterHeading.trim()
+      return `${frontmatter + beforeHeading}\n\n${tocMarkdown}\n${afterHeading.trim()}`
     }
 
     // No heading found, insert at top
-    return frontmatter + '\n' + tocMarkdown + '\n' + workingContent.trim()
+    return `${frontmatter}\n${tocMarkdown}\n${workingContent.trim()}`
   }
 
   /**
@@ -320,7 +320,7 @@ export class TocGenerator {
   generateStarlightNavigation(tocEntries: TocEntry[], baseUrl = ''): any[] {
     return tocEntries.map((entry) => ({
       label: entry.title,
-      link: baseUrl + '#' + entry.anchor,
+      link: `${baseUrl}#${entry.anchor}`,
       ...(entry.children &&
         entry.children.length > 0 && {
           items: this.generateStarlightNavigation(entry.children, baseUrl),

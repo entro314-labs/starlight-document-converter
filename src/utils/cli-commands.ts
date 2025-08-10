@@ -1,16 +1,19 @@
-import { readFile, readdir, writeFile } from 'node:fs/promises'
+import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
+
 import { spinner } from '@clack/prompts'
 import pc from 'picocolors'
-import type { ValidationResult, RepairResult } from '../types.js'
+
 import {
-  status,
   boxes,
-  createResultsTable,
-  createIssuesTable,
-  progress,
   colors,
+  createIssuesTable,
+  createResultsTable,
+  progress,
+  status,
 } from './cli-styling.js'
+
+import type { RepairResult, ValidationResult } from '../types.js'
 
 export interface RepairOptions {
   output?: string

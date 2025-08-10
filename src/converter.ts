@@ -1,9 +1,11 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
+
 import chalk from 'chalk'
 import matter from 'gray-matter'
 import mammoth from 'mammoth'
 import TurndownService from 'turndown'
+
 import type {
   ConversionOptions,
   ConversionResult,
@@ -790,7 +792,7 @@ export class DocumentConverter {
         .replace(
           /<h([1-6])[^>]*>(.*?)<\/h[1-6]>/gi,
           (_, level, text) =>
-            `${'#'.repeat(Number.parseInt(level))} ${text.replace(/<[^>]*>/g, '')}`
+            `${'#'.repeat(Number.parseInt(level, 10))} ${text.replace(/<[^>]*>/g, '')}`
         )
         .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n')
         .replace(/<[^>]*>/g, '')

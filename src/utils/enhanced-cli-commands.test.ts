@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { showRepairResults, showValidationResults, createSpinner } from './cli-commands.js'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { createSpinner, showRepairResults, showValidationResults } from './cli-commands.js'
 
 // Mock the CLI styling module
 vi.mock('./cli-styling.js', () => ({

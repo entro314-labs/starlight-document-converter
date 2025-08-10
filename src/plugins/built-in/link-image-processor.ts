@@ -1,6 +1,7 @@
 import { copyFile, mkdir, stat } from 'node:fs/promises'
-import { dirname, join, relative, resolve, basename, extname } from 'node:path'
-import type { LinkInfo, ImageInfo } from '../../types.js'
+import { basename, dirname, extname, join, relative, resolve } from 'node:path'
+
+import type { ImageInfo, LinkInfo } from '../../types.js'
 
 export class LinkImageProcessor {
   private baseDir: string
@@ -194,7 +195,7 @@ export class LinkImageProcessor {
 
         // Make sure it starts with ./ for relative paths
         if (!(starlightPath.startsWith('./') || starlightPath.startsWith('../'))) {
-          starlightPath = './' + starlightPath
+          starlightPath = `./${starlightPath}`
         }
 
         resolvedPath = starlightPath

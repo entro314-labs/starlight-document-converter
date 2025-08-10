@@ -1,16 +1,17 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
+
 import {
-  symbols,
-  colors,
-  gradients,
-  status,
   boxes,
-  createTable,
-  createResultsTable,
-  createIssuesTable,
+  colors,
   createBrandHeader,
-  progress,
+  createIssuesTable,
+  createResultsTable,
+  createTable,
   formatHelpSection,
+  gradients,
+  progress,
+  status,
+  symbols,
 } from './cli-styling.js'
 
 describe('CLI Styling Utilities', () => {

@@ -88,21 +88,30 @@ Seamless Astro integration with file watching, batch processing, and zero-config
 # Install globally
 npm install -g @entro314labs/starlight-document-converter
 
-# Or use directly with npx
-npx starlight-convert --help
+# Or use directly with npx (full command)
+npx @entro314labs/starlight-document-converter --help
+
+# Shorter npx usage
+npx @entro314labs/starlight-document-converter@latest
+# Aliases: sdc, starvert, starlight-convert
 ```
 
 ### Basic Usage
 
 ```bash
 # Interactive mode with smart detection
-npx starlight-convert
+npx @entro314labs/starlight-document-converter
 
 # Convert directory (auto-detects output location)
-npx starlight-convert batch documents/
+npx @entro314labs/starlight-document-converter batch documents/
 
 # Preview changes first
-npx starlight-convert batch documents/ --dry-run --verbose
+npx @entro314labs/starlight-document-converter batch documents/ --dry-run --verbose
+
+# After global install, use short aliases:
+sdc                          # Interactive mode
+sdc batch documents/         # Batch convert
+starvert --help             # Show help
 ```
 
 That's it! Your documents are ready for Starlight.
@@ -177,19 +186,26 @@ Text and structured content
 <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 6h16v2H4V6zm0 4h4v2H4v-2zm6 0h10v2H10v-2zm-6 4h4v2H4v-2zm6 0h10v2H10v-2z" fill="#374151"/>
 </svg>
 
+> **Note:** Commands below assume global installation. For npx usage, prefix with `npx @entro314labs/starlight-document-converter`
+> 
+> **Aliases:** `starlight-convert`, `sdc` (short), `starvert` (memorable)
+
 ```bash
-# Interactive mode (recommended)
-starlight-convert                    # Launch guided interface with smart detection
+# Interactive mode (recommended) - using short alias
+sdc                                  # Launch guided interface with smart detection
 
 # Project setup
-starlight-convert setup              # Configuration wizard for new projects
+sdc setup                           # Configuration wizard for new projects
 
 # Batch processing
-starlight-convert batch <input>      # Convert directory with auto-detection
-starlight-convert batch --dry-run    # Preview changes without writing files
+sdc batch <input>                   # Convert directory with auto-detection
+sdc batch --dry-run                 # Preview changes without writing files
 
 # File watching
-starlight-convert watch <directory>  # Auto-convert on file changes
+sdc watch <directory>               # Auto-convert on file changes
+
+# Alternative memorable alias
+starvert --help                     # Same functionality, different name
 ```
 
 ## Configuration
@@ -226,7 +242,7 @@ mkdir docs-import
 cp ~/documents/*.docx docs-import/
 
 # Convert all documents
-npx starlight-convert batch docs-import/
+npx @entro314labs/starlight-document-converter batch docs-import/
 ```
 
 ### Word Document Conversion
