@@ -10,5 +10,5 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   minify: false,
-  target: 'node18'
+  target: 'node22'
 });

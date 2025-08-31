@@ -9,7 +9,12 @@ export class LinkImageProcessor {
   private assetsDir: string
   private logger?: { warn: (msg: string) => void; error: (msg: string, error?: any) => void }
 
-  constructor(baseDir: string, outputDir: string, assetsDir = 'assets', logger?: { warn: (msg: string) => void; error: (msg: string, error?: any) => void }) {
+  constructor(
+    baseDir: string,
+    outputDir: string,
+    assetsDir = 'assets',
+    logger?: { warn: (msg: string) => void; error: (msg: string, error?: any) => void }
+  ) {
     this.baseDir = baseDir
     this.outputDir = outputDir
     this.assetsDir = assetsDir
@@ -238,7 +243,7 @@ export class LinkImageProcessor {
       if (imagePath.startsWith('./') || imagePath.startsWith('../') || !imagePath.startsWith('/')) {
         // Relative path - try from source directory
         possiblePaths.push(resolve(sourceDir, imagePath))
-        
+
         // Also try from common image directories
         possiblePaths.push(resolve(sourceDir, 'images', basename(imagePath)))
         possiblePaths.push(resolve(sourceDir, 'assets', basename(imagePath)))
@@ -308,7 +313,9 @@ export class LinkImageProcessor {
         if (this.logger) {
           this.logger.warn(`Image not found: ${imagePath}`)
           this.logger.warn(`Searched in: ${possiblePaths.join(', ')}`)
-          this.logger.warn('Consider running with --process-images flag or ensuring images are in the correct location')
+          this.logger.warn(
+            'Consider running with --process-images flag or ensuring images are in the correct location'
+          )
         }
       }
     } catch (error) {
@@ -333,10 +340,10 @@ export class LinkImageProcessor {
   private getRelativeImagePath(imagePath: string, targetFilePath: string): string {
     const targetDir = dirname(targetFilePath)
     let relativePath = relative(targetDir, imagePath)
-    
+
     // Convert Windows paths to forward slashes
     relativePath = relativePath.replace(/\\/g, '/')
-    
+
     // For Astro compatibility, if the image is in assets directory,
     // we might need to adjust the path format
     if (relativePath.includes('../assets/')) {
@@ -345,7 +352,7 @@ export class LinkImageProcessor {
       // Keep the relative path but ensure it's properly formatted
       return relativePath
     }
-    
+
     return relativePath
   }
 
@@ -361,9 +368,9 @@ export class LinkImageProcessor {
   } {
     const external = images.filter((img) => img.original.startsWith('http')).length
     const copied = images.filter((img) => img.copied).length
-    const missing = images.filter((img) => !img.copied && !img.original.startsWith('http')).length
+    const missing = images.filter((img) => !(img.copied || img.original.startsWith('http'))).length
     const missingImages = images
-      .filter((img) => !img.copied && !img.original.startsWith('http'))
+      .filter((img) => !(img.copied || img.original.startsWith('http')))
       .map((img) => img.original)
 
     return {
@@ -380,23 +387,23 @@ export class LinkImageProcessor {
    */
   generateImageSuggestions(missingImages: string[]): string[] {
     const suggestions: string[] = []
-    
+
     if (missingImages.length > 0) {
       suggestions.push('🖼️  Missing Images Found')
-      suggestions.push('') 
+      suggestions.push('')
       suggestions.push('The following images could not be found during conversion:')
       suggestions.push('')
-      
+
       missingImages.forEach((img, index) => {
         suggestions.push(`${index + 1}. ${img}`)
       })
-      
+
       suggestions.push('')
       suggestions.push('💡 To fix this:')
       suggestions.push('1. Ensure images exist in one of these locations:')
       suggestions.push('   • Same directory as the source file')
       suggestions.push('   • ./images/ subdirectory')
-      suggestions.push('   • ./assets/ subdirectory') 
+      suggestions.push('   • ./assets/ subdirectory')
       suggestions.push('   • Project root /images/ or /assets/')
       suggestions.push('   • /src/assets/ directory')
       suggestions.push('   • /public/ directory')
@@ -407,7 +414,7 @@ export class LinkImageProcessor {
       suggestions.push('   • src/assets/ for processed images')
       suggestions.push('   • public/ for static images')
     }
-    
+
     return suggestions
   }
 
@@ -434,7 +441,6 @@ export class LinkImageProcessor {
       repaired: repaired.length,
     }
   }
-
 
   /**
    * Extract all images from content for batch processing
