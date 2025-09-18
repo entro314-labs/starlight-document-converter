@@ -1,7 +1,7 @@
 {
   "name": "@entro314labs/starlight-document-converter",
-  "version": "1.7.0",
-  "description": "A comprehensive document converter for Astro Starlight that transforms various document formats into Starlight-compatible Markdown with proper frontmatter",
+  "version": "1.7.1",
+  "description": "A document converter for Astro Starlight that transforms various document formats into Starlight-compatible Markdown with proper frontmatter",
   "keywords": [
     "astro",
     "starlight",
@@ -38,11 +38,11 @@
     "CHANGELOG.md"
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.19.0"
   },
   "peerDependencies": {
-    "@astrojs/starlight": "^0.35.2",
-    "astro": "^5.13.3"
+    "@astrojs/starlight": "^0.35.3",
+    "astro": "^5.13.8"
   },
   "peerDependenciesMeta": {
     "@astrojs/starlight": {
@@ -64,14 +64,14 @@
     "gradient-string": "^3.0.0",
     "gray-matter": "^4.0.3",
     "mammoth": "^1.10.0",
-    "ora": "^8.2.0",
+    "ora": "^9.0.0",
     "picocolors": "^1.1.1",
     "turndown": "^7.2.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^24.4.0",
+    "@types/node": "^24.5.2",
     "@types/turndown": "^5.0.5",
     "@vitest/browser": "beta",
     "@vitest/coverage-v8": "beta",
