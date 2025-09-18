@@ -93,7 +93,6 @@
     "check": "biome check src/",
     "check:fix": "biome check --write src/",
     "typecheck": "tsc --noEmit"
-
   },
   "repository": {
     "type": "git",
