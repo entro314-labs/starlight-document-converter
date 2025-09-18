@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
-
-import { DocumentConverter, starlightDocumentConverter } from './index.js'
-
 import type { ConversionResult, ConverterOptions, StarlightIntegrationConfig } from './index.js'
+import { DocumentConverter, starlightDocumentConverter } from './index.js'
 
 describe('Package Exports', () => {
   it('should export DocumentConverter class', () => {

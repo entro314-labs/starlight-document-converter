@@ -25,13 +25,12 @@ import { watch } from 'node:fs'
 import { resolve } from 'node:path'
 
 import { DocumentConverter } from './converter.js'
+import type { StarlightIntegrationConfig } from './types.js'
 import {
   detectStarlightConfig,
   getRecommendedInputDirs,
   isStarlightProject,
 } from './utils/starlight-detector.js'
-
-import type { StarlightIntegrationConfig } from './types.js'
 
 export function starlightDocumentConverter(
   userConfig: StarlightIntegrationConfig = {}

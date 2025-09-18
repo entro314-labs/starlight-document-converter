@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'node:path'
 
 import { spinner } from '@clack/prompts'
 import pc from 'picocolors'
-
+import type { RepairResult, ValidationResult } from '../types.js'
 import {
   boxes,
   colors,
@@ -12,8 +12,6 @@ import {
   progress,
   status,
 } from './cli-styling.js'
-
-import type { RepairResult, ValidationResult } from '../types.js'
 
 export interface RepairOptions {
   output?: string

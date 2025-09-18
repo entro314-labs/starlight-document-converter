@@ -19,6 +19,8 @@ import { Command } from 'commander'
 import pc from 'picocolors'
 
 import { DocumentConverter } from './converter.js'
+import type { ConversionResult } from './types.js'
+import type { ValidationStats } from './utils/cli-commands.js'
 import { detectInputSources, getOutputDirectory, getSmartDefaults } from './utils/cli-helpers.js'
 import {
   boxes,
@@ -30,9 +32,6 @@ import {
   status,
   symbols,
 } from './utils/cli-styling.js'
-
-import type { ConversionResult } from './types.js'
-import type { ValidationStats } from './utils/cli-commands.js'
 
 const program = new Command()
 
