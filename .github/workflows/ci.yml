@@ -17,10 +17,10 @@ jobs:
     
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
           
@@ -33,7 +33,7 @@ jobs:
         run: pnpm install --frozen-lockfile
         
       - name: Install peer dependencies for testing
-        run: pnpm add -D astro@^5.13.3 @astrojs/starlight@^0.35.2
+        run: pnpm add -D astro@^5.13.8 @astrojs/starlight@^0.35.2
         
       - name: Type check
         run: pnpm run typecheck
@@ -45,7 +45,7 @@ jobs:
         run: pnpm run test:coverage
         
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: matrix.node-version == 22
         with:
           files: ./coverage/coverage-final.json
@@ -57,10 +57,10 @@ jobs:
     
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           
@@ -73,7 +73,7 @@ jobs:
         run: pnpm install --frozen-lockfile
         
       - name: Install peer dependencies for linting
-        run: pnpm add -D astro@^5.13.3 @astrojs/starlight@^0.35.2
+        run: pnpm add -D astro@^5.13.8 @astrojs/starlight@^0.35.2
         
       - name: Biome check
         run: pnpm run check

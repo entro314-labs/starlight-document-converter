@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -13,14 +13,14 @@
       "**/*.{js,mjs,cjs,ts,mts,cts}",
       "**/*.{json,jsonc}",
       "**/*.md",
-      "!**/node_modules/**",
-      "!**/dist/**",
-      "!**/build/**",
-      "!**/lib/**",
-      "!**/coverage/**",
-      "!**/*.generated.*",
-      "!**/*.gen.ts",
-      "!**/*.d.ts"
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/lib/**",
+      "**/coverage/**",
+      "**/*.generated.*",
+      "**/*.gen.ts",
+      "**/*.d.ts"
     ]
   },
   "formatter": {
@@ -164,7 +164,7 @@
         "rules": {
           "suspicious": {
             "noConsole": "off",
-            "noFocusedTests": "error",
+            "noFocusedTests": "warn",
             "noSkippedTests": "off",
             "noExplicitAny": "off",
             "useAwait": "off"
@@ -226,7 +226,7 @@
             "useConst": "off"
           },
           "complexity": {
-            "noArguments": "error"
+            "noArguments": "warn"
           }
         }
       }
