@@ -1,6 +1,6 @@
 {
   "name": "@entro314labs/starlight-document-converter",
-  "version": "1.7.3",
+  "version": "2.0.0",
   "description": "A document converter for Astro Starlight that transforms various document formats into Starlight-compatible Markdown with proper frontmatter",
   "keywords": [
     "astro",

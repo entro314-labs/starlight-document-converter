@@ -36,7 +36,7 @@ Starlight Document Converter revolutionizes documentation workflows by seamlessl
 <path d="M14 2v6h6" fill="none" stroke="white" stroke-width="2"/>
 </svg>
 
-**Multi-Format Support**  
+**Multi-Format Support**
 Convert `.docx`, `.doc`, `.txt`, `.html`, `.htm`, `.md`, `.rtf` files with perfect formatting preservation
 
 </td>
@@ -46,7 +46,7 @@ Convert `.docx`, `.doc`, `.txt`, `.html`, `.htm`, `.md`, `.rtf` files with perfe
 <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" fill="#10B981"/>
 </svg>
 
-**Smart AI Integration**  
+**Smart AI Integration**
 Auto-generates titles, descriptions, categories, and tags using intelligent content analysis
 
 </td>
@@ -58,7 +58,7 @@ Auto-generates titles, descriptions, categories, and tags using intelligent cont
 <path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z" fill="#8B5CF6"/>
 </svg>
 
-**Quality Scoring**  
+**Quality Scoring**
 Real-time quality indicators (🟢🟡🔴) with improvement suggestions and detailed analytics
 
 </td>
@@ -69,8 +69,32 @@ Real-time quality indicators (🟢🟡🔴) with improvement suggestions and det
 <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="#F59E0B" stroke-width="2"/>
 </svg>
 
-**Astro Integration**  
+**Astro Integration**
 Seamless Astro integration with file watching, batch processing, and zero-configuration setup
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="#EC4899"/>
+<path d="M14 2v6h6" fill="none" stroke="white" stroke-width="2"/>
+<text x="12" y="16" font-size="8" fill="white" text-anchor="middle" font-weight="bold">MDX</text>
+</svg>
+
+**MDX Conversion** 🆕
+Convert Markdown to MDX with JSX components (tabs, cards, alerts) automatically
+
+</td>
+<td align="center">
+
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" fill="#06B6D4"/>
+</svg>
+
+**Plugin System**
+Extensible architecture for custom processors, enhancers, and validators
 
 </td>
 </tr>
@@ -135,8 +159,8 @@ That's it! Your documents are ready for Starlight.
 <path d="M0 0v24h24V0H0zm13.5 2.5c1.381 0 2.5 1.119 2.5 2.5 0 .563-.186 1.082-.5 1.5H13c-.825 0-1.5-.675-1.5-1.5s.675-1.5 1.5-1.5c.211 0 .414.044.5.1v-.6zm-3 0c.825 0 1.5.675 1.5 1.5s-.675 1.5-1.5 1.5S9 4.825 9 4s.675-1.5 1.5-1.5zm-1.5 4h3v2h-3V6.5zm0 3h3v2h-3v-2zm0 3h3v2h-3v-2zm0 3h3V18h-3v-2.5zM6 18c-.825 0-1.5-.675-1.5-1.5s.675-1.5 1.5-1.5 1.5.675 1.5 1.5S6.825 18 6 18zm12 0c-.825 0-1.5-.675-1.5-1.5s.675-1.5 1.5-1.5 1.5.675 1.5 1.5-.675 1.5-1.5 1.5z"/>
 </svg>
 
-**Astro & Starlight**  
-Astro 5.x, Starlight 0.35+  
+**Astro & Starlight**
+Astro 5.x, Starlight 0.35+
 Native integration support
 
 </td>
@@ -146,8 +170,8 @@ Native integration support
 <path d="M12 1.85c-.27 0-.55.07-.78.2l-7.44 4.3c-.48.28-.78.8-.78 1.36v8.58c0 .56.3 1.08.78 1.36l7.44 4.3c.46.26 1.04.26 1.5 0l7.44-4.3c.48-.28.78-.8.78-1.36V7.71c0-.56-.3-1.08-.78-1.36l-7.44-4.3c-.23-.13-.51-.2-.78-.2zm0 2.03c.13 0 .27.04.39.11l6.9 4v.81L12 12.6 4.71 8.8v-.81l6.9-4c.12-.07.26-.11.39-.11zM5.05 9.85l6.95 4.01v7.79c-.13 0-.27-.04-.39-.11l-6.9-4c-.23-.13-.39-.39-.39-.68v-6.68c0-.11.02-.22.05-.33zm13.9 0c.03.11.05.22.05.33v6.68c0 .29-.16.55-.39.68l-6.9 4c-.12.07-.26.11-.39.11v-7.79l6.95-4.01z"/>
 </svg>
 
-**Node.js**  
-Node.js 20+, npm/pnpm/yarn  
+**Node.js**
+Node.js 20+, npm/pnpm/yarn
 CLI and programmatic API
 
 </td>
@@ -159,8 +183,8 @@ CLI and programmatic API
 <path d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0zm17.363 9.75c.612 0 1.154.037 1.627.111a6.38 6.38 0 0 1 1.306.34v2.458a3.95 3.95 0 0 0-.643-.361 5.093 5.093 0 0 0-.717-.26 5.453 5.453 0 0 0-1.426-.2c-.3 0-.573.028-.819.086a2.1 2.1 0 0 0-.623.242c-.17.104-.3.229-.393.374a.888.888 0 0 0-.14.49c0 .196.053.373.156.529.104.156.252.304.443.444s.423.276.696.41c.273.135.582.274.926.416.47.197.892.407 1.266.628.374.222.695.473.963.753.268.279.472.598.614.957.142.359.214.776.214 1.253 0 .657-.125 1.21-.373 1.656a3.033 3.033 0 0 1-1.012 1.085 4.38 4.38 0 0 1-1.487.596c-.566.12-1.163.18-1.79.18a9.916 9.916 0 0 1-1.84-.164 5.544 5.544 0 0 1-1.512-.493v-2.63a5.033 5.033 0 0 0 3.237 1.2c.333 0 .624-.03.872-.09.249-.06.456-.144.623-.25.166-.108.29-.234.373-.38a1.023 1.023 0 0 0-.074-1.089 2.12 2.12 0 0 0-.537-.5 5.597 5.597 0 0 0-.807-.444 27.72 27.72 0 0 0-1.007-.436c-.918-.383-1.602-.852-2.053-1.405-.45-.553-.676-1.222-.676-2.005 0-.614.123-1.141.369-1.582.246-.441.58-.804 1.004-1.089a4.494 4.494 0 0 1 1.47-.629 7.536 7.536 0 0 1 1.77-.201zm-15.113.188h9.563v2.166H9.506v9.646H6.789v-9.646H3.375z"/>
 </svg>
 
-**TypeScript**  
-Full TypeScript support  
+**TypeScript**
+Full TypeScript support
 Type definitions included
 
 </td>
@@ -170,8 +194,8 @@ Type definitions included
 <path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.126l-.326 3.426-2.91.804-2.955-.81-.188-2.11H6.248l.33 4.171L12 19.351l5.379-1.443.744-8.157H8.531z"/>
 </svg>
 
-**Document Formats**  
-Word, HTML, RTF, Markdown  
+**Document Formats**
+Word, HTML, RTF, Markdown
 Text and structured content
 
 </td>
@@ -187,7 +211,7 @@ Text and structured content
 </svg>
 
 > **Note:** Commands below assume global installation. For npx usage, prefix with `npx @entro314labs/starlight-document-converter`
-> 
+>
 > **Aliases:** `starlight-convert`, `sdc` (short), `starvert` (memorable)
 
 ```bash
@@ -234,6 +258,57 @@ export default defineConfig({
 
 ## Examples
 
+### MDX Conversion (New! 🎨)
+
+Convert Markdown to MDX with automatic JSX component transformations:
+
+```bash
+# Enable MDX mode for JSX component conversion
+sdc batch docs/ --mdx
+
+# Preview MDX conversion
+sdc batch docs/ --mdx --dry-run --verbose
+```
+
+**What gets converted:**
+- GitHub alerts (`> [!NOTE]`) → `<Aside>` components
+- Tab patterns → `<Tabs>` / `<TabItem>`
+- Code groups → Tabbed code blocks
+- Docusaurus admonitions → `<Aside>` components
+- Card patterns → `<Card>` components
+
+**Example transformation:**
+
+Input:
+```markdown
+> [!NOTE]
+> Important information
+
+### Tab: JavaScript
+\`\`\`javascript
+console.log('hello')
+\`\`\`
+```
+
+Output:
+```mdx
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Aside type="note">
+Important information
+</Aside>
+
+<Tabs>
+  <TabItem label="JavaScript">
+\`\`\`javascript
+console.log('hello')
+\`\`\`
+  </TabItem>
+</Tabs>
+```
+
+**📖 See the complete [MDX Conversion Guide](./MDX_GUIDE.md) for all features and examples.**
+
 ### Basic Document Conversion
 
 ```bash
@@ -252,7 +327,7 @@ The converter automatically processes images during conversion:
 **Automatic Search Locations:**
 - Same directory as source file
 - `./images/` subdirectory
-- `./assets/` subdirectory  
+- `./assets/` subdirectory
 - Project root `/images/` or `/assets/`
 - `/src/assets/` directory
 - `/public/` directory
@@ -356,7 +431,7 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 </svg>
 
 - [ ] **Enhanced AI Analysis** - Better content understanding and metadata generation
-- [ ] **Custom Plugins** - Plugin system for extending conversion capabilities  
+- [ ] **Custom Plugins** - Plugin system for extending conversion capabilities
 - [ ] **Starlight Components** - Dashboard components for in-browser conversion
 - [ ] **Bulk Operations** - Advanced batch processing with parallel conversion
 

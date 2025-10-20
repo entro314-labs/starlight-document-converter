@@ -35,6 +35,37 @@ export interface ConversionOptions {
   generateSidebar?: boolean
   /** Maximum description length */
   maxDescriptionLength?: number
+  /** MDX conversion mode */
+  mdxMode?: boolean
+  /** MDX conversion options */
+  mdxOptions?: MDXConversionOptions
+}
+
+export interface MDXConversionOptions {
+  /** Convert callouts/alerts to JSX components */
+  convertCallouts?: boolean
+  /** Convert tabs to JSX components */
+  convertTabs?: boolean
+  /** Convert code groups to JSX components */
+  convertCodeGroups?: boolean
+  /** Add component imports automatically */
+  autoImports?: boolean
+  /** Custom component mappings */
+  componentMappings?: Record<string, string>
+  /** Preserve existing JSX */
+  preserveJSX?: boolean
+  /** Transform GitHub-flavored alerts */
+  githubAlerts?: boolean
+  /** Transform admonitions (Docusaurus-style) */
+  admonitions?: boolean
+  /** Transform details/summary to expandable sections */
+  expandableSections?: boolean
+  /** Transform link cards */
+  linkCards?: boolean
+  /** Transform file trees */
+  fileTrees?: boolean
+  /** Output as .mdx extension */
+  outputMdx?: boolean
 }
 
 export interface ConversionStats {
@@ -56,6 +87,15 @@ export interface DocumentMetadata {
   wordCount?: number
   contentType?: string
   complexity?: string
+  /** MDX-specific metadata */
+  format?: 'md' | 'mdx'
+  mdxComponents?: string[]
+  componentCount?: number
+  mdxComplexity?: 'low' | 'medium' | 'high'
+  isInteractive?: boolean
+  interactiveFeatures?: string[]
+  hasFrontmatter?: boolean
+  hasImports?: boolean
   [key: string]: unknown
 }
 

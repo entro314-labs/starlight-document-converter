@@ -428,7 +428,7 @@ export default defineConfig({
         },
       ],
     }),
-    
+
     starlightDocumentConverter({
       watch: ${enableWatch},
       inputDirs: ${JSON.stringify(inputDirsList)},
@@ -508,6 +508,10 @@ program
   .option('--process-images', 'Process and copy images during conversion', false)
   .option('--generate-toc', 'Generate table of contents', false)
   .option('--validate', 'Validate content after conversion', false)
+  .option('--mdx', 'Enable MDX conversion mode with JSX components', false)
+  .option('--mdx-callouts', 'Convert callouts to JSX components (MDX mode)', true)
+  .option('--mdx-tabs', 'Convert tabs to JSX components (MDX mode)', true)
+  .option('--mdx-github-alerts', 'Convert GitHub alerts to JSX (MDX mode)', true)
   .option('-v, --verbose', 'Show detailed output', false)
   .option('--dry-run', 'Preview changes without writing files', false)
   .action(async (input, options) => {
@@ -532,6 +536,17 @@ program
       note(`⚠️  Using fallback output directory: ${pc.cyan(outputDir)}`, 'Fallback Mode')
     }
 
+    // Show MDX mode info
+    if (options.mdx) {
+      note(
+        `🎨 MDX mode enabled - converting to JSX components\n` +
+          `  ${symbols.success} Callouts: ${options.mdxCallouts ? pc.green('✓') : pc.gray('✗')}\n` +
+          `  ${symbols.success} Tabs: ${options.mdxTabs ? pc.green('✓') : pc.gray('✗')}\n` +
+          `  ${symbols.success} GitHub Alerts: ${options.mdxGithubAlerts ? pc.green('✓') : pc.gray('✗')}`,
+        'MDX Conversion'
+      )
+    }
+
     const s = spinner()
     s.start(`${options.dryRun ? 'Previewing' : 'Converting'} documents...`)
 
@@ -549,6 +564,16 @@ program
         validateContent: options.validate,
         verbose: options.verbose,
         dryRun: options.dryRun,
+        mdxMode: options.mdx,
+        mdxOptions: options.mdx
+          ? {
+              convertCallouts: options.mdxCallouts,
+              convertTabs: options.mdxTabs,
+              githubAlerts: options.mdxGithubAlerts,
+              autoImports: true,
+              outputMdx: true,
+            }
+          : undefined,
       })
 
       const results =

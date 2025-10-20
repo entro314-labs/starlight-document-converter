@@ -13,11 +13,17 @@ import type {
   DocumentMetadata,
   SupportedFormat,
 } from './types.js'
+import { MDXConverter } from './plugins/built-in/mdx-converter.js'
+import { JSXTransformer } from './plugins/built-in/jsx-transformer.js'
+import { MDXEnhancer } from './plugins/built-in/mdx-enhancer.js'
 
 export class DocumentConverter {
   private options: Required<ConversionOptions>
   private stats: ConversionStats
   private turndownService: TurndownService
+  private mdxConverter?: MDXConverter
+  private jsxTransformer?: JSXTransformer
+  private mdxEnhancer?: MDXEnhancer
 
   constructor(options: ConversionOptions = {}) {
     this.options = {
@@ -39,6 +45,15 @@ export class DocumentConverter {
       fixLinks: options.fixLinks ?? false,
       generateSidebar: options.generateSidebar ?? false,
       maxDescriptionLength: options.maxDescriptionLength ?? 160,
+      mdxMode: options.mdxMode ?? false,
+      mdxOptions: options.mdxOptions || {},
+    }
+
+    // Initialize MDX plugins if MDX mode is enabled
+    if (this.options.mdxMode) {
+      this.mdxConverter = new MDXConverter(this.options.mdxOptions)
+      this.jsxTransformer = new JSXTransformer(this.options.mdxOptions)
+      this.mdxEnhancer = new MDXEnhancer()
     }
 
     this.stats = {
@@ -569,6 +584,22 @@ export class DocumentConverter {
     return supportedFormats.includes(ext as SupportedFormat)
   }
 
+  private async applyMDXTransformations(content: string, context: any): Promise<string> {
+    if (!this.options.mdxMode || !this.mdxConverter || !this.jsxTransformer) {
+      return content
+    }
+
+    let transformed = content
+
+    // Apply JSX transformations first
+    transformed = await this.jsxTransformer.process(transformed, context)
+
+    // Then apply MDX conversions
+    transformed = await this.mdxConverter.process(transformed, context)
+
+    return transformed
+  }
+
   private isTextBasedFile(ext: string): boolean {
     const textExtensions = [
       '.txt',
@@ -869,9 +900,28 @@ export class DocumentConverter {
       case '.mdx': {
         const mdContent = await readFile(inputPath, 'utf-8')
         const parsed = matter(mdContent)
+        const needsConversion = Object.keys(parsed.data).length === 0
+
+        // Apply MDX transformations if in MDX mode
+        if (this.options.mdxMode) {
+          const context = {
+            inputPath,
+            outputPath,
+            filename: basename(inputPath),
+            extension: ext,
+            options: this.options,
+            data: { content: mdContent },
+          }
+          const transformed = await this.applyMDXTransformations(mdContent, context)
+          return {
+            content: transformed,
+            needsConversion: needsConversion || transformed !== mdContent,
+          }
+        }
+
         return {
           content: mdContent,
-          needsConversion: Object.keys(parsed.data).length === 0,
+          needsConversion,
         }
       }
 
@@ -911,8 +961,11 @@ export class DocumentConverter {
     try {
       const filename = basename(inputPath)
       const ext = extname(inputPath).toLowerCase()
+
+      // Determine output extension based on MDX mode
+      const outputExt = this.options.mdxMode && this.options.mdxOptions?.outputMdx !== false ? '.mdx' : '.md'
       const resolvedOutputPath =
-        outputPath || join(this.options.outputDir, filename.replace(/\.[^/.]+$/, '.md'))
+        outputPath || join(this.options.outputDir, filename.replace(/\.[^/.]+$/, outputExt))
 
       // Check if file should be skipped
       const skipCheck = this.shouldSkipFile(filename, ext)
@@ -948,6 +1001,19 @@ export class DocumentConverter {
 
       if (needsConversion || !processedContent.startsWith('---')) {
         metadata = this.generateFrontmatter(processedContent, filename, inputPath)
+
+        // Enhance metadata with MDX-specific information
+        if (this.options.mdxMode && this.mdxEnhancer) {
+          const context = {
+            inputPath,
+            outputPath: resolvedOutputPath,
+            filename,
+            extension: ext,
+            options: this.options,
+            data: { content: processedContent },
+          }
+          metadata = await this.mdxEnhancer.enhance(metadata, context)
+        }
 
         const frontmatterYaml = this.generateFrontmatterYaml(metadata)
 
