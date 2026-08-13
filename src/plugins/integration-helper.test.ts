@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import { PluginIntegrationHelper } from './integration-helper.js'
 import { pluginRegistry } from './registry.js'

@@ -37,17 +37,15 @@ export class MDXEnhancer implements MetadataEnhancer {
     }
   }
 
-  async enhance(
-    metadata: DocumentMetadata,
-    context: ProcessingContext
-  ): Promise<DocumentMetadata> {
+  async enhance(metadata: DocumentMetadata, context: ProcessingContext): Promise<DocumentMetadata> {
     // Only enhance MDX files
     if (context.extension !== '.mdx') {
       return metadata
     }
 
     const enhanced = { ...metadata }
-    const content = context.data?.content as string || ''
+    const rawContent = context.data?.content
+    const content = typeof rawContent === 'string' ? rawContent : ''
 
     if (this.options.detectComponents) {
       const components = this.detectComponents(content)
@@ -92,7 +90,7 @@ export class MDXEnhancer implements MetadataEnhancer {
       components.add(match[1])
     }
 
-    return Array.from(components).sort()
+    return Array.from(components).toSorted()
   }
 
   /**

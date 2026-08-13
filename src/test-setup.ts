@@ -1,5 +1,5 @@
 // Test setup file for vitest
-import { afterAll, beforeEach, vi } from 'vitest'
+import { afterAll, beforeEach, vi } from 'vite-plus/test'
 
 // Local type definitions for test mocks
 interface FilePropertyBag {
@@ -15,12 +15,8 @@ interface MockProgressEvent<T = unknown> {
   target: T | null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const setImmediate: any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const setTimeout: any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const setInterval: any
+const nativeSetTimeout = globalThis.setTimeout.bind(globalThis)
+const nativeSetInterval = globalThis.setInterval.bind(globalThis)
 
 // Mock console methods to reduce noise in tests
 global.console = {
@@ -33,39 +29,37 @@ global.console = {
 }
 
 // Mock process.exit to prevent tests from actually exiting
-const originalExit = process.exit
-process.exit = vi.fn() as never
+const processExitSpy = vi.spyOn(process, 'exit').mockImplementation((): never => {
+  throw new Error('process.exit was called during tests')
+})
 
-// Restore original exit after tests
+// Restore original behavior after tests
 afterAll(() => {
-  process.exit = originalExit
+  processExitSpy.mockRestore()
 })
 
 // Mock setTimeout and setInterval for faster tests
 vi.stubGlobal(
   'setTimeout',
-  vi.fn((fn, delay) => {
-    if (delay && delay > 100) {
-      // For long delays, run immediately
-      return setImmediate(fn)
-    }
-    return setTimeout(fn, Math.min(delay || 0, 10))
+  vi.fn((fn: () => void, delay?: number) => {
+    const normalizedDelay = typeof delay === 'number' ? (delay > 100 ? 0 : Math.min(delay, 10)) : 0
+    return nativeSetTimeout(fn, normalizedDelay)
   })
 )
 
 vi.stubGlobal(
   'setInterval',
-  vi.fn((fn, delay) => {
-    return setInterval(fn, Math.min(delay || 0, 10))
+  vi.fn((fn: () => void, delay?: number) => {
+    const normalizedDelay = typeof delay === 'number' ? Math.min(delay, 10) : 0
+    return nativeSetInterval(fn, normalizedDelay)
   })
 )
 
 // Mock fetch for API tests
-global.fetch = vi.fn()
+vi.stubGlobal('fetch', vi.fn())
 
 // Mock File API
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-;(global as any).File = class MockFile {
+class MockFile {
   name: string
   size: number
   type: string
@@ -83,16 +77,21 @@ global.fetch = vi.fn()
   }
 }
 
+Object.defineProperty(globalThis, 'File', {
+  value: MockFile,
+  writable: true,
+  configurable: true,
+})
+
 // Mock FileReader
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-;(global as any).FileReader = class MockFileReader {
+class MockFileReader {
   result: string | ArrayBuffer | null = null
   error: Error | null = null
   readyState = 0
   onload: ((event: MockProgressEvent) => void) | null = null
   onerror: ((event: MockProgressEvent) => void) | null = null
 
-  readAsText(file: { name?: string }) {
+  readAsText(file: { name?: string } | string) {
     this.readyState = 2 // DONE
     this.result = typeof file === 'string' ? file : `# ${file.name || 'test'}\nTest content`
     setTimeout(() => {
@@ -113,24 +112,46 @@ global.fetch = vi.fn()
   }
 }
 
+Object.defineProperty(globalThis, 'FileReader', {
+  value: MockFileReader,
+  writable: true,
+  configurable: true,
+})
+
 // Mock URL.createObjectURL and revokeObjectURL
-global.URL = {
-  ...global.URL,
-  createObjectURL: vi.fn(() => 'mock://blob-url'),
-  revokeObjectURL: vi.fn(),
-}
+Object.defineProperty(globalThis.URL, 'createObjectURL', {
+  value: vi.fn(() => 'mock://blob-url'),
+  writable: true,
+  configurable: true,
+})
+
+Object.defineProperty(globalThis.URL, 'revokeObjectURL', {
+  value: vi.fn(),
+  writable: true,
+  configurable: true,
+})
 
 // Mock Blob
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-;(global as any).Blob = class MockBlob {
+class MockBlob {
   size: number
   type: string
 
   constructor(array: unknown[], options: BlobPropertyBag = {}) {
-    this.size = array.reduce((acc, item) => acc + (item?.length || 0), 0)
+    this.size = array.reduce<number>((acc, item) => {
+      if (typeof item === 'string') return acc + item.length
+      if (item instanceof ArrayBuffer) return acc + item.byteLength
+      if (ArrayBuffer.isView(item)) return acc + item.byteLength
+      return acc
+    }, 0)
     this.type = options.type || ''
   }
 }
+
+Object.defineProperty(globalThis, 'Blob', {
+  value: MockBlob,
+  writable: true,
+  configurable: true,
+})
 
 // Mock localStorage
 const mockStorage = {
@@ -175,6 +196,12 @@ Object.defineProperty(global, 'navigator', {
 })
 
 // Mock alert, confirm, prompt
-global.alert = vi.fn()
-global.confirm = vi.fn(() => true)
-global.prompt = vi.fn(() => 'test-input')
+vi.stubGlobal('alert', vi.fn())
+vi.stubGlobal(
+  'confirm',
+  vi.fn(() => true)
+)
+vi.stubGlobal(
+  'prompt',
+  vi.fn(() => 'test-input')
+)

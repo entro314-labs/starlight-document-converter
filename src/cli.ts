@@ -59,10 +59,15 @@ const getSampleFiles = (dir: string, maxSamples = 5): string[] => {
         return ['md', 'mdx', 'txt', 'html', 'htm', 'docx', 'doc', 'rtf'].includes(ext || '')
       })
       .slice(0, maxSamples)
-    return files as string[]
+    return files
   } catch {
     return []
   }
+}
+
+const formatUnknownError = (error: unknown): string => {
+  if (error instanceof Error) return error.message
+  return String(error)
 }
 
 // Helper function to show project info
@@ -79,6 +84,28 @@ function showProjectInfo(smartDefaults: ReturnType<typeof getSmartDefaults>) {
   if (smartDefaults.recommendations.length > 0) {
     note(smartDefaults.recommendations.join('\n'), 'Recommendations')
   }
+}
+
+// Helper function to get custom path from user
+async function getCustomPath(message: string): Promise<string> {
+  const customPath = await text({
+    message,
+    placeholder: './docs or ./document.md',
+    validate: (value) => {
+      if (!value) return 'Please provide an input path'
+      const resolved = resolve(value)
+      const type = detectInputType(resolved)
+      if (type === 'not-found') return 'Path does not exist'
+      return
+    },
+  })
+
+  if (isCancel(customPath)) {
+    cancel('Operation cancelled')
+    process.exit(0)
+  }
+
+  return customPath
 }
 
 // Helper function to get input path from user
@@ -120,32 +147,10 @@ async function getInputPath(detectedSources: string[], outputDir: string): Promi
     if (sourceChoice === 'custom') {
       return await getCustomPath('Enter path to convert:')
     }
-    return sourceChoice as string
+    return sourceChoice
   }
 
   return await getCustomPath('What would you like to convert?')
-}
-
-// Helper function to get custom path from user
-async function getCustomPath(message: string): Promise<string> {
-  const customPath = await text({
-    message,
-    placeholder: './docs or ./document.md',
-    validate: (value) => {
-      if (!value) return 'Please provide an input path'
-      const resolved = resolve(value as string)
-      const type = detectInputType(resolved)
-      if (type === 'not-found') return 'Path does not exist'
-      return
-    },
-  })
-
-  if (isCancel(customPath)) {
-    cancel('Operation cancelled')
-    process.exit(0)
-  }
-
-  return customPath as string
 }
 
 // Helper function to show conversion preview
@@ -235,10 +240,10 @@ async function getAdvancedOptions(): Promise<Record<string, unknown>> {
   }
 
   return {
-    preserveStructure: preserveStructure as boolean,
-    generateTitles: (contentOptions as string[]).includes('titles'),
-    generateDescriptions: (contentOptions as string[]).includes('descriptions'),
-    addTimestamps: (contentOptions as string[]).includes('timestamps'),
+    preserveStructure: preserveStructure,
+    generateTitles: contentOptions.includes('titles'),
+    generateDescriptions: contentOptions.includes('descriptions'),
+    addTimestamps: contentOptions.includes('timestamps'),
     verbose: (outputOptions as string[]).includes('verbose'),
     dryRun: (outputOptions as string[]).includes('dryRun'),
   }
@@ -264,7 +269,12 @@ function showResults(
   const successfulResults = results.filter((r) => r.success).slice(0, 3)
   if (successfulResults.length > 0 && !converterOptions.dryRun) {
     note(
-      `${successfulResults.map((r) => `• ${pc.cyan(relative(process.cwd(), r.inputPath))} → ${pc.green(relative(process.cwd(), r.outputPath))}`).join('\n')}`,
+      successfulResults
+        .map(
+          (r) =>
+            `• ${pc.cyan(relative(process.cwd(), r.inputPath))} → ${pc.green(relative(process.cwd(), r.outputPath))}`
+        )
+        .join('\n'),
       'Sample conversions'
     )
   }
@@ -298,7 +308,7 @@ async function interactiveConvert() {
 
   const advancedOptions = await getAdvancedOptions()
   const converterOptions = {
-    outputDir: outputDir as string,
+    outputDir: outputDir,
     ...advancedOptions,
   } as Record<string, unknown> & { dryRun?: boolean }
 
@@ -327,12 +337,11 @@ async function interactiveConvert() {
     showResults(results, converterOptions)
     converter.printStats()
 
-    outro(
-      `${pc.green('🎉 All done!')} Your documents have been ${converterOptions.dryRun ? 'previewed' : 'converted successfully'}.`
-    )
+    const completionState = converterOptions.dryRun ? 'previewed' : 'converted successfully'
+    outro(pc.green('🎉 All done!') + ` Your documents have been ${completionState}.`)
   } catch (error) {
     s.stop('Conversion failed')
-    note(`${pc.red('❌ Error:')} ${error}`, 'Conversion failed')
+    note(`${pc.red('❌ Error:')} ${formatUnknownError(error)}`, 'Conversion failed')
     process.exit(1)
   }
 }
@@ -368,7 +377,7 @@ async function configurationWizard() {
       'You can now use the converter with:\n\n' +
         `${pc.cyan('npx starlight-convert <input> [options]')}\n\n` +
         'For interactive mode:\n' +
-        `${pc.cyan('npx starlight-convert')}`,
+        pc.cyan('npx starlight-convert'),
       'CLI Usage'
     )
     outro('🎉 Setup complete!')
@@ -387,7 +396,7 @@ async function configurationWizard() {
     return process.exit(0)
   }
 
-  const inputDirsList = (inputDirs as string).split(',').map((d) => d.trim())
+  const inputDirsList = inputDirs.split(',').map((d) => d.trim())
 
   // Watch mode
   const enableWatch = await confirm({
@@ -468,7 +477,10 @@ export default defineConfig({
       )
     } catch (error) {
       s.stop('Failed to create directories')
-      note(`${pc.red('❌ Error:')} Could not create directories: ${error}`, 'Error')
+      note(
+        `${pc.red('❌ Error:')} Could not create directories: ${formatUnknownError(error)}`,
+        'Error'
+      )
     }
   }
 
@@ -596,7 +608,7 @@ program
       outro('🎉 Batch conversion completed!')
     } catch (error) {
       s.stop('Conversion failed')
-      note(`${pc.red('❌ Error:')} ${error}`, 'Conversion failed')
+      note(`${pc.red('❌ Error:')} ${formatUnknownError(error)}`, 'Conversion failed')
       process.exit(1)
     }
   })
@@ -646,7 +658,7 @@ program
           s.stop(`${pc.green('✅')} Converted: ${filename}`)
         } catch (error) {
           s.stop(`${pc.red('❌')} Failed: ${filename}`)
-          console.log(`   ${pc.red('Error:')} ${error}`)
+          console.log(`   ${pc.red('Error:')} ${formatUnknownError(error)}`)
         }
       }
     })
@@ -681,9 +693,8 @@ program
     }
 
     try {
-      const { repairSingleFile, repairDirectory, showRepairResults, createSpinner } = await import(
-        './utils/cli-commands.js'
-      )
+      const { repairSingleFile, repairDirectory, showRepairResults, createSpinner } =
+        await import('./utils/cli-commands.js')
 
       const repairOptions = {
         output: options.output || (inputType === 'directory' ? inputPath : dirname(inputPath)),
@@ -720,7 +731,7 @@ program
 
       outro(`🎉 Content repair ${options.dryRun ? 'analysis' : 'completed'}!`)
     } catch (error) {
-      note(`${pc.red('❌ Error:')} ${error}`, 'Repair failed')
+      note(`${pc.red('❌ Error:')} ${formatUnknownError(error)}`, 'Repair failed')
       process.exit(1)
     }
   })
@@ -839,7 +850,7 @@ program
         `🎉 Validation completed! ${successRate >= 90 ? 'Excellent quality!' : successRate >= 70 ? 'Good quality.' : 'Consider improvements.'}`
       )
     } catch (error) {
-      note(`${pc.red('❌ Error:')} ${error}`, 'Validation failed')
+      note(`${pc.red('❌ Error:')} ${formatUnknownError(error)}`, 'Validation failed')
       process.exit(1)
     }
   })

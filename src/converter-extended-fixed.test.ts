@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test'
 
 import { DocumentConverter } from './converter.js'
 
@@ -24,7 +24,7 @@ describe('DocumentConverter Extended Tests', () => {
 
   describe('Advanced Options', () => {
     it('should handle all converter options', () => {
-      const converter = new DocumentConverter({
+      const configuredConverter = new DocumentConverter({
         outputDir: 'custom-output',
         preserveStructure: false,
         generateTitles: true,
@@ -38,20 +38,20 @@ describe('DocumentConverter Extended Tests', () => {
         ignorePatterns: ['*.draft.md'],
       })
 
-      expect(converter).toBeDefined()
+      expect(configuredConverter).toBeDefined()
     })
 
     it('should use default options when not provided', () => {
-      const converter = new DocumentConverter()
-      expect(converter).toBeDefined()
+      const defaultConverter = new DocumentConverter()
+      expect(defaultConverter).toBeDefined()
     })
 
     it('should handle partial options', () => {
-      const converter = new DocumentConverter({
+      const partialConverter = new DocumentConverter({
         generateTitles: false,
         verbose: true,
       })
-      expect(converter).toBeDefined()
+      expect(partialConverter).toBeDefined()
     })
   })
 
@@ -113,7 +113,7 @@ This is existing markdown content.`
 
   describe('Directory Processing', () => {
     it('should process nested directories when preserveStructure is true', async () => {
-      const converter = new DocumentConverter({
+      const structuredConverter = new DocumentConverter({
         outputDir: path.join(tempDir, 'output'),
         preserveStructure: true,
       })
@@ -127,7 +127,7 @@ This is existing markdown content.`
       await fs.writeFile(path.join(inputDir, 'root.md'), '# Root Document\nContent')
       await fs.writeFile(path.join(nestedDir, 'nested.md'), '# Nested Document\nContent')
 
-      const results = await converter.convertDirectory(inputDir)
+      const results = await structuredConverter.convertDirectory(inputDir)
 
       expect(results).toHaveLength(2)
       expect(results.filter((r) => r.success)).toHaveLength(2)
@@ -227,14 +227,14 @@ This is existing markdown content.`
     })
 
     it('should apply custom category patterns', () => {
-      const converter = new DocumentConverter({
+      const categoryPatternConverter = new DocumentConverter({
         categoryPatterns: {
           tutorial: 'Learning',
           guide: 'Documentation',
         },
       })
 
-      expect(converter).toBeDefined()
+      expect(categoryPatternConverter).toBeDefined()
     })
   })
 

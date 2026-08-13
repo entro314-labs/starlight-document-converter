@@ -53,14 +53,14 @@ export default defineConfig({
         },
       ],
     }),
-    
+
     starlightDocumentConverter({
       watch: true,
       inputDirs: [
         'content-sources/team-docs',
         'content-sources/api-specs',
         'content-sources/tutorials',
-        'content-sources/external-imports'
+        'content-sources/external-imports',
       ],
       converter: {
         outputDir: 'src/content/docs',
@@ -70,34 +70,35 @@ export default defineConfig({
         addTimestamps: true,
         verbose: true,
         categoryPatterns: {
-          'tutorial': 'Tutorials',
-          'howto': 'How-to Guides',
-          'guide': 'Guides',
-          'reference': 'Reference',
-          'api': 'API Reference',
-          'spec': 'Specifications',
-          'rfc': 'RFCs',
-          'design': 'Design Docs'
+          tutorial: 'Tutorials',
+          howto: 'How-to Guides',
+          guide: 'Guides',
+          reference: 'Reference',
+          api: 'API Reference',
+          spec: 'Specifications',
+          rfc: 'RFCs',
+          design: 'Design Docs',
         },
         tagPatterns: {
-          'javascript': ['javascript', 'js', 'node.js', 'react', 'vue'],
-          'typescript': ['typescript', 'ts', 'tsx'],
-          'python': ['python', 'django', 'flask', 'fastapi'],
-          'api': ['api', 'rest', 'graphql', 'endpoint'],
-          'database': ['database', 'sql', 'mongodb', 'postgres'],
-          'devops': ['docker', 'kubernetes', 'ci/cd', 'deployment'],
-          'security': ['security', 'auth', 'oauth', 'jwt'],
-          'testing': ['test', 'testing', 'jest', 'vitest', 'cypress']
-        }
-      }
-    })
+          javascript: ['javascript', 'js', 'node.js', 'react', 'vue'],
+          typescript: ['typescript', 'ts', 'tsx'],
+          python: ['python', 'django', 'flask', 'fastapi'],
+          api: ['api', 'rest', 'graphql', 'endpoint'],
+          database: ['database', 'sql', 'mongodb', 'postgres'],
+          devops: ['docker', 'kubernetes', 'ci/cd', 'deployment'],
+          security: ['security', 'auth', 'oauth', 'jwt'],
+          testing: ['test', 'testing', 'jest', 'vitest', 'cypress'],
+        },
+      },
+    }),
   ],
-});
+})
 ```
 
 ## Workflow Scripts
 
 ### Content Setup
+
 ```bash
 # Create content structure
 npm run setup:workflow
@@ -110,6 +111,7 @@ npm run validate:content
 ```
 
 ### Development Workflow
+
 ```bash
 # Start with file watching
 npm run dev:watch
@@ -142,47 +144,49 @@ npm run report:content
 
 ## Custom Validation Rules
 
-```js
+````js
 // scripts/validate-content.js
 export function validateContent(frontmatter, content) {
-  const issues = [];
-  
+  const issues = []
+
   // Title validation
   if (!frontmatter.title || frontmatter.title.length < 5) {
-    issues.push('Title too short or missing');
+    issues.push('Title too short or missing')
   }
-  
+
   // Description validation
   if (!frontmatter.description || frontmatter.description.length < 20) {
-    issues.push('Description should be at least 20 characters');
+    issues.push('Description should be at least 20 characters')
   }
-  
+
   // Content structure validation
-  const headings = content.match(/^#{1,6}\s/gm);
+  const headings = content.match(/^#{1,6}\s/gm)
   if (!headings || headings.length === 0) {
-    issues.push('No headings found - consider adding structure');
+    issues.push('No headings found - consider adding structure')
   }
-  
+
   // Code examples validation
-  const codeBlocks = content.match(/```/g);
+  const codeBlocks = content.match(/```/g)
   if (codeBlocks && codeBlocks.length > 0) {
     if (codeBlocks.length % 2 !== 0) {
-      issues.push('Unmatched code block markers');
+      issues.push('Unmatched code block markers')
     }
   }
-  
-  return issues;
+
+  return issues
 }
-```
+````
 
 ## Integration with External Tools
 
 ### Content Management
+
 - Import from Notion, Confluence, or other platforms
 - Batch process Word documents from shared drives
 - Convert legacy HTML documentation
 
 ### CI/CD Integration
+
 - Automated content validation in pull requests
 - Quality gates for documentation updates
 - Automated deployment to production sites
@@ -190,6 +194,7 @@ export function validateContent(frontmatter, content) {
 ## Monitoring and Analytics
 
 Track content quality and conversion success:
+
 - Conversion success rates
 - Quality score distributions
 - Most common content issues

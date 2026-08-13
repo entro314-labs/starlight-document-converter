@@ -8,9 +8,9 @@ The converter now automatically detects your Starlight configuration:
 
 ```js
 // astro.config.mjs
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
-import starlightDocumentConverter from '@entro314labs/starlight-document-converter';
+import { defineConfig } from 'astro/config'
+import starlight from '@astrojs/starlight'
+import starlightDocumentConverter from '@entro314labs/starlight-document-converter'
 
 export default defineConfig({
   integrations: [
@@ -18,11 +18,11 @@ export default defineConfig({
       title: 'My Documentation',
       // ... your Starlight config
     }),
-    
+
     // 🎉 That's it! No configuration needed
-    starlightDocumentConverter()
+    starlightDocumentConverter(),
   ],
-});
+})
 ```
 
 ## How It Works
@@ -30,6 +30,7 @@ export default defineConfig({
 ### 1. **Automatic Detection**
 
 The converter automatically detects:
+
 - ✅ Your Starlight content directory (`src/content/docs` by default)
 - ✅ Your project structure and configuration
 - ✅ Existing document import directories
@@ -37,6 +38,7 @@ The converter automatically detects:
 ### 2. **Smart Directory Usage**
 
 **Option A: Use existing content directory**
+
 ```bash
 # Just drop documents directly into your content folder
 your-project/
@@ -47,6 +49,7 @@ your-project/
 ```
 
 **Option B: Use separate import directory** (if you prefer)
+
 ```bash
 # The converter will detect and use these automatically
 your-project/
@@ -64,7 +67,7 @@ Enable automatic conversion during development:
 
 ```js
 starlightDocumentConverter({
-  watch: true  // Converts files automatically when you add them
+  watch: true, // Converts files automatically when you add them
 })
 ```
 
@@ -76,7 +79,7 @@ starlightDocumentConverter({
 # Interactive mode - detects your project automatically
 npx starlight-convert
 
-# Batch convert - uses your content directory automatically  
+# Batch convert - uses your content directory automatically
 npx starlight-convert documents/
 
 # Watch mode - monitors for changes
@@ -89,18 +92,16 @@ When you add a Word document like `user-guide.docx`, it becomes:
 
 ```yaml
 ---
-title: "User Guide"
-description: "Complete guide for using our platform effectively."
-category: "Guides"
+title: 'User Guide'
+description: 'Complete guide for using our platform effectively.'
+category: 'Guides'
 tags:
   - guide
   - getting-started
 ---
-
 # User Guide
 
 Complete guide for using our platform effectively.
-
 ## Getting Started
 ...
 ```
@@ -108,7 +109,7 @@ Complete guide for using our platform effectively.
 ### Supported Formats
 
 - **Word Documents**: `.docx`, `.doc`
-- **HTML Files**: `.html`, `.htm` 
+- **HTML Files**: `.html`, `.htm`
 - **Text Files**: `.txt`
 - **Markdown Files**: `.md` (adds missing frontmatter)
 - **Rich Text**: `.rtf`
@@ -121,29 +122,30 @@ Only configure these if you need custom behavior:
 starlightDocumentConverter({
   // Custom input directories (optional)
   inputDirs: ['docs-import', 'team-docs'],
-  
-  // Custom output directory (optional - auto-detected by default)  
+
+  // Custom output directory (optional - auto-detected by default)
   converter: {
     outputDir: 'src/content/docs',
-    
+
     // Conversion options
     generateTitles: true,
     generateDescriptions: true,
     addTimestamps: true,
-    
+
     // Custom categorization
     categoryPatterns: {
-      'tutorial': 'Tutorials',
-      'guide': 'User Guides', 
-      'api': 'API Reference'
-    }
-  }
+      tutorial: 'Tutorials',
+      guide: 'User Guides',
+      api: 'API Reference',
+    },
+  },
 })
 ```
 
 ## Development Workflow
 
 1. **Start development**:
+
    ```bash
    npm run dev
    ```
@@ -171,7 +173,7 @@ npx starlight-convert docs-import/
 
 ### From Confluence/Notion
 
-```bash  
+```bash
 # 1. Export spaces as HTML
 # 2. Convert to Starlight
 npx starlight-convert confluence-export/ --verbose

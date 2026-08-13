@@ -124,6 +124,13 @@ export class DocumentConverter {
     }
   }
 
+  private formatUnknownError(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message
+    }
+    return String(error)
+  }
+
   private extractTitle(content: string, filename: string): string | undefined {
     if (!this.options.generateTitles) return
 
@@ -571,7 +578,7 @@ export class DocumentConverter {
   }
 
   private isSupportedFormat(ext: string): ext is SupportedFormat {
-    const supportedFormats: SupportedFormat[] = [
+    const supportedFormats = new Set<string>([
       '.docx',
       '.doc',
       '.txt',
@@ -580,8 +587,8 @@ export class DocumentConverter {
       '.md',
       '.mdx',
       '.rtf',
-    ]
-    return supportedFormats.includes(ext as SupportedFormat)
+    ])
+    return supportedFormats.has(ext)
   }
 
   private async applyMDXTransformations(content: string, context: any): Promise<string> {
@@ -817,7 +824,10 @@ export class DocumentConverter {
     try {
       return this.turndownService.turndown(content).trim()
     } catch (error) {
-      this.log(`Turndown conversion failed, using fallback: ${error}`, 'warn')
+      this.log(
+        `Turndown conversion failed, using fallback: ${this.formatUnknownError(error)}`,
+        'warn'
+      )
       // Basic fallback conversion
       return content
         .replace(
@@ -842,7 +852,9 @@ export class DocumentConverter {
 
       return this.convertHTML(result.value)
     } catch (error) {
-      throw new Error(`Failed to convert Word document: ${error}`)
+      throw new Error(`Failed to convert Word document: ${this.formatUnknownError(error)}`, {
+        cause: error,
+      })
     }
   }
 
@@ -941,7 +953,7 @@ export class DocumentConverter {
               inputPath,
               outputPath,
               skipped: true,
-              errorMessage: `Failed to read text file: ${error}`,
+              errorMessage: `Failed to read text file: ${this.formatUnknownError(error)}`,
             }
           }
         } else {
@@ -963,7 +975,8 @@ export class DocumentConverter {
       const ext = extname(inputPath).toLowerCase()
 
       // Determine output extension based on MDX mode
-      const outputExt = this.options.mdxMode && this.options.mdxOptions?.outputMdx !== false ? '.mdx' : '.md'
+      const outputExt =
+        this.options.mdxMode && this.options.mdxOptions?.outputMdx !== false ? '.mdx' : '.md'
       const resolvedOutputPath =
         outputPath || join(this.options.outputDir, filename.replace(/\.[^/.]+$/, outputExt))
 
@@ -1052,7 +1065,7 @@ export class DocumentConverter {
         metadata,
       }
     } catch (error) {
-      const errorMessage = `Error processing ${inputPath}: ${error}`
+      const errorMessage = `Error processing ${inputPath}: ${this.formatUnknownError(error)}`
       this.log(errorMessage, 'error')
       this.stats.errors++
 
@@ -1101,7 +1114,7 @@ export class DocumentConverter {
         }
       }
     } catch (error) {
-      this.log(`Error processing directory ${inputDir}: ${error}`, 'error')
+      this.log(`Error processing directory ${inputDir}: ${this.formatUnknownError(error)}`, 'error')
     }
 
     return results

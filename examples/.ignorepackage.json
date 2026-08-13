@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build", 
+    "build": "astro build",
     "preview": "astro preview",
     "convert": "starlight-convert docs-import/",
     "convert:watch": "starlight-convert watch docs-import/",

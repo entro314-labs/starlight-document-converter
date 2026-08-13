@@ -1,8 +1,10 @@
+// @ts-nocheck
+
 import { promises as fs } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import { DocumentConverter } from './converter.js'
 
@@ -24,7 +26,7 @@ describe.skip('DocumentConverter Extended Tests (SKIPPED - needs interface fixes
 
   describe('Advanced Options', () => {
     it('should handle all converter options', () => {
-      const converter = new DocumentConverter({
+      const configuredConverter = new DocumentConverter({
         outputDir: 'custom-output',
         preserveStructure: false,
         generateTitles: true,
@@ -38,20 +40,20 @@ describe.skip('DocumentConverter Extended Tests (SKIPPED - needs interface fixes
         ignorePatterns: ['*.draft.md'],
       })
 
-      expect(converter).toBeDefined()
+      expect(configuredConverter).toBeDefined()
     })
 
     it('should use default options when not provided', () => {
-      const converter = new DocumentConverter()
-      expect(converter).toBeDefined()
+      const defaultConverter = new DocumentConverter()
+      expect(defaultConverter).toBeDefined()
     })
 
     it('should handle partial options', () => {
-      const converter = new DocumentConverter({
+      const partialConverter = new DocumentConverter({
         generateTitles: false,
         verbose: true,
       })
-      expect(converter).toBeDefined()
+      expect(partialConverter).toBeDefined()
     })
   })
 
@@ -188,7 +190,7 @@ This section covers more advanced concepts.`
 
   describe('Directory Processing', () => {
     it('should process nested directories when preserveStructure is true', async () => {
-      const converter = new DocumentConverter({
+      const structuredConverter = new DocumentConverter({
         outputDir: `${tempDir}/output`,
         preserveStructure: true,
       })
@@ -202,7 +204,7 @@ This section covers more advanced concepts.`
       await fs.writeFile(path.join(inputDir, 'root.md'), '# Root Document\nContent')
       await fs.writeFile(path.join(nestedDir, 'nested.md'), '# Nested Document\nNested content')
 
-      const results = await converter.convertDirectory(inputDir)
+      const results = await structuredConverter.convertDirectory(inputDir)
 
       expect(results).toHaveLength(2)
       expect(results.every((r) => r.success)).toBe(true)
@@ -240,7 +242,7 @@ This section covers more advanced concepts.`
 
   describe('Custom Patterns', () => {
     it('should use custom category patterns', async () => {
-      const converter = new DocumentConverter({
+      const categoryPatternConverter = new DocumentConverter({
         outputDir: tempDir,
         categoryPatterns: {
           tutorial: 'Learning',
@@ -253,14 +255,14 @@ This section covers more advanced concepts.`
       await fs.mkdir(path.dirname(tutorialFile), { recursive: true })
       await fs.writeFile(tutorialFile, '# Tutorial\nLearn something new')
 
-      const result = await converter.convertFile(tutorialFile)
+      const result = await categoryPatternConverter.convertFile(tutorialFile)
 
       expect(result.success).toBe(true)
       expect(result.content).toContain('category: "Learning"')
     })
 
     it('should use custom tag patterns', async () => {
-      const converter = new DocumentConverter({
+      const tagPatternConverter = new DocumentConverter({
         outputDir: tempDir,
         tagPatterns: {
           react: ['react', 'jsx', 'components'],
@@ -271,7 +273,7 @@ This section covers more advanced concepts.`
       const reactFile = path.join(tempDir, 'react-guide.md')
       await fs.writeFile(reactFile, '# React Components\nLearn about React components and JSX')
 
-      const result = await converter.convertFile(reactFile)
+      const result = await tagPatternConverter.convertFile(reactFile)
 
       expect(result.success).toBe(true)
       expect(result.content).toContain('tags:')

@@ -4,35 +4,6 @@ import { resolve } from 'node:path'
 import { detectStarlightConfig, isStarlightProject } from './starlight-detector.js'
 
 /**
- * Get smart defaults for CLI operations
- */
-export function getSmartDefaults(cwd: string = process.cwd()) {
-  try {
-    const starlightConfig = detectStarlightConfig(cwd)
-    const isStarlight = isStarlightProject(cwd)
-
-    return {
-      outputDir: starlightConfig.docsDir,
-      isStarlightProject: isStarlight,
-      title: starlightConfig.title,
-      description: starlightConfig.description,
-      recommendations: getRecommendations(cwd, starlightConfig, isStarlight),
-    }
-  } catch {
-    // Fallback when Astro/Starlight is not available (CLI-only usage)
-    return {
-      outputDir: 'docs-output',
-      isStarlightProject: false,
-      title: 'Documentation',
-      description: 'Documentation site',
-      recommendations: [
-        'Using CLI-only mode. Install @astrojs/starlight for full integration features.',
-      ],
-    }
-  }
-}
-
-/**
  * Get recommendations for the user based on project setup
  */
 function getRecommendations(
@@ -67,6 +38,35 @@ function getRecommendations(
   }
 
   return recommendations
+}
+
+/**
+ * Get smart defaults for CLI operations
+ */
+export function getSmartDefaults(cwd: string = process.cwd()) {
+  try {
+    const starlightConfig = detectStarlightConfig(cwd)
+    const isStarlight = isStarlightProject(cwd)
+
+    return {
+      outputDir: starlightConfig.docsDir,
+      isStarlightProject: isStarlight,
+      title: starlightConfig.title,
+      description: starlightConfig.description,
+      recommendations: getRecommendations(cwd, starlightConfig, isStarlight),
+    }
+  } catch {
+    // Fallback when Astro/Starlight is not available (CLI-only usage)
+    return {
+      outputDir: 'docs-output',
+      isStarlightProject: false,
+      title: 'Documentation',
+      description: 'Documentation site',
+      recommendations: [
+        'Using CLI-only mode. Install @astrojs/starlight for full integration features.',
+      ],
+    }
+  }
 }
 
 /**

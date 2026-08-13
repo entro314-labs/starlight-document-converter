@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test'
 
 describe.skip('CLI Integration Tests', () => {
   let tempDir: string
@@ -19,6 +19,48 @@ describe.skip('CLI Integration Tests', () => {
     // Clean up temporary directory
     await fs.rm(tempDir, { recursive: true, force: true })
   })
+
+  // Helper function to run CLI commands
+  async function runCLI(
+    args: string[]
+  ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+    return new Promise((resolve) => {
+      let stdout = ''
+      let stderr = ''
+
+      const child = spawn('node', [cliPath, ...args], {
+        cwd: tempDir,
+        stdio: 'pipe',
+      })
+
+      child.stdout?.on('data', (data) => {
+        stdout += data.toString()
+      })
+
+      child.stderr?.on('data', (data) => {
+        stderr += data.toString()
+      })
+
+      // Set timeout for CLI commands
+      const timeoutId = globalThis.setTimeout(() => {
+        child.kill()
+        resolve({
+          exitCode: 1,
+          stdout: stdout.trim(),
+          stderr: 'Command timed out',
+        })
+      }, 30000)
+
+      child.on('close', (exitCode) => {
+        globalThis.clearTimeout(timeoutId)
+        resolve({
+          exitCode: exitCode || 0,
+          stdout: stdout.trim(),
+          stderr: stderr.trim(),
+        })
+      })
+    })
+  }
 
   describe('CLI Commands', () => {
     it('should show help information', async () => {
@@ -176,46 +218,4 @@ describe.skip('CLI Integration Tests', () => {
       expect(result.stderr).toContain('required')
     })
   })
-
-  // Helper function to run CLI commands
-  async function runCLI(
-    args: string[]
-  ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-    return new Promise((resolve) => {
-      let stdout = ''
-      let stderr = ''
-
-      const child = spawn('node', [cliPath, ...args], {
-        cwd: tempDir,
-        stdio: 'pipe',
-      })
-
-      child.stdout?.on('data', (data) => {
-        stdout += data.toString()
-      })
-
-      child.stderr?.on('data', (data) => {
-        stderr += data.toString()
-      })
-
-      child.on('close', (exitCode) => {
-        globalThis.clearTimeout(timeoutId)
-        resolve({
-          exitCode: exitCode || 0,
-          stdout: stdout.trim(),
-          stderr: stderr.trim(),
-        })
-      })
-
-      // Set timeout for CLI commands
-      const timeoutId = globalThis.setTimeout(() => {
-        child.kill()
-        resolve({
-          exitCode: 1,
-          stdout: stdout.trim(),
-          stderr: 'Command timed out',
-        })
-      }, 30000)
-    })
-  }
 })

@@ -5,16 +5,19 @@ This directory contains example configurations and usage patterns for the Starli
 ## Quick Start Example
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Create input directories:**
+
    ```bash
    mkdir docs-import team-docs external-content
    ```
 
 3. **Add some test documents:**
+
    ```bash
    # Create a simple text file
    echo "# Welcome Guide
@@ -41,18 +44,20 @@ This directory contains example configurations and usage patterns for the Starli
    ```
 
 4. **Start development with auto-conversion:**
+
    ```bash
    npm run dev
    ```
 
 5. **Or convert manually:**
+
    ```bash
    # Preview conversion
    npm run convert:dry
-   
+
    # Convert files
    npm run convert
-   
+
    # Watch for changes
    npm run convert:watch
    ```
@@ -73,7 +78,7 @@ example-project/
 │   │   ├── setup.md      # Generated from setup.docx
 │   │   └── advanced.md   # Generated from advanced.txt
 │   ├── api/
-│   │   └── reference.md  # Generated from reference.html  
+│   │   └── reference.md  # Generated from reference.html
 │   └── welcome.md        # Processed welcome.md
 └── astro.config.mjs      # Astro configuration
 ```
@@ -81,18 +86,17 @@ example-project/
 ## Configuration Examples
 
 ### Basic Setup
+
 ```js
-import starlightDocumentConverter from 'starlight-document-converter';
+import starlightDocumentConverter from 'starlight-document-converter'
 
 export default defineConfig({
-  integrations: [
-    starlight({ title: 'My Docs' }),
-    starlightDocumentConverter()
-  ]
-});
+  integrations: [starlight({ title: 'My Docs' }), starlightDocumentConverter()],
+})
 ```
 
 ### Advanced Setup
+
 ```js
 starlightDocumentConverter({
   watch: true,
@@ -102,15 +106,16 @@ starlightDocumentConverter({
     generateTitles: true,
     generateDescriptions: true,
     categoryPatterns: {
-      'tutorial': 'Tutorials',
-      'guide': 'Guides',
-      'api': 'API Reference'
-    }
-  }
+      tutorial: 'Tutorials',
+      guide: 'Guides',
+      api: 'API Reference',
+    },
+  },
 })
 ```
 
 ### CLI Usage Examples
+
 ```bash
 # Convert single file
 starlight-convert document.docx
@@ -131,13 +136,14 @@ starlight-convert watch docs-import/
 ## Document Examples
 
 ### Word Document (`guide.docx`)
+
 When you place a Word document in `docs-import/`, it gets converted to:
 
 ```markdown
 ---
-title: "User Setup Guide"
-description: "Complete guide for setting up user accounts and permissions."
-category: "Guides"
+title: 'User Setup Guide'
+description: 'Complete guide for setting up user accounts and permissions.'
+category: 'Guides'
 tags:
   - guide
   - setup
@@ -148,42 +154,48 @@ tags:
 Complete guide for setting up user accounts and permissions.
 
 ## Prerequisites
+
 - Admin access
 - Email configuration
 
 ## Steps
+
 1. Access admin panel
 2. Navigate to user management
 3. Create new user account
 ```
 
 ### HTML Document (`api.html`)
+
 ```html
 <!DOCTYPE html>
 <html>
-<head><title>Payment API</title></head>
-<body>
-  <h1>Payment Processing API</h1>
-  <p>Secure payment processing endpoints</p>
-  
-  <h2>Authentication</h2>
-  <p>All requests require API key header</p>
-  
-  <h2>Endpoints</h2>
-  <ul>
-    <li><strong>POST /payments</strong> - Process payment</li>
-    <li><strong>GET /payments/:id</strong> - Get payment status</li>
-  </ul>
-</body>
+  <head>
+    <title>Payment API</title>
+  </head>
+  <body>
+    <h1>Payment Processing API</h1>
+    <p>Secure payment processing endpoints</p>
+
+    <h2>Authentication</h2>
+    <p>All requests require API key header</p>
+
+    <h2>Endpoints</h2>
+    <ul>
+      <li><strong>POST /payments</strong> - Process payment</li>
+      <li><strong>GET /payments/:id</strong> - Get payment status</li>
+    </ul>
+  </body>
 </html>
 ```
 
 Converts to:
+
 ```markdown
 ---
-title: "Payment API"
-description: "Secure payment processing endpoints."
-category: "Reference"
+title: 'Payment API'
+description: 'Secure payment processing endpoints.'
+category: 'Reference'
 tags:
   - api
   - reference
@@ -204,6 +216,7 @@ All requests require API key header
 ```
 
 ### Text File (`setup.txt`)
+
 ```txt
 Development Environment Setup
 
@@ -233,11 +246,12 @@ Run the test suite to verify everything works:
 ```
 
 Converts to:
+
 ```markdown
 ---
-title: "Development Environment Setup"
-description: "Setting up your local development environment for the project."
-category: "Guides"
+title: 'Development Environment Setup'
+description: 'Setting up your local development environment for the project.'
+category: 'Guides'
 tags:
   - guide
   - setup
@@ -248,17 +262,19 @@ tags:
 Setting up your local development environment for the project.
 
 ## Requirements
+
 - Node.js 18 or higher
 - Git installed
 - Code editor (VS Code recommended)
 
 ## Installation Steps
-
 ```
+
 git clone https://github.com/project/repo.git
 cd repo
 npm install
 npm run dev
+
 ```
 
 ## Configuration
@@ -271,9 +287,12 @@ Create a .env file with the following variables:
 Run the test suite to verify everything works:
 
 ```
+
 npm test
 npm run test:integration
+
 ```
+
 ```
 
 ## Tips

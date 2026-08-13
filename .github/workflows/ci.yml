@@ -2,78 +2,78 @@ name: CI
 
 on:
   push:
-    branches: [ main, v2 ]
+    branches: [main, v2]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     name: Test & Build
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [18, 20, 22]
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
-          
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
-          
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Install peer dependencies for testing
         run: pnpm add -D astro@^5.13.8 @astrojs/starlight@^0.35.2
-        
+
       - name: Type check
         run: pnpm run typecheck
-        
+
       - name: Build
         run: pnpm run build
-        
+
       - name: Test
         run: pnpm run test:coverage
-        
+
       - name: Upload coverage reports
         uses: codecov/codecov-action@v5
         if: matrix.node-version == 22
         with:
           files: ./coverage/coverage-final.json
           fail_ci_if_error: false
-          
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 22
-          
+          node-version: 24.19.0
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
-          
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Install peer dependencies for linting
         run: pnpm add -D astro@^5.13.8 @astrojs/starlight@^0.35.2
-        
+
       - name: Biome check
         run: pnpm run check

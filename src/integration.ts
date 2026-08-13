@@ -32,6 +32,40 @@ import {
   isStarlightProject,
 } from './utils/starlight-detector.js'
 
+function formatUnknownError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  return String(error)
+}
+
+async function handleFileChange(
+  eventType: string | null,
+  filename: string | null,
+  fullPath: string,
+  converter: DocumentConverter,
+  logger: Logger
+): Promise<void> {
+  if (!filename || eventType !== 'change') {
+    return
+  }
+
+  const filePath = resolve(fullPath, filename)
+  const ext = filename.split('.').pop()?.toLowerCase()
+
+  // Only process supported formats
+  if (['docx', 'doc', 'txt', 'html', 'htm', 'md', 'rtf'].includes(ext || '')) {
+    logger.info(`Converting changed file: ${filename}`)
+
+    try {
+      await converter.convertFile(filePath)
+      logger.info(`✅ Converted: ${filename}`)
+    } catch (error) {
+      logger.error(`❌ Failed to convert ${filename}: ${formatUnknownError(error)}`)
+    }
+  }
+}
+
 export function starlightDocumentConverter(
   userConfig: StarlightIntegrationConfig = {}
 ): AstroIntegration {
@@ -107,11 +141,11 @@ export function starlightDocumentConverter(
                 )
               }
             } catch (error) {
-              logger.warn(`Could not process directory ${dir}: ${error}`)
+              logger.warn(`Could not process directory ${dir}: ${formatUnknownError(error)}`)
             }
           })
         ).catch((error) => {
-          logger.error(`Document conversion error: ${error}`)
+          logger.error(`Document conversion error: ${formatUnknownError(error)}`)
         })
 
         // Set up file watching if enabled
@@ -130,7 +164,7 @@ export function starlightDocumentConverter(
               process.on('SIGINT', () => watcher.close())
               process.on('SIGTERM', () => watcher.close())
             } catch (error) {
-              logger.warn(`Could not watch directory ${dir}: ${error}`)
+              logger.warn(`Could not watch directory ${dir}: ${formatUnknownError(error)}`)
             }
           })
         }
@@ -146,33 +180,6 @@ export function starlightDocumentConverter(
         }
       },
     },
-  }
-}
-
-async function handleFileChange(
-  eventType: string | null,
-  filename: string | null,
-  fullPath: string,
-  converter: DocumentConverter,
-  logger: Logger
-): Promise<void> {
-  if (!filename || eventType !== 'change') {
-    return
-  }
-
-  const filePath = resolve(fullPath, filename)
-  const ext = filename.split('.').pop()?.toLowerCase()
-
-  // Only process supported formats
-  if (['docx', 'doc', 'txt', 'html', 'htm', 'md', 'rtf'].includes(ext || '')) {
-    logger.info(`Converting changed file: ${filename}`)
-
-    try {
-      await converter.convertFile(filePath)
-      logger.info(`✅ Converted: ${filename}`)
-    } catch (error) {
-      logger.error(`❌ Failed to convert ${filename}: ${error}`)
-    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import { createSpinner, showRepairResults, showValidationResults } from './cli-commands.js'
 
@@ -189,12 +189,18 @@ describe('Enhanced CLI Commands', () => {
   })
 
   describe('createSpinner', () => {
+    const getFirstStartCall = (spinnerInstance: any) => {
+      const mockedStart = vi.mocked(spinnerInstance.start)
+      const firstCall = mockedStart.mock.calls[0]
+      return firstCall?.[0]
+    }
+
     it('should create spinner with processing status for regular mode', () => {
       const message = 'Converting files'
       const spinner = createSpinner(message, false)
 
       expect(spinner).toBeTruthy()
-      expect(spinner.start).toHaveBeenCalledWith('→ Converting files')
+      expect(getFirstStartCall(spinner)).toBe('→ Converting files')
     })
 
     it('should create spinner with warning status for dry-run mode', () => {
@@ -202,14 +208,14 @@ describe('Enhanced CLI Commands', () => {
       const spinner = createSpinner(message, true)
 
       expect(spinner).toBeTruthy()
-      expect(spinner.start).toHaveBeenCalledWith('⚠ Analyzing: Analyzing content')
+      expect(getFirstStartCall(spinner)).toBe('⚠ Analyzing: Analyzing content')
     })
 
     it('should handle empty message', () => {
       const spinner = createSpinner('', false)
 
       expect(spinner).toBeTruthy()
-      expect(spinner.start).toHaveBeenCalledWith('→ ')
+      expect(getFirstStartCall(spinner)).toBe('→ ')
     })
 
     it('should handle special characters in message', () => {
@@ -217,7 +223,7 @@ describe('Enhanced CLI Commands', () => {
       const spinner = createSpinner(message, false)
 
       expect(spinner).toBeTruthy()
-      expect(spinner.start).toHaveBeenCalledWith('→ Processing "files" & <documents>')
+      expect(getFirstStartCall(spinner)).toBe('→ Processing "files" & <documents>')
     })
   })
 

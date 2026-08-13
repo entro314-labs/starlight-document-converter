@@ -1,3 +1,17 @@
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@latest
+  vite-plus: ^0.1.12
+  vitest: npm:@voidzero-dev/vite-plus-test@^0.1.12
 onlyBuiltDependencies:
   - esbuild
   - sharp
+overrides:
+  vite: 'catalog:'
+  vitest: 'catalog:'
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: '*'
+    vitest: '*'

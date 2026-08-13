@@ -7,6 +7,7 @@ The Starlight Document Converter features a completely redesigned, interactive C
 ## ✨ New Features
 
 ### 🎯 **Interactive Mode** (Default)
+
 Simply run `starlight-convert` with no arguments for a guided, interactive experience:
 
 ```bash
@@ -14,6 +15,7 @@ npx starlight-convert
 ```
 
 **Features:**
+
 - ✅ Prompts with colors and emojis
 - 📁 Automatic file detection and preview
 - ⚙️ Advanced configuration options
@@ -23,17 +25,21 @@ npx starlight-convert
 ### 🚀 **Available Commands**
 
 #### `convert` - Interactive Conversion
+
 ```bash
 starlight-convert convert
 ```
+
 Same as default interactive mode.
 
 #### `batch` - Non-Interactive Batch Processing
+
 ```bash
 starlight-convert batch <input> [options]
 ```
 
 **Options:**
+
 - `-o, --output <dir>` - Output directory (default: src/content/docs)
 - `--no-preserve` - Don't preserve directory structure
 - `--no-titles` - Don't auto-generate titles
@@ -44,22 +50,26 @@ starlight-convert batch <input> [options]
 - `--dry-run` - Preview without writing files
 
 #### `setup` - Project Setup Wizard
+
 ```bash
 starlight-convert setup
 ```
 
 Interactive wizard that:
+
 - 🏗️ Generates Astro configuration
 - 📂 Creates input directories
 - ⚙️ Configures file watching
 - 📋 Provides complete setup instructions
 
 #### `watch` - File Watching
+
 ```bash
 starlight-convert watch <directory> [options]
 ```
 
 Real-time file monitoring with:
+
 - 👀 Automatic conversion on file changes
 - 🎯 Smart file filtering
 - ⚡ Instant feedback
@@ -68,11 +78,13 @@ Real-time file monitoring with:
 ### 🎨 **Visual Improvements**
 
 #### **Quality Indicators**
+
 - 🟢 **High Quality**: Complete metadata, good structure
 - 🟡 **Medium Quality**: Minor issues
 - 🔴 **Low Quality**: Missing metadata, needs attention
 
 #### **Beautiful Output**
+
 - 📦 Branded headers with color backgrounds
 - 📝 Informative notes and previews
 - 📊 Clear progress indicators
@@ -80,6 +92,7 @@ Real-time file monitoring with:
 - 🎯 Sample conversion previews
 
 #### **Interactive Prompts**
+
 - 🎮 Multi-select for options
 - ✅ Confirmation dialogs
 - 📝 Validated text inputs
@@ -89,6 +102,7 @@ Real-time file monitoring with:
 ### 📚 **Usage Examples**
 
 #### Quick Start (Interactive)
+
 ```bash
 # Launch interactive mode
 npx starlight-convert
@@ -101,6 +115,7 @@ npx starlight-convert
 ```
 
 #### Batch Processing
+
 ```bash
 # Convert entire directory
 npx starlight-convert batch ./docs --verbose
@@ -113,6 +128,7 @@ npx starlight-convert batch ./legacy-docs -o ./new-content
 ```
 
 #### Project Setup
+
 ```bash
 # Interactive setup wizard
 npx starlight-convert setup
@@ -124,6 +140,7 @@ npx starlight-convert setup
 ```
 
 #### File Watching
+
 ```bash
 # Watch directory for changes
 npx starlight-convert watch ./docs-import
@@ -135,18 +152,21 @@ npx starlight-convert watch ./drafts -o ./content/docs
 ### 🔧 **Advanced Features**
 
 #### **Smart Detection**
+
 - 📁 Automatic directory vs file detection
 - 🎯 Supported format filtering
 - 📊 File count previews
 - ⚠️ Path validation
 
 #### **Quality Validation**
+
 - 📏 Title length checks
 - 📝 Description quality analysis
 - 🏗️ Content structure validation
 - 🏷️ Tag relevance scoring
 
 #### **Configuration Options**
+
 - 📂 Directory structure preservation
 - 🏷️ Automatic title generation
 - 📝 Description extraction

@@ -1,6 +1,6 @@
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
-import starlightDocumentConverter from '@entro314labs/starlight-document-converter';
+import { defineConfig } from 'astro/config'
+import starlight from '@astrojs/starlight'
+import starlightConverter from '@entro314labs/starlight-document-converter'
 
 export default defineConfig({
   integrations: [
@@ -10,9 +10,7 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Start Here',
-          items: [
-            { label: 'Welcome', link: '/welcome/' },
-          ],
+          items: [{ label: 'Welcome', link: '/welcome/' }],
         },
         {
           label: 'Guides',
@@ -24,14 +22,14 @@ export default defineConfig({
         },
       ],
     }),
-    
+
     // 🎉 That's it! The converter will:
     // ✅ Auto-detect your content directory (src/content/docs)
-    // ✅ Look for import directories (docs-import, documents, etc.)  
+    // ✅ Look for import directories (docs-import, documents, etc.)
     // ✅ Convert files automatically when you add them
-    starlightDocumentConverter({
+    starlightConverter({
       // Optional: Enable file watching during development
       watch: true,
-    })
+    }),
   ],
-});
+})

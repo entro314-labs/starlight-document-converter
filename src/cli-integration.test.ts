@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import {
   createBrandHeader,
@@ -404,8 +404,13 @@ describe('CLI Integration Tests', () => {
         { name: '', description: null },
       ]
 
+      const normalizedProblemCases = problemCases.map((item) => ({
+        name: typeof item.name === 'string' ? item.name : '',
+        description: typeof item.description === 'string' ? item.description : '',
+      }))
+
       expect(() => {
-        const section = formatHelpSection('Problem Cases', problemCases.filter(Boolean))
+        const section = formatHelpSection('Problem Cases', normalizedProblemCases)
         expect(section).toBeTruthy()
       }).not.toThrow()
 

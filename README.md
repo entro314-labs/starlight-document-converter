@@ -4,7 +4,7 @@
 
 [![npm version](https://badge.fury.io/js/%40entro314labs%2Fstarlight-document-converter.svg)](https://badge.fury.io/js/%40entro314labs%2Fstarlight-document-converter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.19.0-brightgreen.svg)](https://nodejs.org/)
 
 </div>
 
@@ -171,7 +171,7 @@ Native integration support
 </svg>
 
 **Node.js**
-Node.js 20+, npm/pnpm/yarn
+Node.js 24.19.0+, npm/pnpm/yarn
 CLI and programmatic API
 
 </td>
@@ -236,7 +236,7 @@ starvert --help                     # Same functionality, different name
 
 ```javascript
 // astro.config.mjs - Astro Integration
-import starlightDocumentConverter from '@entro314labs/starlight-document-converter';
+import starlightDocumentConverter from '@entro314labs/starlight-document-converter'
 
 export default defineConfig({
   integrations: [
@@ -249,11 +249,11 @@ export default defineConfig({
         outputDir: 'src/content/docs',
         preserveStructure: true,
         generateTitles: true,
-        generateDescriptions: true
-      }
-    })
-  ]
-});
+        generateDescriptions: true,
+      },
+    }),
+  ],
+})
 ```
 
 ## Examples
@@ -271,6 +271,7 @@ sdc batch docs/ --mdx --dry-run --verbose
 ```
 
 **What gets converted:**
+
 - GitHub alerts (`> [!NOTE]`) → `<Aside>` components
 - Tab patterns → `<Tabs>` / `<TabItem>`
 - Code groups → Tabbed code blocks
@@ -280,29 +281,28 @@ sdc batch docs/ --mdx --dry-run --verbose
 **Example transformation:**
 
 Input:
+
 ```markdown
 > [!NOTE]
 > Important information
 
 ### Tab: JavaScript
+
 \`\`\`javascript
 console.log('hello')
 \`\`\`
 ```
 
 Output:
-```mdx
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
-<Aside type="note">
-Important information
-</Aside>
+```mdx
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components'
+
+<Aside type="note">Important information</Aside>
 
 <Tabs>
   <TabItem label="JavaScript">
-\`\`\`javascript
-console.log('hello')
-\`\`\`
+    \`\`\`javascript console.log('hello') \`\`\`
   </TabItem>
 </Tabs>
 ```
@@ -325,6 +325,7 @@ npx @entro314labs/starlight-document-converter batch docs-import/
 The converter automatically processes images during conversion:
 
 **Automatic Search Locations:**
+
 - Same directory as source file
 - `./images/` subdirectory
 - `./assets/` subdirectory
@@ -333,6 +334,7 @@ The converter automatically processes images during conversion:
 - `/public/` directory
 
 **For Missing Images:**
+
 ```bash
 # Get detailed missing image report
 sdc batch docs/ --verbose
@@ -345,6 +347,7 @@ sdc batch docs/ --process-images --dry-run
 ```
 
 **Astro-Specific Recommendations:**
+
 - Place images in `src/assets/` for optimized processing
 - Use `public/` for static images that don't need optimization
 - Avoid bare filenames - use relative paths for better reliability
@@ -352,6 +355,7 @@ sdc batch docs/ --process-images --dry-run
 ### Word Document Conversion
 
 Input (`guide.docx`):
+
 ```
 # Getting Started Guide
 
@@ -363,6 +367,7 @@ This guide will help you set up your development environment.
 ```
 
 Output (`guide.md`):
+
 ```yaml
 ---
 title: "Getting Started Guide"
@@ -385,23 +390,23 @@ This guide will help you set up your development environment.
 ### Programmatic Usage
 
 ```javascript
-import { DocumentConverter } from '@entro314labs/starlight-document-converter';
+import { DocumentConverter } from '@entro314labs/starlight-document-converter'
 
 const converter = new DocumentConverter({
   outputDir: 'src/content/docs',
   generateTitles: true,
-  generateDescriptions: true
-});
+  generateDescriptions: true,
+})
 
 // Convert single file
-const result = await converter.convertFile('document.docx');
+const result = await converter.convertFile('document.docx')
 
 // Convert directory
-const results = await converter.convertDirectory('documents/');
+const results = await converter.convertDirectory('documents/')
 
 // Get conversion statistics
-const stats = converter.getStats();
-console.log(`Processed: ${stats.processed} files`);
+const stats = converter.getStats()
+console.log(`Processed: ${stats.processed} files`)
 ```
 
 ## Documentation
@@ -441,8 +446,8 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2h-4zM4 5h16v11H4V5zm8 14c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" fill="#6B7280"/>
 </svg>
 
-- **Node.js**: >= 20.0.0
-- **npm**: >= 8.0.0 or **pnpm** >= 7.0.0
+- **Node.js**: >= 24.19.0
+- **npm**: >= 8.0.0 or **pnpm** >= 11.20.0
 - **Operating System**: Windows, macOS, Linux
 
 ## License

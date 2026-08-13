@@ -1,7 +1,7 @@
 import boxen from 'boxen'
 import Table from 'cli-table3'
 import figures from 'figures'
-import gradient from 'gradient-string'
+import gradient, { rainbow as gradientRainbow } from 'gradient-string'
 import pc from 'picocolors'
 
 // Cross-platform symbols
@@ -39,7 +39,7 @@ export const gradients = {
   success: (text: string) => gradient(['#00ff88', '#00aa55'])(text),
   warning: (text: string) => gradient(['#ffaa00', '#ff6600'])(text),
   error: (text: string) => gradient(['#ff4444', '#cc0000'])(text),
-  rainbow: (text: string) => gradient.rainbow(text),
+  rainbow: (text: string) => gradientRainbow(text),
 }
 
 // Status indicators with symbols and colors

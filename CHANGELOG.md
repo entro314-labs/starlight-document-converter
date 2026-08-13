@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🎉 New Features
 
 #### Enhanced Image Processing
+
 - **Improved image resolution algorithm** with multiple search strategies
   - Searches in common image directories automatically
   - Supports `./images/`, `./assets/`, `/src/assets/`, `/public/` locations
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Detailed missing image reports with suggestions
 
 #### Command Aliases
+
 - **Added shorter command aliases** for improved user experience
   - `sdc` - Short alias (Starlight Document Converter)
   - `starvert` - Memorable alias (Star + Convert)
@@ -30,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 📚 Documentation
 
 #### CLI Usage Updates
+
 - **Fixed incorrect npx command** in documentation
   - Corrected from `npx starlight-convert` to `npx @entro314labs/starlight-document-converter`
   - Added clear distinction between npx usage and post-install commands
@@ -37,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added comprehensive alias documentation with usage examples
 
 #### Enhanced User Experience
+
 - **Improved command reference section**
   - Clear notes about global installation vs npx usage
   - Examples for both short aliases and full commands
@@ -45,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🔧 Technical Improvements
 
 #### Code Quality & Architecture
+
 - Enhanced CLI utility modules and command structure
 - Cross-platform styling improvements for better terminal compatibility
 - Extended plugin architecture with new built-in processors
@@ -54,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced converter logic for more robust document processing
 
 ### 🐛 Bug Fixes
+
 - Fixed TypeScript compilation errors in plugin modules
 - Enhanced error handling in edge cases
 - Various minor bug fixes and performance improvements
@@ -64,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🎉 Major New Features
 
 #### Content Repair System
+
 - **New `repair` command** - Fix frontmatter and content issues in existing Starlight files
   - Automatically repairs missing or malformed frontmatter
   - Fixes internal links and references
@@ -73,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dry-run mode for safe previewing of changes
 
 #### Content Validation System
+
 - **New `validate` command** - Comprehensive content structure and quality validation
   - Validates required frontmatter fields (title, description, category)
   - Checks content structure and heading hierarchy
@@ -81,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Detailed reporting with success rates and issue breakdown
 
 #### Advanced Content Analysis
+
 - **Intelligent metadata generation** using new ContentAnalyzer
   - Smart title extraction from headings and content
   - SEO-optimized description generation (155 character limit)
@@ -91,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reading time estimation and word count analysis
 
 #### Table of Contents Generation
+
 - **Automatic TOC generation** for improved navigation
   - Configurable depth levels (default: 4 levels)
   - Minimum entry threshold to avoid cluttered TOCs
@@ -100,6 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - URL-friendly anchor generation
 
 #### Link and Image Processing
+
 - **Comprehensive link management**
   - Internal link validation and repair
   - Automatic path resolution for Starlight compatibility
@@ -114,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🔧 Enhanced CLI Experience
 
 #### New Commands
+
 ```bash
 # Content repair with advanced options
 starlight-convert repair <input> [options]
@@ -130,6 +142,7 @@ starlight-convert validate <input> [options]
 ```
 
 #### Enhanced Batch Command
+
 ```bash
 starlight-convert batch <input> [options]
   --fix-links         Fix internal links during conversion
@@ -139,6 +152,7 @@ starlight-convert batch <input> [options]
 ```
 
 #### Improved Help System
+
 - Organized help sections (Basic Commands, Content Management, Advanced Features)
 - Comprehensive examples for all use cases
 - Option descriptions with clear explanations
@@ -147,6 +161,7 @@ starlight-convert batch <input> [options]
 ### 🏗️ Architecture Improvements
 
 #### Plugin System Enhancement
+
 - **New built-in plugins**:
   - `frontmatterEnhancer` - Repairs and enhances frontmatter metadata
   - `frontmatterValidator` - Validates frontmatter quality and structure
@@ -154,6 +169,7 @@ starlight-convert batch <input> [options]
   - Enhanced `markdownEnhancer` - Now uses ContentAnalyzer for better metadata extraction
 
 #### Unified Type System
+
 - Consolidated DocumentMetadata interfaces across plugin and core systems
 - Added support for extended metadata fields:
   - `readingTime` - Estimated reading time in minutes
@@ -163,6 +179,7 @@ starlight-convert batch <input> [options]
   - `author` and `draft` fields for publishing workflows
 
 #### Integration Helper System
+
 - New `PluginIntegrationHelper` for seamless plugin coordination
 - Automatic plugin initialization and validation
 - Error handling and graceful degradation for failed plugins
@@ -171,6 +188,7 @@ starlight-convert batch <input> [options]
 ### 🧪 Testing & Quality Assurance
 
 #### Comprehensive Test Coverage
+
 - **New test suites**:
   - `frontmatter-repair.test.ts` - Frontmatter repair and validation logic
   - `content-analyzer.test.ts` - Content analysis and metadata generation
@@ -179,6 +197,7 @@ starlight-convert batch <input> [options]
   - `integration-helper.test.ts` - Plugin integration and coordination
 
 #### Quality Improvements
+
 - TypeScript strict mode compliance
 - Comprehensive error handling with user-friendly messages
 - Input validation and sanitization
@@ -187,12 +206,14 @@ starlight-convert batch <input> [options]
 ### 📚 Developer Experience
 
 #### Enhanced CLI Helpers
+
 - New `cli-commands.ts` utility module with reusable functions
 - Reduced command complexity (addressing Biome lint warnings)
 - Consistent error handling and user feedback patterns
 - Spinner and progress indication improvements
 
 #### Better Configuration Support
+
 - Extended ConversionOptions with new feature flags
 - Backward compatibility with existing configurations
 - Smart defaults for new features (disabled by default)
@@ -201,18 +222,21 @@ starlight-convert batch <input> [options]
 ### 🐛 Bug Fixes & Improvements
 
 #### Content Processing
+
 - Fixed YAML frontmatter parsing edge cases
 - Improved markdown heading extraction reliability
 - Better handling of special characters in titles and descriptions
 - Enhanced error messages for debugging conversion issues
 
 #### Link Processing
+
 - Resolved relative path calculation issues
 - Fixed extension handling for .md/.mdx files
 - Improved internal link detection accuracy
 - Better error reporting for broken links
 
 #### Image Handling
+
 - Fixed asset directory creation race conditions
 - Improved image path resolution for nested directories
 - Better handling of external image URLs
@@ -221,6 +245,7 @@ starlight-convert batch <input> [options]
 ### 🔄 Migration Guide
 
 #### For Existing Users
+
 All existing functionality remains fully compatible. New features are opt-in:
 
 ```bash
@@ -232,12 +257,14 @@ starlight-convert batch docs/ --fix-links --generate-toc
 ```
 
 #### For Plugin Developers
+
 - Plugin interfaces remain backward compatible
 - New optional methods available for enhanced functionality
 - Updated DocumentMetadata interface includes new optional fields
 - Plugin registration system unchanged
 
 ### 📋 Breaking Changes
+
 - **None** - This is a feature release with full backward compatibility
 
 ---
@@ -245,6 +272,7 @@ starlight-convert batch docs/ --fix-links --generate-toc
 ## [1.2.0] - 2025-08-09
 
 ### Added
+
 - Graceful file type detection and handling
 - Smart binary file filtering (automatically skips images, assets, etc.)
 - Text-based file processing (processes .js, .json, .yaml, etc. as plain text)
@@ -252,18 +280,21 @@ starlight-convert batch docs/ --fix-links --generate-toc
 - Better CLI output showing successful, skipped, and failed files separately
 
 ### Fixed
+
 - **Major improvement**: Reduced error rate from ~79% to minimal failures by gracefully handling unsupported file formats
 - No more flooding of "Unsupported file format" errors
 - Binary files (.webp, .png, .svg, .ico, .ttf, etc.) are now silently skipped instead of throwing errors
 - Text-based files are intelligently processed instead of being rejected
 
 ### Improved
+
 - Code complexity reduction through function refactoring
 - Better separation of concerns in file processing logic
 - Enhanced error messages with clear categorization
 - More informative statistics tracking and reporting
 
 ### Technical
+
 - Refactored `convertFile` method to reduce cognitive complexity
 - Added `shouldSkipFile()`, `isTextBasedFile()`, and `processFileByType()` helper methods
 - Updated `ConversionResult` interface with `skipped` and `errorMessage` properties
@@ -273,6 +304,7 @@ starlight-convert batch docs/ --fix-links --generate-toc
 ## [1.1.0] - 2025-08-09
 
 ### Added
+
 - Enhanced folder detection logic for better Starlight project integration
 - Improved default folder detection and recommendations
 - Better CLI user experience with smart input source detection
@@ -280,12 +312,14 @@ starlight-convert batch docs/ --fix-links --generate-toc
 - Code quality improvements with Biome integration
 
 ### Changed
+
 - Migrated from ESLint to Biome for better linting and formatting
 - Refactored complex functions to improve maintainability and reduce cognitive complexity
 - Updated Node.js engine requirement to ≥20.0.0
 - Enhanced peer dependency configuration with optional flags
 
 ### Fixed
+
 - Updated dependency handling and build configuration
 - Improved GitHub Actions workflows for automated publishing
 - Fixed pnpm workflow configurations
@@ -293,6 +327,7 @@ starlight-convert batch docs/ --fix-links --generate-toc
 - Enhanced test suite reliability and coverage
 
 ### Technical
+
 - Broke down `interactiveConvert` function into smaller, focused helper functions
 - Simplified `extractDescription`, `extractTags`, and validation methods
 - Split large conversion functions into manageable, testable units
@@ -302,18 +337,21 @@ starlight-convert batch docs/ --fix-links --generate-toc
 ## [1.0.2] - 2025-08-09
 
 ### Fixed
+
 - **Critical**: Moved Astro and Starlight dependencies to optional peer dependencies for global installation compatibility
 - Resolved dependency conflicts preventing global package installation
 - Enhanced integration utilities for better framework detection
 - Improved CLI helper functions for more robust operation
 
 ### Changed
+
 - Updated Node.js engine requirement from ≥18.0.0 to ≥22.0.0
 - Updated Astro peer dependency to ^5.12.9 and Starlight to ^0.35.2
 - Enhanced peer dependency metadata with optional configuration
 - Updated development dependencies for better compatibility
 
 ### Technical
+
 - Enhanced `starlight-detector.ts` with better project detection logic
 - Improved `cli-helpers.ts` with more robust utility functions
 - Updated `integration.ts` with enhanced framework integration capabilities
@@ -321,12 +359,14 @@ starlight-convert batch docs/ --fix-links --generate-toc
 ## [1.0.1] - 2025-08-09
 
 ### Fixed
+
 - Fixed CI/CD pipeline configuration for GitHub Actions
 - Corrected pnpm installation syntax in workflow files
 - Added proper peer dependency installation in automated builds
 - Enhanced release workflow with better dependency management
 
 ### Changed
+
 - Updated package dependencies for better security and compatibility
 - Improved GitHub Actions workflow configuration
 - Enhanced automated testing and publishing pipeline
@@ -334,6 +374,7 @@ starlight-convert batch docs/ --fix-links --generate-toc
 ## [1.0.0] - 2025-08-09
 
 ### Added
+
 - Initial release of Starlight Document Converter
 - Support for multiple document formats (.docx, .doc, .txt, .html, .htm, .md, .rtf)
 - Astro integration for automatic document conversion
@@ -346,6 +387,7 @@ starlight-convert batch docs/ --fix-links --generate-toc
 - Example configurations and usage patterns
 
 ### Features
+
 - **Multi-format Support**: Convert Word docs, HTML, text files, and more
 - **Astro Integration**: Seamless integration with Astro Starlight projects
 - **CLI Tool**: Standalone command-line interface with `starlight-convert`
@@ -356,6 +398,7 @@ starlight-convert batch docs/ --fix-links --generate-toc
 - **TypeScript**: Full type definitions and TypeScript source code
 
 ### Documentation
+
 - Comprehensive README with usage examples
 - API documentation with TypeScript types
 - Example Astro configuration

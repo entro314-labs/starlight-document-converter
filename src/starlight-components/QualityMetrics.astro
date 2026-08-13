@@ -606,7 +606,7 @@ class QualityMetrics {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    
+
     // Simple chart implementation (in production, you'd use Chart.js or similar)
     this.drawChart(ctx, canvas);
   }
@@ -614,10 +614,10 @@ class QualityMetrics {
   drawChart(ctx, canvas) {
     const width = canvas.width;
     const height = canvas.height;
-    
+
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
-    
+
     // Sample data for demonstration
     const data = [
       { high: 30, medium: 45, low: 25 },
@@ -628,33 +628,33 @@ class QualityMetrics {
       { high: 42, medium: 38, low: 20 },
       { high: 45, medium: 35, low: 20 }
     ];
-    
+
     const colors = {
       high: '#22c55e',
-      medium: '#eab308', 
+      medium: '#eab308',
       low: '#ef4444'
     };
-    
+
     const barWidth = width / data.length;
-    
+
     data.forEach((point, index) => {
       const x = index * barWidth;
       const total = point.high + point.medium + point.low;
-      
+
       let y = height;
-      
+
       // Draw low quality bar
       const lowHeight = (point.low / total) * height;
       ctx.fillStyle = colors.low;
       ctx.fillRect(x + 5, y - lowHeight, barWidth - 10, lowHeight);
       y -= lowHeight;
-      
+
       // Draw medium quality bar
       const mediumHeight = (point.medium / total) * height;
       ctx.fillStyle = colors.medium;
       ctx.fillRect(x + 5, y - mediumHeight, barWidth - 10, mediumHeight);
       y -= mediumHeight;
-      
+
       // Draw high quality bar
       const highHeight = (point.high / total) * height;
       ctx.fillStyle = colors.high;
@@ -673,7 +673,7 @@ class QualityMetrics {
       const finalValue = parseInt(element.textContent);
       let currentValue = 0;
       const increment = Math.ceil(finalValue / 30);
-      
+
       const timer = setInterval(() => {
         currentValue += increment;
         if (currentValue >= finalValue) {
@@ -689,7 +689,7 @@ class QualityMetrics {
     // Simulate data refresh
     const refreshBtn = document.querySelector('.refresh-btn');
     refreshBtn?.classList.add('animate-spin');
-    
+
     setTimeout(() => {
       refreshBtn?.classList.remove('animate-spin');
       this.loadData();
@@ -699,7 +699,7 @@ class QualityMetrics {
 
   changeTimeframe(timeframe) {
     // Update data based on timeframe
-    console.log('Changing timeframe to:', timeframe);
+    // Changed timeframe
     this.loadData();
   }
 
@@ -712,7 +712,7 @@ class QualityMetrics {
       'Poor structure': 'Use clear headings, bullet points, and logical content organization.',
       'No categories': 'Assign appropriate categories based on content type and topic.'
     };
-    
+
     const guide = guides[issue] || 'General quality improvement tips available in documentation.';
     alert(`Fix Guide for "${issue}":\n\n${guide}`);
   }
@@ -732,14 +732,14 @@ class QualityMetrics {
       z-index: 100;
       animation: slideIn 0.3s ease;
     `;
-    
+
     if (type === 'success') {
       toast.style.borderColor = '#22c55e';
     }
-    
+
     toast.textContent = message;
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.remove();
     }, 3000);
@@ -748,7 +748,8 @@ class QualityMetrics {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new QualityMetrics();
+  const qualityMetrics = new QualityMetrics()
+  void qualityMetrics
 });
 
 // Add CSS animation for spinner

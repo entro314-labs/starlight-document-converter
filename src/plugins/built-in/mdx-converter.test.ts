@@ -1,16 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { MDXConverter } from './mdx-converter.js'
 import type { ProcessingContext } from '../types.js'
 
-describe('MDXConverter', () => {
-  const createContext = (extension = '.md'): ProcessingContext => ({
-    inputPath: '/test/input.md',
-    outputPath: '/test/output.mdx',
-    filename: 'input.md',
-    extension,
-    options: {},
-  })
+const createContext = (extension = '.md'): ProcessingContext => ({
+  inputPath: '/test/input.md',
+  outputPath: '/test/output.mdx',
+  filename: 'input.md',
+  extension,
+  options: {},
+})
 
+describe('MDXConverter', () => {
   describe('Callout Conversion', () => {
     it('should convert GitHub-style callouts to Aside components', async () => {
       const converter = new MDXConverter({ convertCallouts: true })

@@ -612,7 +612,7 @@ class StarlightDashboard {
     this.dropzone = document.getElementById('starlightDropzone');
     this.fileInput = document.getElementById('starlightFileInput');
     this.progressModal = document.getElementById('conversionProgress');
-    
+
     this.init();
   }
 
@@ -706,16 +706,16 @@ class StarlightDashboard {
     try {
       // Convert files (this would call the actual converter API)
       await this.convertFiles(validFiles);
-      
+
       // Update stats
       this.updateStats();
-      
+
       // Hide progress modal
       this.hideProgressModal();
-      
+
       // Show success message
       this.showToast(`Successfully converted ${validFiles.length} file(s)`, 'success');
-      
+
     } catch (error) {
       this.hideProgressModal();
       this.showToast('Conversion failed: ' + error.message, 'error');
@@ -724,16 +724,16 @@ class StarlightDashboard {
 
   async convertFiles(files) {
     const settings = this.getConversionSettings();
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      
+
       // Update progress
       this.updateProgress(i / files.length * 100, `Converting ${file.name}...`);
-      
+
       // Simulate conversion (replace with actual API call)
       await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-      
+
       // Add to recent conversions
       this.addRecentConversion({
         fileName: file.name,
@@ -741,7 +741,7 @@ class StarlightDashboard {
         quality: Math.floor(Math.random() * 40) + 60 // Random quality 60-100
       });
     }
-    
+
     this.updateProgress(100, 'Conversion complete!');
   }
 
@@ -766,7 +766,7 @@ class StarlightDashboard {
     const progressFill = document.getElementById('overallProgress');
     const progressStatus = document.getElementById('progressStatus');
     const progressPercent = document.getElementById('progressPercent');
-    
+
     if (progressFill) progressFill.style.width = `${percent}%`;
     if (progressStatus) progressStatus.textContent = status;
     if (progressPercent) progressPercent.textContent = `${Math.round(percent)}%`;
@@ -775,7 +775,7 @@ class StarlightDashboard {
   loadStats() {
     // Load stats from localStorage or API
     const stats = JSON.parse(localStorage.getItem('starlight-converter-stats') || '{}');
-    
+
     document.getElementById('totalConverted').textContent = stats.totalConverted || 0;
     document.getElementById('highQuality').textContent = stats.highQuality || 0;
     document.getElementById('mediumQuality').textContent = stats.mediumQuality || 0;
@@ -786,7 +786,7 @@ class StarlightDashboard {
     const stats = JSON.parse(localStorage.getItem('starlight-converter-stats') || '{}');
     stats.totalConverted = (stats.totalConverted || 0) + 1;
     // Update quality stats based on conversion results
-    
+
     localStorage.setItem('starlight-converter-stats', JSON.stringify(stats));
     this.loadStats();
   }
@@ -795,7 +795,7 @@ class StarlightDashboard {
     const recent = JSON.parse(localStorage.getItem('starlight-recent-conversions') || '[]');
     recent.unshift(conversion);
     recent.splice(5); // Keep only 5 most recent
-    
+
     localStorage.setItem('starlight-recent-conversions', JSON.stringify(recent));
     this.updateRecentConversions();
   }
@@ -803,13 +803,13 @@ class StarlightDashboard {
   updateRecentConversions() {
     const recent = JSON.parse(localStorage.getItem('starlight-recent-conversions') || '[]');
     const container = document.getElementById('recentConversions');
-    
+
     if (!container || recent.length === 0) return;
-    
+
     container.innerHTML = recent.map(item => {
       const date = new Date(item.timestamp).toLocaleString();
       const qualityColor = item.quality >= 80 ? '🟢' : item.quality >= 60 ? '🟡' : '🔴';
-      
+
       return `
         <div class="recent-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--sl-color-gray-6); border-radius: 0.25rem; margin-bottom: 0.5rem;">
           <div>
@@ -838,16 +838,16 @@ class StarlightDashboard {
       z-index: 100;
       animation: slideIn 0.3s ease;
     `;
-    
+
     if (type === 'success') {
       toast.style.borderColor = 'var(--sl-color-green)';
     } else if (type === 'error') {
       toast.style.borderColor = 'var(--sl-color-red)';
     }
-    
+
     toast.textContent = message;
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
       toast.remove();
     }, 3000);
@@ -868,7 +868,8 @@ class StarlightDashboard {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new StarlightDashboard();
+  const dashboard = new StarlightDashboard()
+  void dashboard
 });
 
 // Add slideIn animation

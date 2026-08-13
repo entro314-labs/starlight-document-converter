@@ -6,57 +6,6 @@ import type {
   QualityValidator,
 } from '../types.js'
 
-/**
- * Comprehensive quality validator for generated content
- */
-export const contentQualityValidator: QualityValidator = {
-  metadata: {
-    name: 'content-quality-validator',
-    version: '1.0.0',
-    description: 'Validates content quality and provides improvement suggestions',
-    author: 'Starlight Document Converter',
-  },
-
-  validate: (
-    content: string,
-    metadata: DocumentMetadata,
-    _context: ProcessingContext
-  ): QualityReport => {
-    const issues: QualityIssue[] = []
-    let score = 100
-
-    // Validate metadata quality
-    const metadataScore = validateMetadata(metadata, issues)
-
-    // Validate content structure
-    const structureScore = validateContentStructure(content, issues)
-
-    // Validate content quality
-    const contentScore = validateContentQuality(content, issues)
-
-    // Validate accessibility
-    const accessibilityScore = validateAccessibility(content, issues)
-
-    // Calculate weighted score
-    score = Math.round(
-      metadataScore * 0.25 + structureScore * 0.3 + contentScore * 0.35 + accessibilityScore * 0.1
-    )
-
-    // Determine quality level
-    const level: 'high' | 'medium' | 'low' = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low'
-
-    // Generate suggestions
-    const suggestions = generateSuggestions(issues, metadata, content)
-
-    return {
-      score,
-      level,
-      issues,
-      suggestions,
-    }
-  },
-}
-
 function validateMetadata(metadata: DocumentMetadata, issues: QualityIssue[]): number {
   let score = 100
 
@@ -391,4 +340,55 @@ function generateSuggestions(
   }
 
   return suggestions
+}
+
+/**
+ * Comprehensive quality validator for generated content
+ */
+export const contentQualityValidator: QualityValidator = {
+  metadata: {
+    name: 'content-quality-validator',
+    version: '1.0.0',
+    description: 'Validates content quality and provides improvement suggestions',
+    author: 'Starlight Document Converter',
+  },
+
+  validate: (
+    content: string,
+    metadata: DocumentMetadata,
+    _context: ProcessingContext
+  ): QualityReport => {
+    const issues: QualityIssue[] = []
+    let score = 100
+
+    // Validate metadata quality
+    const metadataScore = validateMetadata(metadata, issues)
+
+    // Validate content structure
+    const structureScore = validateContentStructure(content, issues)
+
+    // Validate content quality
+    const contentScore = validateContentQuality(content, issues)
+
+    // Validate accessibility
+    const accessibilityScore = validateAccessibility(content, issues)
+
+    // Calculate weighted score
+    score = Math.round(
+      metadataScore * 0.25 + structureScore * 0.3 + contentScore * 0.35 + accessibilityScore * 0.1
+    )
+
+    // Determine quality level
+    const level: 'high' | 'medium' | 'low' = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low'
+
+    // Generate suggestions
+    const suggestions = generateSuggestions(issues, metadata, content)
+
+    return {
+      score,
+      level,
+      issues,
+      suggestions,
+    }
+  },
 }

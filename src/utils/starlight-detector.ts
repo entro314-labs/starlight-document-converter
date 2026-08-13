@@ -18,44 +18,6 @@ export interface StarlightConfig {
 }
 
 /**
- * Detects Starlight configuration from the Astro project
- */
-export function detectStarlightConfig(projectRoot: string): StarlightConfig {
-  const defaults: StarlightConfig = {
-    contentDir: 'src/content',
-    collectionsDir: 'src/content',
-    docsDir: 'src/content/docs',
-    title: 'Documentation',
-    description: 'Documentation site powered by Starlight',
-  }
-
-  try {
-    // Try to read astro.config.mjs/ts files
-    const configPaths = ['astro.config.mjs', 'astro.config.ts', 'astro.config.js']
-
-    for (const configPath of configPaths) {
-      const fullPath = resolve(projectRoot, configPath)
-      if (existsSync(fullPath)) {
-        const config = parseAstroConfig(fullPath)
-        if (config) {
-          return mergeWithDefaults(defaults, config)
-        }
-      }
-    }
-
-    // Check for existing content directories
-    const detectedDirs = detectContentDirectories(projectRoot)
-    return {
-      ...defaults,
-      ...detectedDirs,
-    }
-  } catch (error) {
-    console.warn('Could not detect Starlight config, using defaults:', error)
-    return defaults
-  }
-}
-
-/**
  * Parse Astro config to extract Starlight settings
  */
 function parseAstroConfig(configPath: string): Partial<StarlightConfig> | null {
@@ -133,6 +95,44 @@ function mergeWithDefaults(
   return {
     ...defaults,
     ...detected,
+  }
+}
+
+/**
+ * Detects Starlight configuration from the Astro project
+ */
+export function detectStarlightConfig(projectRoot: string): StarlightConfig {
+  const defaults: StarlightConfig = {
+    contentDir: 'src/content',
+    collectionsDir: 'src/content',
+    docsDir: 'src/content/docs',
+    title: 'Documentation',
+    description: 'Documentation site powered by Starlight',
+  }
+
+  try {
+    // Try to read astro.config.mjs/ts files
+    const configPaths = ['astro.config.mjs', 'astro.config.ts', 'astro.config.js']
+
+    for (const configPath of configPaths) {
+      const fullPath = resolve(projectRoot, configPath)
+      if (existsSync(fullPath)) {
+        const config = parseAstroConfig(fullPath)
+        if (config) {
+          return mergeWithDefaults(defaults, config)
+        }
+      }
+    }
+
+    // Check for existing content directories
+    const detectedDirs = detectContentDirectories(projectRoot)
+    return {
+      ...defaults,
+      ...detectedDirs,
+    }
+  } catch (error) {
+    console.warn('Could not detect Starlight config, using defaults:', error)
+    return defaults
   }
 }
 

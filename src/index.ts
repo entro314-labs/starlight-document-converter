@@ -5,10 +5,7 @@ export { default as mammoth } from 'mammoth'
 export { default as TurndownService } from 'turndown'
 
 export { DocumentConverter } from './converter.js'
-export {
-  starlightDocumentConverter as default,
-  starlightDocumentConverter,
-} from './integration.js'
+export { starlightDocumentConverter as default, starlightDocumentConverter } from './integration.js'
 // Plugin system exports
 export * from './plugins/index.js'
 

@@ -1,4 +1,79 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
+
+const parseOutputOption = (args: string[]) => {
+  const outputIndex = args.findIndex((arg) => arg === '-o' || arg === '--output')
+  if (outputIndex !== -1 && outputIndex + 1 < args.length) {
+    return args[outputIndex + 1]
+  }
+  return 'src/content/docs' // default
+}
+
+const parseBooleanFlag = (args: string[], flag: string) => {
+  return args.includes(flag)
+}
+
+const generateHelp = () => {
+  return {
+    title: 'Beautiful document converter for Starlight',
+    usage: 'Usage: starlight-convert [options] [command]',
+    commands: [
+      'convert                  Convert documents interactively',
+      'batch [options] <input>  Convert documents in batch mode',
+      'setup                    Interactive project setup wizard',
+      'watch [options] <input>  Watch directory for changes',
+    ],
+    examples: [
+      'starlight-convert                    Interactive mode',
+      'starlight-convert setup              Project setup wizard',
+      'starlight-convert batch docs/        Convert directory',
+      'starlight-convert watch docs-import/ Watch for changes',
+    ],
+  }
+}
+
+const handleInvalidCommand = (command: string) => {
+  const validCommands = ['convert', 'batch', 'setup', 'watch']
+  if (!validCommands.includes(command)) {
+    return { error: `Unknown command: ${command}`, exitCode: 1 }
+  }
+  return { error: null, exitCode: 0 }
+}
+
+const validateBatchCommand = (args: string[]) => {
+  if (args.length === 0) {
+    return { error: 'Missing required argument: input', exitCode: 1 }
+  }
+  return { error: null, exitCode: 0 }
+}
+
+const buildConverterConfig = (options: Record<string, unknown>) => {
+  return {
+    outputDir: options.output || 'src/content/docs',
+    preserveStructure: !options.noPreserve,
+    generateTitles: !options.noTitles,
+    generateDescriptions: !options.noDescriptions,
+    addTimestamps: options.timestamps,
+    defaultCategory: options.category || 'documentation',
+    verbose: options.verbose,
+    dryRun: options.dryRun,
+  }
+}
+
+const validateFileExtension = (filename: string) => {
+  const supportedExtensions = ['.md', '.mdx', '.txt', '.html', '.htm', '.docx', '.doc', '.rtf']
+  const ext = `.${filename.split('.').pop()?.toLowerCase()}`
+  return supportedExtensions.includes(ext)
+}
+
+const validatePath = (filePath: string) => {
+  if (!filePath || filePath.trim() === '') {
+    return { valid: false, error: 'Path cannot be empty' }
+  }
+  if (filePath.includes('..')) {
+    return { valid: false, error: 'Path traversal not allowed' }
+  }
+  return { valid: true, error: null }
+}
 
 describe('CLI Unit Tests', () => {
   beforeEach(() => {
@@ -71,24 +146,12 @@ describe('CLI Unit Tests', () => {
 
   describe('Option Parsing', () => {
     it('should parse output directory option', () => {
-      const parseOutputOption = (args: string[]) => {
-        const outputIndex = args.findIndex((arg) => arg === '-o' || arg === '--output')
-        if (outputIndex !== -1 && outputIndex + 1 < args.length) {
-          return args[outputIndex + 1]
-        }
-        return 'src/content/docs' // default
-      }
-
       expect(parseOutputOption(['-o', 'custom-output'])).toBe('custom-output')
       expect(parseOutputOption(['--output', 'another-dir'])).toBe('another-dir')
       expect(parseOutputOption(['--verbose'])).toBe('src/content/docs')
     })
 
     it('should parse boolean flags', () => {
-      const parseBooleanFlag = (args: string[], flag: string) => {
-        return args.includes(flag)
-      }
-
       expect(parseBooleanFlag(['--dry-run', '--verbose'], '--dry-run')).toBe(true)
       expect(parseBooleanFlag(['--verbose'], '--dry-run')).toBe(false)
       expect(parseBooleanFlag(['--no-titles'], '--no-titles')).toBe(true)
@@ -97,25 +160,6 @@ describe('CLI Unit Tests', () => {
 
   describe('Help Text Generation', () => {
     it('should generate proper help text', () => {
-      const generateHelp = () => {
-        return {
-          title: 'Beautiful document converter for Starlight',
-          usage: 'Usage: starlight-convert [options] [command]',
-          commands: [
-            'convert                  Convert documents interactively',
-            'batch [options] <input>  Convert documents in batch mode',
-            'setup                    Interactive project setup wizard',
-            'watch [options] <input>  Watch directory for changes',
-          ],
-          examples: [
-            'starlight-convert                    Interactive mode',
-            'starlight-convert setup              Project setup wizard',
-            'starlight-convert batch docs/        Convert directory',
-            'starlight-convert watch docs-import/ Watch for changes',
-          ],
-        }
-      }
-
       const help = generateHelp()
       expect(help.title).toContain('Beautiful document converter')
       expect(help.usage).toContain('starlight-convert')
@@ -126,27 +170,12 @@ describe('CLI Unit Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle invalid commands gracefully', () => {
-      const handleInvalidCommand = (command: string) => {
-        const validCommands = ['convert', 'batch', 'setup', 'watch']
-        if (!validCommands.includes(command)) {
-          return { error: `Unknown command: ${command}`, exitCode: 1 }
-        }
-        return { error: null, exitCode: 0 }
-      }
-
       const result = handleInvalidCommand('invalid-command')
       expect(result.error).toContain('Unknown command')
       expect(result.exitCode).toBe(1)
     })
 
     it('should handle missing required arguments', () => {
-      const validateBatchCommand = (args: string[]) => {
-        if (args.length === 0) {
-          return { error: 'Missing required argument: input', exitCode: 1 }
-        }
-        return { error: null, exitCode: 0 }
-      }
-
       const result = validateBatchCommand([])
       expect(result.error).toContain('required')
       expect(result.exitCode).toBe(1)
@@ -155,19 +184,6 @@ describe('CLI Unit Tests', () => {
 
   describe('Configuration Building', () => {
     it('should build correct converter configuration', () => {
-      const buildConverterConfig = (options: Record<string, unknown>) => {
-        return {
-          outputDir: options.output || 'src/content/docs',
-          preserveStructure: !options.noPreserve,
-          generateTitles: !options.noTitles,
-          generateDescriptions: !options.noDescriptions,
-          addTimestamps: options.timestamps,
-          defaultCategory: options.category || 'documentation',
-          verbose: options.verbose,
-          dryRun: options.dryRun,
-        }
-      }
-
       const config1 = buildConverterConfig({
         output: 'custom-dir',
         verbose: true,
@@ -195,21 +211,6 @@ describe('CLI Unit Tests', () => {
 
   describe('File Validation', () => {
     it('should validate supported file extensions', () => {
-      const validateFileExtension = (filename: string) => {
-        const supportedExtensions = [
-          '.md',
-          '.mdx',
-          '.txt',
-          '.html',
-          '.htm',
-          '.docx',
-          '.doc',
-          '.rtf',
-        ]
-        const ext = `.${filename.split('.').pop()?.toLowerCase()}`
-        return supportedExtensions.includes(ext)
-      }
-
       expect(validateFileExtension('test.md')).toBe(true)
       expect(validateFileExtension('test.docx')).toBe(true)
       expect(validateFileExtension('test.html')).toBe(true)
@@ -218,16 +219,6 @@ describe('CLI Unit Tests', () => {
     })
 
     it('should validate file paths', () => {
-      const validatePath = (path: string) => {
-        if (!path || path.trim() === '') {
-          return { valid: false, error: 'Path cannot be empty' }
-        }
-        if (path.includes('..')) {
-          return { valid: false, error: 'Path traversal not allowed' }
-        }
-        return { valid: true, error: null }
-      }
-
       expect(validatePath('docs/test.md')).toEqual({ valid: true, error: null })
       expect(validatePath('../../../etc/passwd')).toEqual({
         valid: false,

@@ -31,13 +31,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '24.19.0'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11.20.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -65,7 +65,7 @@ jobs:
             TAG="${{ github.ref_name }}"
             PRERELEASE="false"
           fi
-          
+
           VERSION=${TAG#v}
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -76,7 +76,7 @@ jobs:
         run: |
           # Get previous tag for changelog
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          
+
           if [[ -n "$PREVIOUS_TAG" ]]; then
             echo "## 📋 What's Changed" > CHANGELOG.md
             echo "" >> CHANGELOG.md
@@ -91,7 +91,7 @@ jobs:
             echo "" >> CHANGELOG.md
             echo "First release of Starlight Document Converter!" >> CHANGELOG.md
           fi
-          
+
           # Output for use in release
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           cat CHANGELOG.md >> $GITHUB_OUTPUT
@@ -115,40 +115,40 @@ jobs:
           release_name: 🚀 Release ${{ steps.release_info.outputs.tag }}
           body: |
             ## 🎉 Starlight Document Converter v${{ steps.release_info.outputs.version }}
-            
+
             Transform your documents into beautiful Starlight-compatible markdown with smart frontmatter generation.
-            
+
             ### 🚀 Quick Start
-            
+
             ```bash
             npx @entro314labs/starlight-document-converter
             ```
-            
+
             ### 📦 Installation
-            
+
             ```bash
             # Global installation
             npm install -g @entro314labs/starlight-document-converter
-            
+
             # Or use directly
             npx @entro314labs/starlight-document-converter
             ```
-            
+
             ### ✨ Features
-            
+
             - 📄 Convert Word docs, HTML, text files to Markdown
             - 🎯 Smart frontmatter generation with titles, descriptions, tags
             - 🔍 Auto-detect Starlight project structure
             - 📁 Batch processing with directory support
             - 🎨 Interactive CLI with beautiful UI
             - 🚀 Preserves document structure and formatting
-            
+
             ${{ steps.changelog.outputs.changelog }}
-            
+
             ---
-            
+
             💖 **Enjoying this tool?** Star the repo and share with fellow developers!
-            
+
             📖 **Documentation**: [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
             🐛 **Issues**: [Report bugs](https://github.com/${{ github.repository }}/issues)
             💬 **Discussions**: [Community](https://github.com/${{ github.repository }}/discussions)

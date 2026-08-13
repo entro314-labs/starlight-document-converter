@@ -1,17 +1,17 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { MDXEnhancer } from './mdx-enhancer.js'
 import type { ProcessingContext, DocumentMetadata } from '../types.js'
 
-describe('MDXEnhancer', () => {
-  const createContext = (content: string, extension = '.mdx'): ProcessingContext => ({
-    inputPath: '/test/input.mdx',
-    outputPath: '/test/output.mdx',
-    filename: 'input.mdx',
-    extension,
-    options: {},
-    data: { content },
-  })
+const createContext = (content: string, extension = '.mdx'): ProcessingContext => ({
+  inputPath: '/test/input.mdx',
+  outputPath: '/test/output.mdx',
+  filename: 'input.mdx',
+  extension,
+  options: {},
+  data: { content },
+})
 
+describe('MDXEnhancer', () => {
   describe('Component Detection', () => {
     it('should detect JSX components in content', async () => {
       const enhancer = new MDXEnhancer({ detectComponents: true })

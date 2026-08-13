@@ -110,7 +110,7 @@ export class MDXConverter implements FileProcessor {
   private hasJSXContent(content: string): boolean {
     // Check for existing JSX components
     const jsxPatterns = [
-      /<[A-Z][a-zA-Z0-9]*[\s\/>]/, // Component tags
+      /<[A-Z][a-zA-Z0-9]*[\s/>]/, // Component tags
       /import\s+.*\s+from\s+['"]/, // Import statements
       /export\s+(default\s+)?/, // Export statements
     ]
@@ -254,8 +254,7 @@ export class MDXConverter implements FileProcessor {
    */
   private convertSteps(content: string): string {
     // Look for numbered lists with step-like content
-    const stepsPattern =
-      /^(?:#{2,3}\s+Steps?\s*$\n)?((?:^\d+\.\s+.+$\n(?:(?!^\d+\.).*\n)*)+)/gm
+    const stepsPattern = /^(?:#{2,3}\s+Steps?\s*$\n)?((?:^\d+\.\s+.+$\n(?:(?!^\d+\.).*\n)*)+)/gm
 
     return content.replace(stepsPattern, (match, stepsList, offset) => {
       // Only convert if explicitly marked as "Steps" or has 3+ items
@@ -267,7 +266,7 @@ export class MDXConverter implements FileProcessor {
       }
 
       const stepItems: string[] = []
-      const stepPattern = /^\d+\.\s+(.+?)(?=^\d+\.\s+|\Z)/gms
+      const stepPattern = /^\d+\.\s+(.+?)(?=^\d+\.\s+|Z)/gms
 
       let stepMatch: RegExpExecArray | null
       while ((stepMatch = stepPattern.exec(stepsList)) !== null) {
@@ -325,7 +324,7 @@ export class MDXConverter implements FileProcessor {
     // Generate import statements
     const importStatements: string[] = []
     for (const [source, components] of importsBySource) {
-      const componentList = Array.from(components).sort().join(', ')
+      const componentList = Array.from(components).toSorted().join(', ')
       importStatements.push(`import { ${componentList} } from '${source}';`)
     }
 

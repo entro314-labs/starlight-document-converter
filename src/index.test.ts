@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import type { ConversionResult, ConverterOptions, StarlightIntegrationConfig } from './index.js'
+import { describe, expect, it } from 'vite-plus/test'
+import type { ConversionResult, ConversionOptions, StarlightIntegrationConfig } from './index.js'
 import { DocumentConverter, starlightDocumentConverter } from './index.js'
 
 describe('Package Exports', () => {
@@ -26,7 +26,7 @@ describe('Package Exports', () => {
 
   it('should export TypeScript types', () => {
     // Test that types are accessible by using them
-    const options: ConverterOptions = {
+    const options: ConversionOptions = {
       outputDir: 'test',
       preserveStructure: true,
     }
@@ -35,7 +35,9 @@ describe('Package Exports', () => {
       success: true,
       inputPath: 'input.md',
       outputPath: 'output.md',
-      content: 'test content',
+      metadata: {
+        title: 'Test content',
+      },
     }
 
     const config: StarlightIntegrationConfig = {
@@ -56,7 +58,7 @@ describe('Integration Usage', () => {
   })
 
   it('should work with custom options', () => {
-    const options: ConverterOptions = {
+    const options: ConversionOptions = {
       outputDir: 'custom-output',
       preserveStructure: false,
       generateTitles: true,

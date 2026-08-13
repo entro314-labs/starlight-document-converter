@@ -1,16 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { JSXTransformer } from './jsx-transformer.js'
 import type { ProcessingContext } from '../types.js'
 
-describe('JSXTransformer', () => {
-  const createContext = (extension = '.md'): ProcessingContext => ({
-    inputPath: '/test/input.md',
-    outputPath: '/test/output.mdx',
-    filename: 'input.md',
-    extension,
-    options: {},
-  })
+const createContext = (extension = '.md'): ProcessingContext => ({
+  inputPath: '/test/input.md',
+  outputPath: '/test/output.mdx',
+  filename: 'input.md',
+  extension,
+  options: {},
+})
 
+describe('JSXTransformer', () => {
   describe('GitHub Alerts', () => {
     it('should transform GitHub-style alerts to Aside', async () => {
       const transformer = new JSXTransformer({ githubAlerts: true })

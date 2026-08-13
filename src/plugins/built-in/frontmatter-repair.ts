@@ -9,78 +9,6 @@ import type {
 } from '../../types.js'
 import type { MetadataEnhancer, ProcessingContext, QualityValidator } from '../types.js'
 
-/**
- * Frontmatter repair and validation plugin that integrates with the plugin system
- */
-export const frontmatterEnhancer: MetadataEnhancer = {
-  metadata: {
-    name: 'frontmatter-enhancer',
-    version: '1.0.0',
-    description: 'Enhances and repairs frontmatter metadata',
-    author: 'Starlight Document Converter',
-  },
-  priority: 100, // High priority to run early
-
-  enhance: async (
-    metadata: DocumentMetadata,
-    context: ProcessingContext
-  ): Promise<DocumentMetadata> => {
-    const repairer = new FrontmatterRepair()
-
-    // Read the file content if not provided
-    let content = ''
-    if (context.inputPath) {
-      const { readFile } = await import('node:fs/promises')
-      content = await readFile(context.inputPath, 'utf-8')
-    }
-
-    const repairResult = repairer.repairFrontmatter(content, context.inputPath)
-
-    if (repairResult.success && repairResult.fixed) {
-      // Extract enhanced metadata from repaired content
-      try {
-        const parsed = matter(repairResult.repairedContent)
-        return { ...metadata, ...parsed.data }
-      } catch {
-        return metadata
-      }
-    }
-
-    return metadata
-  },
-}
-
-export const frontmatterValidator: QualityValidator = {
-  metadata: {
-    name: 'frontmatter-validator',
-    version: '1.0.0',
-    description: 'Validates frontmatter quality and structure',
-    author: 'Starlight Document Converter',
-  },
-
-  validate: (content: string, metadata: DocumentMetadata, context: ProcessingContext) => {
-    const repairer = new FrontmatterRepair()
-    const validation = repairer.validateContent(content, context.inputPath)
-
-    // Convert our ValidationResult to the expected QualityReport format
-    return {
-      score: validation.score?.titleScore || 0,
-      level:
-        validation.score?.overall === 'good'
-          ? 'high'
-          : validation.score?.overall === 'fair'
-            ? 'medium'
-            : 'low',
-      issues: validation.issues.map((issue) => ({
-        type: issue.type,
-        message: issue.message,
-        severity: issue.type === 'error' ? 8 : issue.type === 'warning' ? 5 : 2,
-      })),
-      suggestions: validation.score?.suggestions || [],
-    }
-  },
-}
-
 export class FrontmatterRepair {
   private readonly requiredFields = ['title']
   private readonly recommendedFields = ['description']
@@ -523,4 +451,76 @@ export class FrontmatterRepair {
   private escapeYamlString(str: string): string {
     return str.replace(/"/g, '\\"')
   }
+}
+
+/**
+ * Frontmatter repair and validation plugin that integrates with the plugin system
+ */
+export const frontmatterEnhancer: MetadataEnhancer = {
+  metadata: {
+    name: 'frontmatter-enhancer',
+    version: '1.0.0',
+    description: 'Enhances and repairs frontmatter metadata',
+    author: 'Starlight Document Converter',
+  },
+  priority: 100, // High priority to run early
+
+  enhance: async (
+    metadata: DocumentMetadata,
+    context: ProcessingContext
+  ): Promise<DocumentMetadata> => {
+    const repairer = new FrontmatterRepair()
+
+    // Read the file content if not provided
+    let content = ''
+    if (context.inputPath) {
+      const { readFile } = await import('node:fs/promises')
+      content = await readFile(context.inputPath, 'utf-8')
+    }
+
+    const repairResult = repairer.repairFrontmatter(content, context.inputPath)
+
+    if (repairResult.success && repairResult.fixed) {
+      // Extract enhanced metadata from repaired content
+      try {
+        const parsed = matter(repairResult.repairedContent)
+        return { ...metadata, ...parsed.data }
+      } catch {
+        return metadata
+      }
+    }
+
+    return metadata
+  },
+}
+
+export const frontmatterValidator: QualityValidator = {
+  metadata: {
+    name: 'frontmatter-validator',
+    version: '1.0.0',
+    description: 'Validates frontmatter quality and structure',
+    author: 'Starlight Document Converter',
+  },
+
+  validate: (content: string, metadata: DocumentMetadata, context: ProcessingContext) => {
+    const repairer = new FrontmatterRepair()
+    const validation = repairer.validateContent(content, context.inputPath)
+
+    // Convert our ValidationResult to the expected QualityReport format
+    return {
+      score: validation.score?.titleScore || 0,
+      level:
+        validation.score?.overall === 'good'
+          ? 'high'
+          : validation.score?.overall === 'fair'
+            ? 'medium'
+            : 'low',
+      issues: validation.issues.map((issue) => ({
+        type: issue.type,
+        message: issue.message,
+        severity: issue.type === 'error' ? 8 : issue.type === 'warning' ? 5 : 2,
+      })),
+      suggestions: validation.score?.suggestions || [],
+    }
+  },
 }

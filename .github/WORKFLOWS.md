@@ -5,13 +5,16 @@ This repository uses several GitHub Actions workflows to automate development, t
 ## 🔄 Available Workflows
 
 ### 1. **CI (Continuous Integration)**
+
 **File**: `.github/workflows/ci.yml`
 
 **Triggers:**
+
 - Push to `main` or `v2` branches
 - Pull requests to `main` branch
 
 **What it does:**
+
 - ✅ Tests across Node.js versions (18, 20, 22)
 - ✅ Type checking with TypeScript
 - ✅ Builds the project
@@ -20,39 +23,48 @@ This repository uses several GitHub Actions workflows to automate development, t
 - ✅ Uploads coverage reports to Codecov
 
 ### 2. **Update Dependencies**
+
 **File**: `.github/workflows/update-dependencies.yml`
 
 **Triggers:**
+
 - Scheduled: Every Monday at 9 AM UTC
 - Manual trigger via "workflow_dispatch"
 
 **What it does:**
+
 - 🔄 Updates all dependencies to latest versions
 - ✅ Runs tests to ensure compatibility
 - 🔄 Creates a PR with dependency updates
 - 📦 Auto-labels PR for easy review
 
 ### 3. **Publish to npm**
+
 **File**: `.github/workflows/publish.yml`
 
 **Triggers:**
+
 - When a GitHub release is published
 - Manual trigger with version bump options
 
 **What it does:**
+
 - ✅ Runs quality checks (tests, linting, typecheck)
 - 🏗️ Builds the package
 - 📦 Publishes to npm with provenance
 - 🏷️ Creates GitHub release (for manual triggers)
 
 ### 4. **Create Release**
+
 **File**: `.github/workflows/release.yml`
 
 **Triggers:**
-- Push of version tags (v*.*.*)
+
+- Push of version tags (v*.*.\*)
 - Manual trigger with custom tag/version
 
 **What it does:**
+
 - 📝 Generates automatic changelog from commits
 - ✅ Runs full quality checks
 - 🏗️ Builds the package
@@ -64,6 +76,7 @@ This repository uses several GitHub Actions workflows to automate development, t
 ### Publishing a New Release
 
 #### Option 1: Manual Release (Recommended)
+
 1. Go to **Actions** tab in GitHub
 2. Select **"Create Release"** workflow
 3. Click **"Run workflow"**
@@ -75,6 +88,7 @@ This repository uses several GitHub Actions workflows to automate development, t
    - Build beautiful release notes
 
 #### Option 2: Tag-based Release
+
 ```bash
 git tag v1.2.0
 git push origin v1.2.0
@@ -83,11 +97,13 @@ git push origin v1.2.0
 ### Publishing to npm
 
 #### Option 1: Automatic (via Release)
+
 When you create a GitHub release, the publish workflow automatically runs.
 
 #### Option 2: Manual Publish
+
 1. Go to **Actions** tab
-2. Select **"Publish to npm"** workflow  
+2. Select **"Publish to npm"** workflow
 3. Choose release type: `patch`, `minor`, or `major`
 4. The workflow will:
    - Bump version in package.json
@@ -115,6 +131,7 @@ Set these in your GitHub repository settings:
 ## 📊 Quality Gates
 
 All workflows include quality checks:
+
 - ✅ TypeScript compilation
 - ✅ Biome linting and formatting
 - ✅ Full test suite
@@ -132,6 +149,7 @@ This project follows [Semantic Versioning](https://semver.org/):
 ## 📝 Release Notes
 
 Releases automatically include:
+
 - 🎯 Feature highlights
 - 📋 Auto-generated changelog from commits
 - 📦 Installation instructions
@@ -140,6 +158,7 @@ Releases automatically include:
 ## 🤝 Contributing
 
 When contributing:
+
 1. All PRs trigger CI workflow
 2. Must pass all quality checks
 3. Coverage reports help identify untested code

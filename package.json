@@ -1,20 +1,39 @@
 {
   "name": "@entro314labs/starlight-document-converter",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "A document converter for Astro Starlight that transforms various document formats into Starlight-compatible Markdown with proper frontmatter",
   "keywords": [
     "astro",
-    "starlight",
     "document-converter",
-    "markdown",
-    "docx",
-    "html",
     "documentation",
+    "docx",
     "frontmatter",
-    "plugin"
+    "html",
+    "markdown",
+    "plugin",
+    "starlight"
   ],
-  "author": "entro314 labs",
+  "homepage": "https://github.com/entro314-labs/starlight-document-converter#readme",
+  "bugs": {
+    "url": "https://github.com/entro314-labs/starlight-document-converter/issues"
+  },
   "license": "MIT",
+  "author": "entro314 labs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/entro314-labs/starlight-document-converter.git"
+  },
+  "bin": {
+    "sdc": "./dist/cli.js",
+    "starlight-convert": "./dist/cli.js",
+    "starvert": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "src/starlight-components",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -26,23 +45,56 @@
       "import": "./dist/cli.js"
     }
   },
-  "bin": {
-    "starlight-convert": "./dist/cli.js",
-    "sdc": "./dist/cli.js",
-    "starvert": "./dist/cli.js"
+  "scripts": {
+    "build": "vp pack",
+    "check": "oxlint . && oxfmt --check .",
+    "check:fix": "oxlint --fix . && oxfmt .",
+    "check:fix-suggestions": "oxlint -f stylish --react-plugin --import-plugin --react-perf-plugin --type-aware --type-check --vitest-plugin --fix --fix-suggestions . && oxfmt --write .",
+    "dev": "vp pack --watch",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint -f github . > lint.md 2>&1",
+    "lint:fix": "oxlint -f stylish --fix .",
+    "lint:fix-unsafe": "oxlint -f stylish --react-plugin --node-plugin --import-plugin --react-perf-plugin --type-aware --type-check --vitest-plugin --fix --fix-suggestions --fix-dangerously .",
+    "prepare": "vp config",
+    "test": "vp test",
+    "test:coverage": "vp test --coverage",
+    "type-check": "tsgo --noEmit",
+    "typecheck": "tsc --noEmit"
   },
-  "files": [
-    "dist",
-    "src/starlight-components",
-    "README.md",
-    "CHANGELOG.md"
-  ],
-  "engines": {
-    "node": ">=22.20.0"
+  "dependencies": {
+    "@clack/core": "^1.1.0",
+    "@clack/prompts": "^1.1.0",
+    "boxen": "^8.0.1",
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.3",
+    "fast-glob": "^3.3.3",
+    "figures": "^6.1.0",
+    "gradient-string": "^3.0.0",
+    "gray-matter": "^4.0.3",
+    "mammoth": "^1.12.0",
+    "ora": "^9.3.0",
+    "picocolors": "^1.1.1",
+    "turndown": "^7.2.2"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^28.0.1",
+    "@types/node": "^25.5.0",
+    "@types/turndown": "^5.0.6",
+    "@vitest/coverage-v8": "4.1.0",
+    "@vitest/ui": "4.1.0",
+    "jsdom": "^29.0.1",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "oxlint-tsgolint": "^0.17.1",
+    "typescript": "rc",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
-    "@astrojs/starlight": "^0.36.1",
-    "astro": "^5.14.5"
+    "@astrojs/starlight": "^0.38.1",
+    "astro": "^6.0.6"
   },
   "peerDependenciesMeta": {
     "@astrojs/starlight": {
@@ -52,54 +104,8 @@
       "optional": true
     }
   },
-  "dependencies": {
-    "@clack/core": "^0.5.0",
-    "@clack/prompts": "^0.11.0",
-    "boxen": "^8.0.1",
-    "chalk": "^5.6.2",
-    "cli-table3": "^0.6.5",
-    "commander": "^14.0.2",
-    "fast-glob": "^3.3.3",
-    "figures": "^6.1.0",
-    "gradient-string": "^3.0.0",
-    "gray-matter": "^4.0.3",
-    "mammoth": "^1.11.0",
-    "ora": "^9.0.0",
-    "picocolors": "^1.1.1",
-    "turndown": "^7.2.2"
+  "engines": {
+    "node": ">=24.19.0"
   },
-  "devDependencies": {
-    "@biomejs/biome": "^2.3.4",
-    "@types/jsdom": "^27.0.0",
-    "@types/node": "^24.10.0",
-    "@types/turndown": "^5.0.6",
-    "@vitest/browser": "beta",
-    "@vitest/coverage-v8": "beta",
-    "@vitest/ui": "beta",
-    "jsdom": "^27.1.0",
-    "tsup": "^8.5.0",
-    "typescript": "^5.9.3",
-    "vitest": "beta"
-  },
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
-    "lint": "biome lint src/",
-    "lint:fix": "biome lint --write src/",
-    "format": "biome format --write src/",
-    "format:check": "biome format src/",
-    "check": "biome check src/",
-    "check:fix": "biome check --write src/",
-    "typecheck": "tsc --noEmit"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/entro314-labs/starlight-document-converter.git"
-  },
-  "bugs": {
-    "url": "https://github.com/entro314-labs/starlight-document-converter/issues"
-  },
-  "homepage": "https://github.com/entro314-labs/starlight-document-converter#readme"
+  "packageManager": "pnpm@11.20.0"
 }

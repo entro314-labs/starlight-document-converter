@@ -1,0 +1,133 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "warn",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "complexity": "off",
+    "unicorn/no-array-for-each": "off",
+    "no-useless-catch": "off",
+    "no-useless-constructor": "off",
+    "typescript/no-useless-empty-export": "off",
+    "react/jsx-no-useless-fragment": "off",
+    "no-useless-rename": "off",
+    "no-unneeded-ternary": "off",
+    "typescript/prefer-optional-chain": "off",
+    "unicorn/prefer-logical-operator-over-ternary": "off",
+    "no-const-assign": "error",
+    "no-use-before-define": "warn",
+    "import/no-nodejs-modules": "off",
+    "no-unused-vars": "off",
+    "oxc/no-accumulating-spread": "off",
+    "no-eval": "error",
+    "import/no-default-export": "off",
+    "no-implicit-coercion": "off",
+    "no-param-reassign": "off",
+    "prefer-const": "off",
+    "typescript/consistent-type-exports": "off",
+    "typescript/consistent-type-imports": "off",
+    "unicorn/filename-case": "off",
+    "unicorn/prefer-node-protocol": "off",
+    "prefer-template": "off",
+    "no-console": "off",
+    "no-debugger": "off",
+    "eqeqeq": "warn",
+    "typescript/no-explicit-any": "off",
+    "jest/no-focused-tests": "warn",
+    "jest/no-disabled-tests": "off",
+    "require-await": "off",
+    "typescript/no-floating-promises": "off"
+  },
+  "plugins": ["oxc", "typescript", "unicorn", "import", "react", "jest"],
+  "globals": {
+    "console": "readonly",
+    "process": "readonly",
+    "Buffer": "readonly",
+    "__dirname": "readonly",
+    "__filename": "readonly",
+    "global": "readonly",
+    "globalThis": "readonly",
+    "module": "readonly",
+    "require": "readonly",
+    "exports": "readonly"
+  },
+  "settings": {
+    "react": {
+      "version": null,
+      "linkComponents": [],
+      "formComponents": [],
+      "componentWrapperFunctions": []
+    }
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/bin/**",
+        "**/scripts/**",
+        "**/commands/**",
+        "**/cli/**",
+        "**/*.cli.{js,ts}",
+        "**/*.script.{js,ts}",
+        "**/index.{js,ts}"
+      ],
+      "rules": {
+        "no-console": "off",
+        "no-unused-vars": "off",
+        "import/no-nodejs-modules": "off",
+        "no-param-reassign": "off"
+      }
+    },
+    {
+      "files": [
+        "**/*.test.{js,ts}",
+        "**/*.spec.{js,ts}",
+        "**/__tests__/**",
+        "**/test/**",
+        "**/tests/**"
+      ],
+      "rules": {
+        "no-console": "off",
+        "jest/no-focused-tests": "warn",
+        "jest/no-disabled-tests": "off",
+        "typescript/no-explicit-any": "off",
+        "require-await": "off",
+        "no-unused-vars": "off"
+      }
+    },
+    {
+      "files": [
+        "*.config.{js,ts}",
+        "**/config/**",
+        "**/configs/**",
+        "**/rollup.config.*",
+        "**/webpack.config.*",
+        "**/vite.config.*",
+        "**/tsup.config.*",
+        "**/esbuild.config.*"
+      ],
+      "rules": {
+        "import/no-default-export": "off",
+        "no-console": "off",
+        "no-undef": "off",
+        "import/no-nodejs-modules": "off"
+      }
+    },
+    {
+      "files": ["**/*.{js,mjs,cjs}"],
+      "rules": {
+        "no-undef": "off"
+      }
+    },
+    {
+      "files": ["**/*.{ts,mts,cts}"],
+      "rules": {
+        "prefer-const": "off",
+        "prefer-rest-params": "warn"
+      }
+    },
+    {
+      "files": ["**/*.md"]
+    }
+  ]
+}

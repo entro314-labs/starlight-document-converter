@@ -1,4 +1,21 @@
 {
-    "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": []
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "python-envs.pythonProjects": [],
+  "go.goroot": "/Users/dominikospritis/.local/share/mise/installs/go/1.26.0",
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "/Users/dominikospritis/.local/share/mise/shims/node"
+  },
+  "ruff.path": ["/Users/dominikospritis/.local/share/mise/shims/ruff"],
+  "python.defaultInterpreterPath": "/Users/dominikospritis/.local/share/mise/installs/python/3.13.11/bin/python",
+  "go.alternateTools": {
+    "go": "/Users/dominikospritis/.local/share/mise/shims/go",
+    "gopls": "/Users/dominikospritis/.local/share/mise/shims/gopls"
+  },
+  "ruff.interpreter": ["/Users/dominikospritis/.local/share/mise/shims/python"],
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "explicit"
+  }
 }

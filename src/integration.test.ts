@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import { starlightDocumentConverter } from './integration.js'
 
@@ -22,14 +22,20 @@ vi.mock('path', async () => {
 })
 
 describe('Starlight Integration', () => {
-  let mockLogger: { info: vi.Mock; warn: vi.Mock; error: vi.Mock }
+  type LoggerMock = ReturnType<typeof vi.fn<(message: string) => void>>
+
+  let mockLogger: {
+    info: LoggerMock
+    warn: LoggerMock
+    error: LoggerMock
+  }
   let mockAstroConfig: { root: { pathname: string } }
 
   beforeEach(() => {
     mockLogger = {
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
+      info: vi.fn<(message: string) => void>(),
+      warn: vi.fn<(message: string) => void>(),
+      error: vi.fn<(message: string) => void>(),
     }
 
     mockAstroConfig = {
@@ -137,6 +143,7 @@ describe('Starlight Integration', () => {
 
       if (doneHook) {
         const mockContext = {
+          config: mockAstroConfig,
           logger: mockLogger,
         }
 
@@ -158,6 +165,7 @@ describe('Starlight Integration', () => {
 
       if (doneHook) {
         const mockContext = {
+          config: mockAstroConfig,
           logger: mockLogger,
         }
 
@@ -174,7 +182,7 @@ describe('Starlight Integration', () => {
   })
 
   describe('File Watching', () => {
-    it('should set up file watchers when enabled', () => {
+    it('should set up file watchers when enabled', async () => {
       // Note: File watching is tested through integration setup
 
       const integration = starlightDocumentConverter({
@@ -191,7 +199,7 @@ describe('Starlight Integration', () => {
           logger: mockLogger,
         }
 
-        setupHook(mockContext)
+        await setupHook(mockContext)
 
         // Note: Actual file watching test would require more complex mocking
         // This test mainly ensures the integration structure is correct
@@ -226,10 +234,7 @@ describe('Starlight Integration', () => {
           logger: mockLogger,
         }
 
-        // Should not throw even with non-existent directory
-        await expect(async () => {
-          await setupHook(mockContext)
-        }).not.toThrow()
+        await expect(setupHook(mockContext)).resolves.toBeUndefined()
       }
     })
   })

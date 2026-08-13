@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite-plus'
 
 export default defineConfig({
   test: {
@@ -8,9 +8,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: [
-        'src/**/*.{ts,js}'
-      ],
+      include: ['src/**/*.{ts,js}'],
       exclude: [
         'node_modules/',
         'dist/',
@@ -23,16 +21,16 @@ export default defineConfig({
         'src/test-setup.ts',
         // Exclude test helper files
         'test-*.js',
-        'src/content/**/*'
+        'src/content/**/*',
       ],
       thresholds: {
         global: {
           branches: 80,
           functions: 80,
           lines: 80,
-          statements: 80
-        }
-      }
-    }
-  }
-});
+          statements: 80,
+        },
+      },
+    },
+  },
+})

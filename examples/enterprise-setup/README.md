@@ -36,9 +36,9 @@ enterprise-setup/
 
 ```js
 // config/production.config.mjs
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
-import starlightDocumentConverter from 'starlight-document-converter';
+import { defineConfig } from 'astro/config'
+import starlight from '@astrojs/starlight'
+import starlightDocumentConverter from 'starlight-document-converter'
 
 export default defineConfig({
   integrations: [
@@ -82,7 +82,7 @@ export default defineConfig({
         Footer: './src/components/CustomFooter.astro',
       },
     }),
-    
+
     starlightDocumentConverter({
       enabled: process.env.NODE_ENV !== 'test',
       watch: process.env.NODE_ENV === 'development',
@@ -90,7 +90,7 @@ export default defineConfig({
         'content-sources/product-docs',
         'content-sources/engineering',
         'content-sources/api-specs',
-        'content-sources/external-imports'
+        'content-sources/external-imports',
       ],
       converter: {
         outputDir: 'src/content/docs',
@@ -100,47 +100,47 @@ export default defineConfig({
         addTimestamps: true,
         verbose: process.env.NODE_ENV === 'development',
         dryRun: process.env.DRY_RUN === 'true',
-        
+
         // Enterprise category patterns
         categoryPatterns: {
-          'product': 'Product Documentation',
-          'api': 'API Reference',
-          'engineering': 'Engineering Guides',
-          'security': 'Security Documentation',
-          'compliance': 'Compliance & Legal',
-          'onboarding': 'Employee Onboarding',
-          'process': 'Business Processes',
-          'architecture': 'System Architecture',
-          'runbook': 'Operations Runbooks'
+          product: 'Product Documentation',
+          api: 'API Reference',
+          engineering: 'Engineering Guides',
+          security: 'Security Documentation',
+          compliance: 'Compliance & Legal',
+          onboarding: 'Employee Onboarding',
+          process: 'Business Processes',
+          architecture: 'System Architecture',
+          runbook: 'Operations Runbooks',
         },
-        
+
         // Advanced tag patterns for enterprise content
         tagPatterns: {
-          'confidential': ['confidential', 'internal', 'restricted'],
-          'public': ['public', 'external', 'customer-facing'],
+          confidential: ['confidential', 'internal', 'restricted'],
+          public: ['public', 'external', 'customer-facing'],
           'product-alpha': ['alpha', 'product-alpha'],
           'product-beta': ['beta', 'product-beta'],
-          'deprecated': ['deprecated', 'legacy', 'end-of-life'],
-          'compliance': ['gdpr', 'soc2', 'hipaa', 'compliance'],
-          'security': ['security', 'vulnerability', 'incident'],
-          'architecture': ['architecture', 'design', 'system-design'],
-          'operations': ['ops', 'devops', 'sre', 'monitoring']
-        }
-      }
-    })
+          deprecated: ['deprecated', 'legacy', 'end-of-life'],
+          compliance: ['gdpr', 'soc2', 'hipaa', 'compliance'],
+          security: ['security', 'vulnerability', 'incident'],
+          architecture: ['architecture', 'design', 'system-design'],
+          operations: ['ops', 'devops', 'sre', 'monitoring'],
+        },
+      },
+    }),
   ],
-  
+
   // Performance optimizations for enterprise scale
   build: {
     split: true,
-    format: 'directory'
+    format: 'directory',
   },
-  
+
   // Security headers
   security: {
-    checkOrigin: true
-  }
-});
+    checkOrigin: true,
+  },
+})
 ```
 
 ## Security Configuration
@@ -151,111 +151,137 @@ export const securityConfig = {
   // Content sanitization rules
   sanitization: {
     allowedTags: [
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'p', 'br', 'ul', 'ol', 'li',
-      'strong', 'em', 'code', 'pre',
-      'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
-      'a', 'img'
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'p',
+      'br',
+      'ul',
+      'ol',
+      'li',
+      'strong',
+      'em',
+      'code',
+      'pre',
+      'blockquote',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
+      'a',
+      'img',
     ],
     allowedAttributes: {
-      'a': ['href', 'title'],
-      'img': ['src', 'alt', 'title', 'width', 'height'],
-      'code': ['class'],
-      'pre': ['class']
+      a: ['href', 'title'],
+      img: ['src', 'alt', 'title', 'width', 'height'],
+      code: ['class'],
+      pre: ['class'],
     },
     allowedSchemes: ['http', 'https', 'mailto'],
-    stripIgnoreTag: true
+    stripIgnoreTag: true,
   },
-  
+
   // Content validation rules
   validation: {
     maxFileSize: '10MB',
-    allowedExtensions: ['.md', '.mdx', '.txt', '.html', '.htm', '.docx', '.doc'],
+    allowedExtensions: [
+      '.md',
+      '.mdx',
+      '.txt',
+      '.html',
+      '.htm',
+      '.docx',
+      '.doc',
+    ],
     requireApproval: ['confidential', 'restricted'],
     bannedPatterns: [
       /password\s*[:=]\s*\w+/gi,
       /api[_-]?key\s*[:=]\s*\w+/gi,
-      /secret\s*[:=]\s*\w+/gi
-    ]
+      /secret\s*[:=]\s*\w+/gi,
+    ],
   },
-  
+
   // Access control
   accessControl: {
     restrictedCategories: ['confidential', 'internal'],
     approvers: {
-      'security': ['security-team@company.com'],
-      'compliance': ['compliance@company.com'],
-      'engineering': ['eng-leads@company.com']
-    }
-  }
-};
+      security: ['security-team@company.com'],
+      compliance: ['compliance@company.com'],
+      engineering: ['eng-leads@company.com'],
+    },
+  },
+}
 ```
 
 ## Batch Processing Workflow
 
 ```js
 // workflows/batch-processing/processor.js
-import { DocumentConverter } from 'starlight-document-converter';
-import { securityConfig } from '../../config/security.config.js';
+import { DocumentConverter } from 'starlight-document-converter'
+import { securityConfig } from '../../config/security.config.js'
 
 export class EnterpriseProcessor {
   constructor(config) {
-    this.converter = new DocumentConverter(config);
-    this.security = securityConfig;
-    this.processedCount = 0;
-    this.errors = [];
+    this.converter = new DocumentConverter(config)
+    this.security = securityConfig
+    this.processedCount = 0
+    this.errors = []
   }
-  
+
   async processBatch(inputDir, options = {}) {
-    console.log(`Starting batch processing of: ${inputDir}`);
-    
+    console.log(`Starting batch processing of: ${inputDir}`)
+
     try {
       // Security validation
-      await this.validateInputSecurity(inputDir);
-      
+      await this.validateInputSecurity(inputDir)
+
       // Process documents with progress tracking
-      const results = await this.converter.convertDirectory(inputDir);
-      
+      const results = await this.converter.convertDirectory(inputDir)
+
       // Post-processing validation
-      await this.validateOutputQuality(results);
-      
+      await this.validateOutputQuality(results)
+
       // Generate processing report
-      return this.generateReport(results);
-      
+      return this.generateReport(results)
     } catch (error) {
-      this.errors.push(error);
-      throw new Error(`Batch processing failed: ${error.message}`);
+      this.errors.push(error)
+      throw new Error(`Batch processing failed: ${error.message}`)
     }
   }
-  
+
   async validateInputSecurity(inputDir) {
     // Check for sensitive data patterns
     // Validate file sizes and types
     // Scan for malicious content
   }
-  
+
   async validateOutputQuality(results) {
     // Quality score validation
     // Content structure validation
     // Metadata completeness checks
   }
-  
+
   generateReport(results) {
     return {
       summary: {
         total: results.length,
-        successful: results.filter(r => r.success).length,
-        failed: results.filter(r => !r.success).length,
-        processingTime: Date.now() - this.startTime
+        successful: results.filter((r) => r.success).length,
+        failed: results.filter((r) => !r.success).length,
+        processingTime: Date.now() - this.startTime,
       },
       qualityMetrics: {
         averageQualityScore: this.calculateAverageQuality(results),
-        highQuality: results.filter(r => r.quality === 'high').length,
-        needsReview: results.filter(r => r.quality === 'low').length
+        highQuality: results.filter((r) => r.quality === 'high').length,
+        needsReview: results.filter((r) => r.quality === 'low').length,
       },
       errors: this.errors,
-      recommendations: this.generateRecommendations(results)
-    };
+      recommendations: this.generateRecommendations(results),
+    }
   }
 }
 ```
@@ -263,35 +289,37 @@ export class EnterpriseProcessor {
 ## Integration Examples
 
 ### Confluence Integration
+
 ```js
 // integrations/confluence/connector.js
 export class ConfluenceConnector {
   constructor(config) {
-    this.baseUrl = config.confluenceUrl;
-    this.token = config.token;
+    this.baseUrl = config.confluenceUrl
+    this.token = config.token
   }
-  
+
   async syncSpace(spaceKey, outputDir) {
-    const pages = await this.getSpacePages(spaceKey);
-    
+    const pages = await this.getSpacePages(spaceKey)
+
     for (const page of pages) {
-      const content = await this.getPageContent(page.id);
-      const htmlFile = `${outputDir}/${page.title}.html`;
-      
-      await writeFile(htmlFile, content);
+      const content = await this.getPageContent(page.id)
+      const htmlFile = `${outputDir}/${page.title}.html`
+
+      await writeFile(htmlFile, content)
     }
-    
+
     // Trigger conversion
     const converter = new DocumentConverter({
-      outputDir: 'src/content/docs/confluence'
-    });
-    
-    return await converter.convertDirectory(outputDir);
+      outputDir: 'src/content/docs/confluence',
+    })
+
+    return await converter.convertDirectory(outputDir)
   }
 }
 ```
 
 ### Slack Notifications
+
 ```js
 // integrations/slack-notifications/notifier.js
 export class SlackNotifier {
@@ -299,29 +327,31 @@ export class SlackNotifier {
     const message = {
       channel: '#documentation',
       text: 'Documentation conversion completed',
-      attachments: [{
-        color: results.errors.length > 0 ? 'warning' : 'good',
-        fields: [
-          {
-            title: 'Files Processed',
-            value: results.summary.total,
-            short: true
-          },
-          {
-            title: 'Success Rate',
-            value: `${(results.summary.successful / results.summary.total * 100).toFixed(1)}%`,
-            short: true
-          },
-          {
-            title: 'Average Quality Score',
-            value: results.qualityMetrics.averageQualityScore,
-            short: true
-          }
-        ]
-      }]
-    };
-    
-    await this.sendSlackMessage(message);
+      attachments: [
+        {
+          color: results.errors.length > 0 ? 'warning' : 'good',
+          fields: [
+            {
+              title: 'Files Processed',
+              value: results.summary.total,
+              short: true,
+            },
+            {
+              title: 'Success Rate',
+              value: `${((results.summary.successful / results.summary.total) * 100).toFixed(1)}%`,
+              short: true,
+            },
+            {
+              title: 'Average Quality Score',
+              value: results.qualityMetrics.averageQualityScore,
+              short: true,
+            },
+          ],
+        },
+      ],
+    }
+
+    await this.sendSlackMessage(message)
   }
 }
 ```
@@ -329,34 +359,35 @@ export class SlackNotifier {
 ## Monitoring and Analytics
 
 ### Performance Monitoring
+
 ```js
 // monitoring/performance/tracker.js
 export class PerformanceTracker {
   constructor() {
-    this.metrics = new Map();
+    this.metrics = new Map()
   }
-  
+
   trackConversion(file, startTime, endTime, quality) {
-    const duration = endTime - startTime;
-    const size = this.getFileSize(file);
-    
+    const duration = endTime - startTime
+    const size = this.getFileSize(file)
+
     this.metrics.set(file, {
       duration,
       size,
       quality,
       throughput: size / duration,
-      timestamp: Date.now()
-    });
+      timestamp: Date.now(),
+    })
   }
-  
+
   getMetrics() {
     return {
       totalConversions: this.metrics.size,
       averageDuration: this.calculateAverage('duration'),
       averageQuality: this.calculateAverage('quality'),
       throughput: this.calculateThroughput(),
-      slowestConversions: this.getSlowestConversions(10)
-    };
+      slowestConversions: this.getSlowestConversions(10),
+    }
   }
 }
 ```
@@ -364,6 +395,7 @@ export class PerformanceTracker {
 ## Deployment Scripts
 
 ### Production Deployment
+
 ```bash
 #!/bin/bash
 # scripts/deploy-production.sh

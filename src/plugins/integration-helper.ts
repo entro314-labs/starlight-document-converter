@@ -6,6 +6,7 @@ import type { ProcessingContext } from './types.js'
  * Integration helper to bridge the main converter with the plugin system
  */
 // biome-ignore lint/complexity/noStaticOnlyClass: Utility class with organized static methods
+// eslint-disable-next-line typescript-eslint/no-extraneous-class
 export class PluginIntegrationHelper {
   /**
    * Apply all registered metadata enhancers to the given metadata

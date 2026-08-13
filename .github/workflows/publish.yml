@@ -11,9 +11,9 @@ on:
         default: 'patch'
         type: choice
         options:
-        - patch
-        - minor
-        - major
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -31,13 +31,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '24.19.0'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11.20.0
 
       - name: Get pnpm store directory
         shell: bash
@@ -60,14 +60,14 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           # Bump version based on input
           pnpm version ${{ github.event.inputs.release_type }} --no-git-tag-version
-          
+
           # Get new version
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          
+
           # Commit version bump
           git add package.json
           git commit -m "chore: bump version to v$NEW_VERSION"
@@ -102,21 +102,21 @@ jobs:
           release_name: v${{ env.NEW_VERSION || env.VERSION }}
           body: |
             ## 🚀 Release v${{ env.NEW_VERSION || env.VERSION }}
-            
+
             ### What's New
-            
+
             - Improvements and bug fixes
             - Enhanced CLI experience
             - Better Starlight integration
-            
+
             ### Installation
-            
+
             ```bash
             npx @entro314labs/starlight-document-converter
             ```
-            
+
             ### Full Changelog
-            
+
             See all changes: https://github.com/${{ github.repository }}/compare/v${{ env.PREVIOUS_VERSION }}...v${{ env.NEW_VERSION || env.VERSION }}
           draft: false
           prerelease: false

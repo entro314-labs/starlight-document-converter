@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import { symbols } from './cli-styling.js'
 
@@ -73,7 +73,7 @@ describe('Cross-Platform Styling Compatibility', () => {
     })
 
     it('should handle CI/CD environments', () => {
-      const ciEnvs = [
+      const ciEnvs: Array<Record<string, string>> = [
         { CI: 'true', GITHUB_ACTIONS: 'true' },
         { CI: 'true', TRAVIS: 'true' },
         { CI: 'true', JENKINS_URL: 'http://jenkins.local' },
@@ -93,7 +93,13 @@ describe('Cross-Platform Styling Compatibility', () => {
           expect(typeof symbol).toBe('string')
 
           // Should not break CI output parsing
-          expect(symbol).not.toMatch(/[\x00-\x1F\x7F]/) // No control characters except newlines
+          const hasControlCharacter = Array.from(symbol).some((character) => {
+            const codePoint = character.codePointAt(0)
+            return (
+              codePoint !== undefined && ((codePoint >= 0 && codePoint <= 31) || codePoint === 127)
+            )
+          })
+          expect(hasControlCharacter).toBe(false)
         })
       })
     })
@@ -227,7 +233,7 @@ describe('Cross-Platform Styling Compatibility', () => {
         writable: true,
       })
 
-      const linuxTerminals = [
+      const linuxTerminals: Array<Record<string, string>> = [
         { TERM: 'xterm-256color', GNOME_TERMINAL_SCREEN: '/dev/pts/0' },
         { TERM: 'screen-256color', TMUX: '/tmp/tmux-1000/default,1234,0' },
         { TERM: 'xterm-256color', KONSOLE_VERSION: '210800' },
@@ -320,9 +326,19 @@ describe('Cross-Platform Styling Compatibility', () => {
       // Simulate module reload by clearing require cache would go here
       // but since we're using ES modules, we test consistency differently
 
-      Object.keys(firstLoad).forEach((key) => {
-        expect(symbols[key]).toBe(firstLoad[key])
-      })
+      expect(symbols.success).toBe(firstLoad.success)
+      expect(symbols.error).toBe(firstLoad.error)
+      expect(symbols.warning).toBe(firstLoad.warning)
+      expect(symbols.info).toBe(firstLoad.info)
+      expect(symbols.arrow).toBe(firstLoad.arrow)
+      expect(symbols.bullet).toBe(firstLoad.bullet)
+      expect(symbols.star).toBe(firstLoad.star)
+      expect(symbols.heart).toBe(firstLoad.heart)
+      expect(symbols.checkbox).toBe(firstLoad.checkbox)
+      expect(symbols.radioOn).toBe(firstLoad.radioOn)
+      expect(symbols.pointer).toBe(firstLoad.pointer)
+      expect(symbols.line).toBe(firstLoad.line)
+      expect(symbols.corner).toBe(firstLoad.corner)
     })
   })
 

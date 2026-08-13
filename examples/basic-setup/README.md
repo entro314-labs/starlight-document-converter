@@ -5,16 +5,19 @@ This example shows the simplest way to set up Starlight Document Converter.
 ## Quick Start
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Create sample documents:**
+
    ```bash
    npm run create-samples
    ```
 
 3. **Convert documents:**
+
    ```bash
    npm run convert
    ```
@@ -48,18 +51,18 @@ basic-setup/
 
 ```js
 // astro.config.mjs
-import { defineConfig } from 'astro/config';
-import starlight from '@astrojs/starlight';
-import starlightDocumentConverter from 'starlight-document-converter';
+import { defineConfig } from 'astro/config'
+import starlight from '@astrojs/starlight'
+import starlightDocumentConverter from 'starlight-document-converter'
 
 export default defineConfig({
   integrations: [
     starlight({
       title: 'Documentation',
     }),
-    starlightDocumentConverter()
+    starlightDocumentConverter(),
   ],
-});
+})
 ```
 
 ## Try It

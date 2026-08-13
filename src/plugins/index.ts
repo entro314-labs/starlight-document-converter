@@ -20,9 +20,8 @@ export async function registerBuiltInPlugins() {
   const { jsonProcessor } = await import('./built-in/json-processor.js')
   const { markdownProcessor } = await import('./built-in/markdown-processor.js')
   const { contentQualityValidator } = await import('./built-in/quality-validator.js')
-  const { frontmatterEnhancer, frontmatterValidator } = await import(
-    './built-in/frontmatter-repair.js'
-  )
+  const { frontmatterEnhancer, frontmatterValidator } =
+    await import('./built-in/frontmatter-repair.js')
 
   // Register built-in plugins in priority order
   pluginRegistry.registerEnhancer(frontmatterEnhancer) // Priority 100

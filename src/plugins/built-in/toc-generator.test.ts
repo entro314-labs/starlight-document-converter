@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 
 import { TocGenerator } from './toc-generator.js'
+import type { TocEntry } from '../../types.js'
 
 describe('TocGenerator', () => {
   const tocGen = new TocGenerator()
@@ -62,13 +63,11 @@ Content without enough headings.`
       const toc = tocGen4.generateToc(content)
 
       // Should not include headings deeper than level 4
-      const allEntries: Array<{ level: number; children?: unknown[] }> = []
-      const collectEntries = (entries: Array<{ level: number; children?: unknown[] }>) => {
+      const allEntries: TocEntry[] = []
+      const collectEntries = (entries: TocEntry[]) => {
         for (const entry of entries) {
           allEntries.push(entry)
-          if (entry.children) {
-            collectEntries(entry.children as Array<{ level: number; children?: unknown[] }>)
-          }
+          if (entry.children) collectEntries(entry.children)
         }
       }
       collectEntries(toc)

@@ -24,7 +24,7 @@ export interface TransformRule {
   /** Pattern to match */
   pattern: RegExp
   /** Replacement function or string */
-  replacement: string | ((match: string, ...groups: string[]) => string)
+  replacement: string | ((match: string, ...args: any[]) => string)
   /** Component to import if transformation is applied */
   imports?: Array<{ name: string; source: string }>
 }
@@ -96,7 +96,7 @@ export class JSXTransformer implements FileProcessor {
    * > Content
    */
   private transformGitHubAlerts(content: string): string {
-    const alertTypes = {
+    const alertTypes: Record<string, string> = {
       NOTE: 'note',
       TIP: 'tip',
       IMPORTANT: 'note',
@@ -115,7 +115,8 @@ export class JSXTransformer implements FileProcessor {
 
       this.addImport('Aside', '@astrojs/starlight/components')
 
-      const mappedType = alertTypes[type as keyof typeof alertTypes] || 'note'
+      const rawType = typeof type === 'string' ? type.toUpperCase() : ''
+      const mappedType = alertTypes[rawType] || 'note'
       return `<Aside type="${mappedType}">\n${lines}\n</Aside>\n`
     })
   }
@@ -213,7 +214,11 @@ export class JSXTransformer implements FileProcessor {
    * Apply custom transformation rule
    */
   private applyCustomRule(content: string, rule: TransformRule): string {
-    const result = content.replace(rule.pattern, rule.replacement as any)
+    const replacement = rule.replacement
+    const result =
+      typeof replacement === 'string'
+        ? content.replace(rule.pattern, replacement)
+        : content.replace(rule.pattern, (...args) => replacement(...args))
 
     // Track if the rule was applied
     if (result !== content && rule.imports) {
@@ -244,7 +249,7 @@ export class JSXTransformer implements FileProcessor {
     // Generate import statements
     const importStatements: string[] = []
     for (const [source, components] of importsBySource) {
-      const componentList = Array.from(components).sort().join(', ')
+      const componentList = Array.from(components).toSorted().join(', ')
       importStatements.push(`import { ${componentList} } from '${source}';`)
     }
 
