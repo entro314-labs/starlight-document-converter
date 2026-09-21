@@ -12,7 +12,7 @@ This example demonstrates a complete content workflow with file watching, custom
 
 ## Directory Structure
 
-```
+```tree
 advanced-workflow/
 ├── content-sources/
 │   ├── team-docs/         # Team documentation

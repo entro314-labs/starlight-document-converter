@@ -64,7 +64,7 @@ This directory contains example configurations and usage patterns for the Starli
 
 ## File Structure
 
-```
+```tree
 example-project/
 ├── docs-import/          # Drop documents here
 │   ├── guides/

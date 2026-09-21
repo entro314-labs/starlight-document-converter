@@ -36,7 +36,7 @@ This example shows the simplest way to set up Starlight Document Converter.
 
 ## Directory Structure
 
-```
+```tree
 basic-setup/
 ├── docs-import/           # Source documents
 │   ├── welcome.md

@@ -12,7 +12,7 @@ This example shows how to set up Starlight Document Converter for enterprise env
 
 ## Architecture Overview
 
-```
+```tree
 enterprise-setup/
 ├── config/
 │   ├── production.config.mjs    # Production configuration
