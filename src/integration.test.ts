@@ -234,7 +234,7 @@ describe('Starlight Integration', () => {
           logger: mockLogger,
         }
 
-        await expect(setupHook(mockContext)).resolves.toBeUndefined()
+        expect(setupHook(mockContext)).toBeUndefined()
       }
     })
   })
