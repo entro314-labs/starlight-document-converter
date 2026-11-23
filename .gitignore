@@ -136,3 +136,4 @@ dist
 .pnp.*
 MDX_GUIDE.md
 MDX_IMPLEMENTATION.md
+.vitest/
