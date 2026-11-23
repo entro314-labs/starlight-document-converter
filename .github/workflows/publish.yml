@@ -80,6 +80,7 @@ jobs:
         run: |
           pnpm run check
           pnpm run typecheck
+          pnpm run build
           pnpm run test
 
       - name: Build package
