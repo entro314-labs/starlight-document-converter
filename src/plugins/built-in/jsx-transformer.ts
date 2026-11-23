@@ -129,7 +129,7 @@ export class JSXTransformer implements FileProcessor {
    */
   private transformAdmonitions(content: string): string {
     const admonitionPattern =
-      /^:::+\s*(note|tip|info|caution|danger|warning)(?:\s+(.+?))?\s*$\n((?:(?!^:::).*\n?)*?)^:::+\s*$/gim
+      /^:::+\s*(note|tip|info|caution|danger|warning)(?:[ \t]+(.+?))?[ \t]*$\n((?:(?!^:::).*\n?)*?)^:::+\s*$/gim
 
     return content.replace(admonitionPattern, (match, type, title, admonitionContent) => {
       this.addImport('Aside', '@astrojs/starlight/components')
