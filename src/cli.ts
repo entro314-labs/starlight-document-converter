@@ -19,6 +19,7 @@ import { Command } from 'commander'
 import pc from 'picocolors'
 
 import { DocumentConverter } from './converter.js'
+import { packageVersion } from './package-version.js'
 import type { ConversionResult } from './types.js'
 import type { ValidationStats } from './utils/cli-commands.js'
 import { detectInputSources, getOutputDirectory, getSmartDefaults } from './utils/cli-helpers.js'
@@ -491,7 +492,7 @@ export default defineConfig({
 program
   .name('starlight-convert')
   .description('🌟 Beautiful document converter for Starlight')
-  .version('1.7.0')
+  .version(packageVersion)
   .action(async () => {
     // Default interactive mode
     await interactiveConvert()
@@ -856,7 +857,7 @@ program
   })
 
 // Enhanced Help command
-program.addHelpText('before', createBrandHeader('Starlight Document Converter', '1.7.0'))
+program.addHelpText('before', createBrandHeader('Starlight Document Converter', packageVersion))
 
 program.addHelpText(
   'after',

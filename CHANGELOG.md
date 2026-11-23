@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Admonitions (`:::tip`) and cards (`::: card`) written without a title no longer take their first content line as the title.
+- `--version` and the help header report the version from package.json instead of a hard-coded 1.7.0.
 
 ### Changed
 
