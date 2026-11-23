@@ -222,7 +222,7 @@ This document has proper frontmatter.`
     it('should build without errors', async () => {
       const { stdout, stderr } = await execAsync('npm run build')
 
-      expect(stdout).toContain('Build success')
+      expect(stdout).toContain('Build complete')
       expect(stderr).not.toContain('error')
       expect(stderr).not.toContain('Error')
     })
