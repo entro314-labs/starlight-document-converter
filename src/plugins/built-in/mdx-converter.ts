@@ -239,7 +239,7 @@ export class MDXConverter implements FileProcessor {
    *   :::
    */
   private convertCards(content: string): string {
-    const cardPattern = /^:::+\s*card(?:\s+(.+?))?\s*$\n((?:(?!^:::).*\n?)*?)^:::+\s*$/gm
+    const cardPattern = /^:::+\s*card(?:[ \t]+(.+?))?[ \t]*$\n((?:(?!^:::).*\n?)*?)^:::+\s*$/gm
 
     return content.replace(cardPattern, (match, title, cardContent) => {
       this.addImport('Card', '@astrojs/starlight/components')

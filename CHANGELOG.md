@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Admonitions (`:::tip`) and cards (`::: card`) written without a title no longer take their first content line as the title.
+
+### Changed
+
+- Updated runtime dependencies: chalk 6, boxen 9, commander 15, ora 10, @clack/core 1.6, @clack/prompts 1.9, mammoth 1.13, turndown 7.2.5.
+
 ## [1.7.0] - 2025-08-10
 
 ### 🎉 New Features
