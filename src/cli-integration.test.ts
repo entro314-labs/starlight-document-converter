@@ -335,8 +335,10 @@ describe('CLI Integration Tests', () => {
       const end = Date.now()
       const duration = end - start
 
-      // Should complete in reasonable time (less than 1 second)
-      expect(duration).toBeLessThan(1000)
+      // Laying out 1,000 rows takes cli-table3 roughly a second on a shared CI runner with coverage
+      // enabled (900-1400ms measured), so a 1s budget failed at random. The budget only has to catch
+      // a superlinear blow-up, which would take far longer than this.
+      expect(duration).toBeLessThan(5000)
     })
 
     it('should not accumulate memory with repeated operations', () => {
