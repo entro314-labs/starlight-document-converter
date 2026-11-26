@@ -85,7 +85,7 @@
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
     "jsdom": "^31.0.1",
-    "oxfmt": "^0.79.0",
+    "oxfmt": "^0.80.0",
     "oxlint": "^1.94.0",
     "oxlint-tsgolint": "^7.0.2008",
     "typescript": "rc",
