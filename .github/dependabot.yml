@@ -1,0 +1,52 @@
+# .github/dependabot.yml
+#
+# One entry per ecosystem this repo has, at the paths it has them.
+#
+#   - Weekly, Monday 09:00 Athens: one predictable batch of PRs. Security updates
+#     ignore the schedule and still open immediately.
+#   - No cooldown: a release is proposed on day zero (`default-days: 0` is explicit
+#     because Dependabot otherwise waits 3 days).
+#   - Minor + patch bumps share one PR per ecosystem; a major comes on its own.
+#   - Commit messages are `chore(deps): …` / `chore(deps-dev): …` / `ci(deps): …`:
+#     `include: scope` appends the scope to the bare prefix.
+#   - Labels are Dependabot's defaults (dependencies + the ecosystem).
+#   - Every bump PR must pass CI before merging.
+version: 2
+updates:
+  # ── GitHub Actions ──────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Europe/Athens
+    cooldown:
+      default-days: 0
+    groups:
+      github-actions-minor-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+      include: scope
+
+  # ── npm (pnpm lockfile) ─────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '09:00'
+      timezone: Europe/Athens
+    cooldown:
+      default-days: 0
+    groups:
+      npm-minor-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
